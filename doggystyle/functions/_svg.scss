@@ -1,0 +1,15 @@
+// Generates a clean url attribute for compressed or uncompressed svg data
+//
+// @param {String} $svg
+//   Enter the data string excluding any prefixes. 
+//   Generate the compressed svg data using this website: http://b64.io/
+//
+// @example scss - Usage
+//   background-image:svg($facebook-icon,'base64');
+//   background-image:svg('<svg height="100" width="100"><circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" /></svg>', 'svg');
+//
+// @return {Bool}
+@function svg($svg) {
+  $data:if(str-index($svg, '<svg'), "data:image/svg+xml;utf8, ", "data:image/svg+xml;base64, ");
+  @return url($data + unquote($svg));
+}

@@ -1,0 +1,12 @@
+// Insert image into background, and change the size of the element to the image size too.
+@mixin image($img, $responsive:true, $property:null){
+  @include background-image($img); display:block; 
+  @if ($responsive) { 
+    @include aspect-ratio($img); 
+    @include image-size($img, "max"); 
+    background-size:100%;
+  } @else { 
+    background-size:100% auto;
+    @include image-size($img, $property); 
+  }
+}

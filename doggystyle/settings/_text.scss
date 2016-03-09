@@ -1,0 +1,10 @@
+$font-size: 16 !default;
+$size:      addUnit($font-size) !default;
+$fs:        $size !default;
+
+$h1:        ($font-size*2.5) !default; // 40px
+$h2:        (($h1 - $font-size) / 2) + $font-size !default; // 28px
+$h3:        (($h2 - $font-size) / 2) + $font-size !default; // 22px
+$h4:        (($h3 - $font-size) / 2) + $font-size !default; // 19px
+$h5:        (($h4 - $font-size) / 2) + $font-size !default; // 17.5px
+$h6:        (($h5 - $font-size) / 2) + $font-size !default; // 16.75px

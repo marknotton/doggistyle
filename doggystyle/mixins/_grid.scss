@@ -1,0 +1,40 @@
+@mixin grid($count, $gutter:0, $offset:0, $important:false) {
+  float:left;
+  // Set Guttering
+  @if ($gutter == true) { $gutter:$padding; }
+  @if ($gutter == null or $gutter == false) { $gutter:0; }
+  @if ($gutter != 0 or $count == 1) {
+    // TODO: Make it so the CSS output doesn't replicate the content.
+    @for $i from 1 through $count { @include nth($i, true) { clear:none; margin-right:$gutter#{px}; } }
+    @include nth($count, true) { margin-right:0; }
+  }
+  @if ($count == 1) { @include nth($count, true) { margin-right:0; } }
+
+  @if ($offset == null or $offset == false) { $offset:0; }
+
+  // Checks
+  $width:     if($count  >  1, 100%/$count, 100%);
+  $remainder: if($gutter != 0, + ($gutter/$count#{px}), null);
+  $gutter:    if($gutter != 0, - ($gutter#{px}), null);
+
+  $offsets : null;
+  @each $off in $offset {
+    @if $off != 0 {
+      @if type-of($off) == string {
+       $equation: if(str-slice($off, 1, 1) == "+", "+", "-");
+        // If the number has a + or a - as a first character, then reset the $off variable after stripping that first chracter.
+        $off: if(str-index($off, "+") == 1 or str-index($off, "-") == 1, str-slice(#{$off}, 2, str-length($off)), $off);
+        $offsets : $offsets #{$equation} if(unitless(number($off)), (number($off)/$count#{px}), number($off)/$count);
+      }
+      @if type-of($off) == number {
+        $offsets : $offsets #{"-"} if(unitless($off), ($off/$count#{px}), $off/$count);
+      }
+    }
+  }
+
+  @if ( $gutter != null or $offset != null ) {
+    @include width(($width, $gutter, $remainder, $offsets), imp($important));
+  } @else {
+    width:$width imp($important);
+  }
+}

@@ -1,0 +1,53 @@
+@mixin gradient($args...) {
+  background-image: -webkit-linear-gradient($args); 
+  background-image: -o-linear-gradient($args); 
+  background-image: linear-gradient($args);
+}
+
+// Horizontal gradient, from left to right
+@mixin gradient-horizontal($start-colour:white, $end-colour:black, $direction: right) {
+  background-image: -webkit-linear-gradient($direction, $start-colour, $end-colour); // Safari 5.1-6, Chrome 10+
+  background-image: -o-linear-gradient($direction, $start-colour, $end-colour); // Opera 12
+  background-image: linear-gradient(to opposite-direction($direction), $start-colour, $end-colour); // Standard, IE10, Firefox 16+, Opera 12.10+, Safari 7+, Chrome 26+
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#{ie-hex-str(nth($start-colour, 1))}', endColorstr='#{ie-hex-str(nth($end-colour, 1))}', GradientType=1); // IE9 and down
+}
+
+// Vertical gradient, from top to bottom
+@mixin gradient-vertical($start-colour:white, $end-colour:black, $direction: top) {
+  background-image: -webkit-linear-gradient($direction, $start-colour, $end-colour);  // Safari 5.1-6, Chrome 10+
+  background-image: -o-linear-gradient($direction, $start-colour, $end-colour);  // Opera 12
+  background-image: linear-gradient(to opposite-direction($direction), $start-colour, $end-colour); // Standard, IE10, Firefox 16+, Opera 12.10+, Safari 7+, Chrome 26+
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#{ie-hex-str(nth($start-colour, 1))}', endColorstr='#{ie-hex-str(nth($end-colour, 1))}', GradientType=0); // IE9 and down
+}
+
+@mixin gradient-right($start-colour:white, $end-colour:black, $direction:left) {
+  @include gradient-horizontal($start-colour, $end-colour, $direction);
+}
+
+@mixin gradient-left($start-colour:white, $end-colour:black, $direction:right) {
+  @include gradient-horizontal($start-colour, $end-colour, $direction);
+}
+
+@mixin gradient-top($start-colour:white, $end-colour:black, $direction:top) {
+  @include gradient-vertical($start-colour, $end-colour, $direction);
+}
+
+@mixin gradient-bottom($start-colour:white, $end-colour:black, $direction:bottom) {
+  @include gradient-vertical($start-colour, $end-colour, $direction);
+}
+
+@mixin gradient-directional($start-colour:white, $end-colour:black, $deg:45) {
+  background-repeat: repeat-x;
+  background-image: -webkit-linear-gradient($deg+deg, $start-colour, $end-colour);
+  background-image: -o-linear-gradient($deg+deg, $start-colour, $end-colour);
+  background-image: linear-gradient($deg+deg, $start-colour, $end-colour);
+}
+
+@mixin gradient-radial($inner-colour:white, $outer-colour:black) {
+  background-image: -webkit-radial-gradient(circle, $inner-colour, $outer-colour);
+  background-image: radial-gradient(circle, $inner-colour, $outer-colour);
+  background-repeat: no-repeat;
+}
+

@@ -1,0 +1,15 @@
+@mixin selection($background-color:null, $text-colour:$background-color) {
+  @if ($text-colour == null or $text-colour == $background-color) { 
+    $text-colour:light-or-dark($background-color);
+  }
+  ::-moz-selection { 
+    color: $text-colour;
+    background: col($background-color, 0.5);
+    @content;
+  }
+  ::selection {
+    color: $text-colour; 
+    background: col($background-color, 0.5);
+    @content;
+  }
+}

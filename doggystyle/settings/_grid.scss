@@ -1,0 +1,23 @@
+// Neat
+$visual-grid:   false !global;
+$column:        90px  !global;
+$gutter:        0px   !global;
+$grid-columns:  12    !global;
+
+// Global
+$mobile-first:  false !default;
+
+$max:           1440  !default;
+$min:           320   !default;
+
+$max-width:     addUnit($max);
+$min-width:     addUnit($min);
+
+$maximum:       $max-width;
+$minimum:       $min-width;
+
+$small:         480  !default;
+$large:         1080 !default;
+$medium:        (($large - $small) / 2) + $small !default; // 780
+
+$show-breakpoints : false !default; 

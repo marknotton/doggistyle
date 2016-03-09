@@ -1,0 +1,7 @@
+// Shadow
+@mixin shadow($height:5, $width:100%, $strength:0.2, $gap:0, $sudo:before) {
+  &:#{$sudo} { content:""; position:absolute; top:100%; left:0; margin-top:$gap#{px}; width:$width; height:$height#{px}; opacity:$strength; 
+    background: $svg-gradient-shadow no-repeat top left / 100% 100%;
+    @content;
+  }
+}

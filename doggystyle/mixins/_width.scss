@@ -1,0 +1,14 @@
+// Quick way of adding a calc for width only.
+@mixin width($calc, $important:null){
+  $formula:null;
+  $symbol:null;
+  @each $calculation in $calc {
+    $symbol:first-character($calculation);
+    @if ( $symbol == '-' or $symbol == '+' or $symbol == '/' or $symbol == '*') {
+      $formula:$formula str-insert(#{$calculation}, " ", 2);
+    } @else {
+      $formula:$formula $calculation;
+    }
+  }
+  @include calc("width", $formula, imp($important));
+}

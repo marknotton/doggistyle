@@ -1,0 +1,3 @@
+@function mobile-first() {
+  @return if($mobile-first, min-width, max-width);
+}

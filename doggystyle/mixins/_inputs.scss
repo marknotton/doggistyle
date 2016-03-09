@@ -1,0 +1,21 @@
+@mixin input-text($types:color date datetime datetime-local email month number password search tel text time url week textarea) {
+
+  $new-list:();
+
+  @each $type in $types {   
+    @if $type == textarea {
+      $new-list: append($new-list, textarea);    
+    } @else {
+      $new-list: append($new-list, #{'input[type=' + $type + ']'});    
+    }
+    // TODO: Remove comma on last loop
+    $new-list:append($new-list, ', ');
+  }
+  #{$new-list} {
+    @content;
+  }
+
+  // input[type='text'], input[type='email'], input[type='password'], input[type='number'], input[type='seach'], input[type='tel'], input[type='url'], textarea {
+  //   @content;
+  // }  
+}

@@ -1,0 +1,4 @@
+// If the value is a number, and is without a unit... add the unit. Otherwise leave it as it is.
+@function addUnit($value, $unit:px) {
+  @return if(is-size($value) and unitless($value), strip($value) + $unit, $value);
+}

@@ -1,0 +1,5 @@
+$warnings: false !default;
+
+@mixin warning($warning) {
+  @if $warnings { @warn "#{$warning}"; }
+}

@@ -1,0 +1,79 @@
+// //This will add a lineheight in percentage that's just a little bit greater than the font
+// @mixin fontsize($size:$text, $lineheight:10%, $letterspacing:normal) {
+//  @if (str-index(#{$lineheight}, "%")) {
+//     // Make the lingheight a percentage of the font size
+//     $lineheight: strip($lineheight);
+//     $height: ($size/100*$lineheight)+$size;
+//     font-size:addUnit($size); line-height:addUnit($height);
+//   } @else {
+//     // Manually add a lineheight
+//     font-size:addUnit($size); line-height:addUnit($lineheight);
+//   }
+//   @if ($letterspacing != normal and isNumber($letterspacing)) { 
+//     letter-spacing:addUnit($letterspacing);
+//   }
+// }
+
+//This will add a lineheight in percentage that's just a little bit greater than the font
+@mixin fontsize($size:$fs, $smart:true) {
+  @if type-of($size) == number {
+    font-size:addUnit($size);
+    line-height:if($smart, addUnit(((($size/50)+($size))*2) + 100, %), addUnit(($size/100*(50))+$size));
+  } @else {
+    @if (length($size) >= 2) {
+      font-size:addUnit(nth($size, 1)); 
+      
+      $lineheight : nth($size, 2);
+      $lineheight : if(str-index(quote($lineheight), "%") and $smart, addUnit(100+(strip($lineheight)), %), addUnit($lineheight));
+      line-height:$lineheight;
+    }
+    @if (length($size) == 3) {
+      letter-spacing:addUnit(nth($size, 3));
+    }
+  }
+}
+
+@mixin responsive-font($args...) {
+  @include smart-fontsize($args...);
+}
+
+@mixin smart-fontsize($standSize:$fs, $maxSize:$standSize*2, $minSize:$standSize/2, $unit:"vw") {
+  // Standard
+  @if (length($standSize) == 1) {
+    @include fontsize($standSize);
+  } @else {
+    @include fontsize(nth($standSize, 1), nth($standSize, 2));
+  }
+  
+  // Max
+  $max-size: nth($maxSize, 1);
+  $max-line: null;
+  $max-break:$large;
+  @if (length($maxSize) == 3 ) { $max-break: nth($maxSize, 3); }
+  @if (length($maxSize) >= 2 ) { $max-line: nth($maxSize, 2) + px} @else {  $max-line: #{($max-size/10) + $unit} }
+
+  @include break($max-break) {
+    font-size:#{($max-size/10) + $unit};
+    line-height:$max-line;
+  }
+
+  // Min
+  $min-size: nth($minSize, 1);
+  $min-line: null;
+  $min-break:$medium;
+  @if (length($minSize) == 3 ) { $min-break: nth($minSize, 3); }
+  @if (length($minSize) >= 2 ) { $min-line: nth($minSize, 2); }
+
+  @include break($min-break) {
+    @if ($min-line == null) {
+      @include fontsize($min-size);
+    } @else {
+      @include fontsize($min-size, $min-line);
+    }
+  }
+}
+
+@mixin rf($size:$font-size*2, $minMax:($size/2 $size*2)) {
+  font-size:$size;
+  minMax:$minMax;
+}

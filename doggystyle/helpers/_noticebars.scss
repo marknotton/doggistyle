@@ -1,0 +1,46 @@
+// Set the notice bar colours, based on its "data-cookie" attribute;
+@mixin noticebar-colours($name:null, $colour:$orange, $text:white, $lighten:35) {
+  #noticebars {
+    // If "name" is null, then default to generically styling all ".noticebar";
+    $target: if($name != null, #{"[data-cookie*='" + $name + "']"}, #{".noticebar"});
+    #{$target} { background:$colour $imp; color:$text $imp;
+      .noticebar-message {
+        h6 { color:white $imp; }
+        p { color:lighten($colour, $lighten) $imp; }
+        a { color:$text $imp;
+          &:hover {color:lighten($colour, $lighten) $imp;}
+        }
+      }
+    }
+  }
+}
+
+#noticebars { position:relative; top:0; left:0; width:100%; z-index:9999;
+  .noticebar { position:relative; background:$orange; z-index:999; color:white; min-width:$min; margin:0; width:100%; left:0; top:0; text-align:center; font-size:12px; line-height:16px; font-weight:bold; //@extend %font-default;
+    .noticebar-message { position:relative; width:100%; max-width:$max; min-width:$min; display:block; margin:0 auto; padding:10px;
+      h6 { font-size:14px; color:white $imp; }
+      p { color:lighten($orange,35); }
+      a { color:white; text-decoration:underline; @include ani(color);
+        span { position:absolute; top:-5px; right:0; padding:10px; font-family:arial black;}
+        &:hover {color:lighten($orange,35);}
+      }
+    }
+    &.noticebar-warning { background:$red;
+      .noticebar-message {
+        p { color:lighten($red, 50); }
+        a:hover {color:lighten($red, 35);}
+      }
+    }
+    $notice-classes: "red" "orange" "yellow" "green" "blue" "pink" "purple" "grey" "brown" "white" "black";
+    $notice-colours: $red $orange $yellow $green $blue $pink $purple $grey $brown $white $black;
+    @each $class in $notice-classes {
+      $colour:nth($notice-colours, index($notice-classes, $class));
+      &.#{$class} { background-color:$colour;
+        .noticebar-message {
+          p { color:lighten($colour, 50); }
+          a:hover {color:lighten($colour, 35);}
+        }
+      }
+    }
+  }
+}

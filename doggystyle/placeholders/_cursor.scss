@@ -1,0 +1,36 @@
+%nopointerevent {
+  pointer-events:none; 
+}
+
+%pointerevents {
+  pointer-events:auto; 
+}
+
+%pointer {
+  cursor:pointer; 
+}
+
+%cursor {
+  cursor:auto; 
+}
+
+%hidden {
+  visibility:hidden;
+  @extend %nopointerevent; 
+}
+
+%visible {
+  visibility:visible;
+  @extend %pointerevents; 
+}
+
+%untouchable {
+  opacity:0;
+  @extend %nopointerevent; 
+}
+
+%touchable {
+   opacity:1;
+  @extend %pointerevents; 
+}
+

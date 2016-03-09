@@ -1,0 +1,21 @@
+// Animation Transitions
+@function transitions($ani, $duration, $ease, $delay) {
+  $css : "";
+  $i : 1;
+  @each $animation in $ani {
+    // Because transforms use different vendor properties within the transition value we have to check and adjust the pre-fix for each animation.
+    // Also, wether you use translate, rotate, scale, or skew only the same "transform" value needs to be added.
+    @if $animation == "translate" or $animation == "rotate" or $animation == "scale" or $animation == "skew" or $animation == "transform" {
+      $animation: #{"transform"};
+    }
+    @if $i == length($ani) {
+      // if there is just one animation or it is the last animation then don't include the comma
+      $css:#{$css} #{$animation} #{$duration} #{$ease} #{$delay};
+    } @else {
+      // if there are multiple animations include a comma
+      $css:#{$css} #{$animation} #{$duration} #{$ease} #{$delay}#{","};
+    }
+    $i: $i + 1;
+  }
+  @return $css;
+}

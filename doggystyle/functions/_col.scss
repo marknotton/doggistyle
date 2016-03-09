@@ -1,0 +1,10 @@
+/// Instead of 'rgba', use 'col' when declaring a colour
+///
+/// @param {String} $colour
+///  
+/// @param {Number} $opacity
+///
+/// @return {String}
+@function col($colour, $opacity:1) {
+  @return rgba($colour, $opacity);
+}

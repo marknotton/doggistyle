@@ -1,0 +1,6 @@
+// Retain an elements aspect ratio for typical video dimensions
+@mixin video-aspect-ratio($ratio:$aspect-ratio-16-9, $element:iframe) {
+  position:relative; width:100%; display:block; max-height:100vh;
+  &:before { content:""; display:block; padding-top:$ratio; }
+  > #{$element} { position:absolute; top:0; left:0; bottom:0; right:0; @include size(100%); }
+}

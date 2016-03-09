@@ -1,0 +1,10 @@
+@mixin blendy($img, $color: null, $grad: null, $blend: multiply) {
+  $img-path: url('#{$img}');
+  @if $grad {
+    background: $grad, $img-path;
+  } @else {
+    background-image: $img-path;
+    background-color: $color;
+  }
+  background-blend-mode: $blend;
+}

@@ -1,0 +1,21 @@
+%render-auto { 
+  image-rendering: -moz-auto;
+  image-rendering:-o-auto;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: auto;
+}
+
+%render-crisp { 
+  image-rendering: -moz-crisp-edges;
+  image-rendering:-o-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  -ms-interpolation-mode: nearest-neighbor;
+}
+
+%render-pixelated { 
+  image-rendering: -moz-pixelated;
+  image-rendering:-o-pixelated;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: pixelated;
+}

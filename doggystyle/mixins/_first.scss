@@ -1,0 +1,5 @@
+@mixin first() { 
+  &:first-of-type, &.first { 
+    @content
+  }
+}

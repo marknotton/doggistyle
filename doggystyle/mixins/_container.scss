@@ -1,0 +1,24 @@
+@mixin container($pads:null, $max-val:$max, $min-val:$min, $break:$medium, $clearfix:true) {
+  @if not false($clearfix) { @extend %clearfix; }
+  position:relative;
+  width:100%;
+  max-width:addUnit($max-val);
+  min-width:addUnit($min-val);
+  margin: {
+    left: auto;
+    right: auto;
+  }
+  padding: {
+    left: $pads;
+    right: $pads;
+  }
+  @if not false($break) {
+    @include break($break) {
+      padding: {
+        left: calc($pads / 2);
+        right: calc($pads / 2);
+      }
+    }
+  }
+  @content;
+}

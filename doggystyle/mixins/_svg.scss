@@ -1,0 +1,28 @@
+// Create a background image using an SVG and an check for fallback image should SVG's not be supported. Also, retain aspect ratio.
+@mixin svg($svg, $fallback:100%, $bg-colour:null) {
+  $width:100%;
+  $height:100%;
+
+  position:relative; display:block;
+  // Set the background svg image
+  background:$bg-colour $svg center center #{"/"} 100% 100% no-repeat;
+  // If there is a fallback image as a string
+  @if (type-of($fallback) == string) {
+    // Set the width and height of the fallback image from the image supplied;
+    $width : imageWidth($fallback, true);
+    $height: imageHeight($fallback, true);
+    // Since there is an image file to play with, us it as a background image too should SVG's be unsupported on that browser
+    &.nosvg { @include background-image($fallback, $bg-colour, 100%, 100%, center, center, no-repeat); }
+  } @else if(type-of($fallback) == list or type-of($fallback) == number) {
+    // Set the width and heigh by user defined dimensions
+    $width : nth($fallback, 1);
+    // If a second parameter isn't made, use the first one. Essentially making the width and height the same.
+    $height : if(length($fallback) == 1, nth($fallback, 1), nth($fallback, 2));
+  }
+  // Apply the aspect ratio trick to make it a responsive image
+  @include aspect-ratio(($width, $height));
+  // Assuming there is some text within a span, hide the text but keep it accessible to bots.
+  > span { position:absolute; text-indent:110%; overflow:hidden; white-space:nowrap; @include user-select(none); color:transparent; font-size:0; opacity:0; }
+  @if ($width != 100%) { max-width:if(number-check($width), $width#{px}, $width); }
+  @if ($height != 100%) { max-height:if(number-check($height), $height#{px}, $height); }
+}

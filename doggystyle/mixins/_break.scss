@@ -1,0 +1,6 @@
+// Breakpoint - Desktop First
+@mixin break($width, $condition:max-width) {
+  @media (#{$condition}:addUnit($width)) {
+    @content;
+  }
+}

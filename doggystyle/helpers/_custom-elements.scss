@@ -1,0 +1,27 @@
+body > #wrapper, body > main-wrapper { 
+  @extend %clearfix, %display-flex, %flex-direction-column;
+  position:relative;
+  display:block;
+  min-height:100vh;
+  width:100%;
+  overflow-x: hidden;
+}
+
+main-container, .container { 
+  @extend %clearfix;
+  width:100%;
+  max-width:$max-width;
+  margin:0 auto;
+  position:relative;
+  display:block;
+  padding-left:$pad;
+  padding-right:$pad;
+  @include ani((padding-left, padding-right));
+}
+
+smart-container, .smart-container { @extend main-container;
+  @include break($medium) {
+    padding-left:$pad0;
+    padding-right:$pad0;
+  }
+}

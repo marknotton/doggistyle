@@ -1,0 +1,45 @@
+%font-smooth { 
+  -webkit-font-smoothing: antialiased; 
+  -moz-osx-font-smoothing: grayscale; 
+}
+
+%font-default { 
+  font-family: Helvetica, Arial, sans-serif;
+  @extend %font-smooth;
+}
+
+%lowercase { 
+  text-transform:lowercase;
+}
+
+%uppercase { 
+  text-transform:uppercase;
+}
+
+%capitalize { 
+  text-transform:capitalize;
+}
+
+%no-wrap { 
+  white-space:nowrap;
+}
+
+%hide-text {
+  text-indent:110%; overflow:hidden; white-space:nowrap;
+}
+
+// %clear-text-shadow {
+//   @include single-text-shadow(none); 
+// }
+
+// %show-text {
+//   text-indent:0; overflow:visible; white-space:normal; @include user-select(all); 
+// }
+
+// %selectable {
+//   @include user-select(all); 
+// }
+
+// %unselectable {
+//   @include user-select(none); 
+// }

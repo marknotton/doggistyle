@@ -1,0 +1,8 @@
+/// Strips any units from a number
+///
+/// @param {String} $number
+///
+/// @return {Number}
+@function strip($number) {
+  @return ($number / ($number * 0 + 1));
+}

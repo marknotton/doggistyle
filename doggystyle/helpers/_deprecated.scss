@@ -1,0 +1,95 @@
+
+
+// Create Arrows/Triangles in any direction.
+@mixin old-arrow($width:20, $height:20, $colour:$red, $direction:right, $sudo:before) {
+
+  $colour: if($colour == null, rc(1), $colour);
+
+  &:#{$sudo} {
+    content:""; height:0; width:0; position:absolute; pointer-events:none; border-style:solid; border-color:transparent; border-width:0;
+    
+    // Directions
+    @if ($direction == "left") {
+      left:-$width + px;
+      border-width:$height/2 + px $width + px $height/2 + px 0;
+      border-right-color:$colour;
+      top:50%;
+      margin-top:-$height/2 + px;
+    }
+    @if ($direction == "right") {
+      right:-$width + px;
+      border-width:$height/2 + px 0 $height/2 + px $width + px;
+      border-left-color:$colour;
+      top:50%;
+      margin-top:-$height/2 + px;
+    }
+    @if ($direction == "top") {
+      top:-$height + px;
+      border-width:0 $width/2 + px $height + px $width/2 + px;
+      border-bottom-color:$colour;
+      left:50%;
+      margin-left:-$width/2 + px;
+    }
+    @if ($direction == "bottom") {
+      bottom:-$height + px;
+      border-width:$height + px $width/2 + px 0 $width/2 + px;
+      border-top-color:$colour;
+      left:50%;
+      margin-left:-$width/2 + px;
+    }
+    @if ($direction == "top left") {
+      top:0;
+      left:0;
+      border-width:$height + px $width + px 0 0;
+      border-top-color:$colour;
+    }
+    @if ($direction == "top right") {
+      top:0;
+      right:0;
+      border-width:0 $width + px $height + px 0;
+      border-right-color:$colour 
+    }
+    @if ($direction == "bottom left"){
+      bottom:0;
+      left:0;
+      border-width:$height + px 0 0 $width + px;
+      border-left-color:$colour;
+    }
+    @if ($direction == "bottom right") {
+      bottom:0;
+      right:0;
+      border-width:0 0 $height + px $width + px;
+      border-bottom-color:$colour;
+    }
+
+    // Center
+    @if(str-index(#{$direction}, "center")) {
+      top:50%;
+      left:50%;
+      margin-left:-$width/2 + px;
+      margin-top:-$height/2 + px;
+    }
+    @if ($direction == "center")       {
+      border-width:$height/2 + px 0 $height/2 + px $width + px;
+      border-left-color:$colour;
+    }
+    @if ($direction == "center right") {
+      border-width:$height/2 + px 0 $height/2 + px $width + px;
+      border-left-color:$colour;
+    }
+    @if ($direction == "center bottom"){
+      border-width:$height + px $width/2 + px 0 $width/2 + px;
+      border-top-color:$colour;
+    }
+    @if ($direction == "center left")  {
+      border-width:$height/2 + px $width + px $height/2 + px 0;
+      border-right-color:$colour;
+    }
+    @if ($direction == "center top")   {
+      border-width:0 $width/2 + px $height + px $width/2 + px;
+      border-bottom-color:$colour;
+    }
+    
+    @content;
+  }
+}

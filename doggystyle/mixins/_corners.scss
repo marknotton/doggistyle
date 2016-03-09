@@ -1,0 +1,9 @@
+// Creates rounded corners for all or specific corners dependantly
+@mixin corners($radius:5, $corners: (tl, tr, br, bl), $important:false) {
+  @each $corner in $corners {
+    @if ($corner == tl) { @include border-top-left-radius( $radius#{px} imp($important)); }
+    @if ($corner == tr) { @include border-top-right-radius( $radius#{px} imp($important)); }
+    @if ($corner == br) { @include border-bottom-right-radius( $radius#{px} imp($important)); }
+    @if ($corner == bl) { @include border-bottom-left-radius( $radius#{px} imp($important)); }
+  }
+}

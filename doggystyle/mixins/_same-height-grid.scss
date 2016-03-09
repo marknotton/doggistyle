@@ -1,0 +1,6 @@
+@mixin same-height-grid($item:":first-child", $content:":first-child") {
+  display:flex; flex-wrap:wrap;
+  > #{$item} { display:flex; 
+    > #{$content} { display:flex; flex-direction:column; }
+  }
+}

@@ -1,0 +1,22 @@
+// Columns for text
+@mixin cols($count:2, $spacing:$pad, $width:20em, $target:null) {
+  @include column-count($count);
+  @if $count == 1 {
+    @include column-width(auto);
+    @include column-gap(auto);
+  } @else {
+    @if $width != null { @include column-width($width); }
+    @if $spacing != null { @include column-gap($spacing); }
+    @if $target == null { 
+      -webkit-column-break-inside:avoid; page-break-inside:avoid; break-inside:avoid; 
+    } @else {
+      #{$target} { -webkit-column-break-inside:avoid; page-break-inside:avoid; break-inside:avoid; 
+        @if $spacing != null { margin-bottom:$spacing; }
+      }
+    }
+  }
+}
+
+@mixin columns($arg...) { 
+  @include cols($args...);
+}

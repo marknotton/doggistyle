@@ -1,0 +1,24 @@
+// ANIMATION
+// This allows you to define particular animation transition properties for specific classes without resorting to "All" (which is bad for browser support).
+// • Use "@include ani()" to use the default settings, or to have more control do something like "@include ani(color, 1, 0.5, bounce-in)". The paremeters are: [property, duration, ease, delay] ...must be that order!
+// • To use multiple transition values within one include do something like this: "@include ani((color, top, resize), 0.6, easein, 1)" or stick with default values "@include ani((color, top, margin));"
+// • There is nothing stopping you from using the Ceasers CSS easing animtion tool (http://matthewlein.com/ceaser), includeing the sass version. Example: @include ani((color, top, padding), def, ceaser($easeOutBack));
+// • Transforms are supported too, so you can animate translate, rotate, scale, or skew (matrix has been excluded for now).
+@mixin ani($animation:all, $delay:0, $duration:0.2, $ease:ease-in-out) {
+  // You can parse "null" if you want to manually resort to the following pre-defined defaults.
+  // Example: @include ani((color, top, padding), null, null, bounce-in)
+  @if ($animation == null){ $animation:all;}
+  @if ($duration == null) { $duration:0.3;}
+  @if ($ease == null)     { $ease:ease-in-out;}
+  @if ($delay == null)    { $delay:0;}
+
+  // Checks to make sure if a value is set to "0" that the output doesn't include the "s" at the end.
+  @if ($duration == 0) { $duration:0 } @else { $duration:$duration#{s} };
+  @if ($delay == 0) { $delay:null } @else { $delay:$delay#{s} };
+
+  // Generate the CSS
+  $transitions:transitions($animation, $duration, $ease, $delay); 
+
+  -webkit-transition:$transitions;
+  transition:$transitions;
+}

@@ -1,0 +1,18 @@
+// WARNING: Compass used Ruby to support certain functions. imageHeight and imageWidth were dependant on this. 
+
+// Set width and height using image dimensions. You can also attribute max or min too.
+// Note: Image url's are relative to the image directory set in your config.rb file.
+@mixin image-size($img, $property:null) {
+  @if $property == null {
+    // Set image width and height as normal
+    height:imageHeight($img); width:imageWidth($img);
+  } @else if $property == half {
+    // Set the width and height, but half the actual output. Ideal if you're using x2 resolution images for retina screens.
+    height:imageHeight($img, half); width:imageWidth($img, half);
+  } @else if (str-index(#{$property}, "%")) {
+    // Use the width and height, but only as a defiend percentage
+    height:imageHeight($img, $property); width:imageWidth($img, $property);
+  } @else {
+    #{$property}-height:imageHeight($img); #{$property}-width:imageWidth($img);
+  }
+}

@@ -1,0 +1,10 @@
+@mixin nth($nth:1, $repeat:null) {
+  // TODO: Make is so you can add an array of nth numbers so you can target specific items by number, e.g. @include nth((1,2,5,6,8)) { ... }
+  @if ($repeat == true) {
+    // Repeat this for every instance. So if repeat is trye, and nth is 3, the @content will be assigned to every third element.
+    &:nth-of-type(#{$nth + n + "+" + $nth}) { @content }
+  } @else {
+    // Only apply the @content to one specific element.
+    &:nth-of-type(#{$nth}) { @content }
+  }
+}

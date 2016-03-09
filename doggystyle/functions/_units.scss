@@ -1,0 +1,17 @@
+/// Return a unit of measurment with a function to avoid the messy '#{xx}' interpolation syntax when concatonating variables or numbers with units
+///
+/// @example scss - Usage
+///   height:$someNumber + px;
+///
+/// @return {String}
+@function cm() { @return #{cm} }
+@function em() { @return #{em} }
+@function ex() { @return #{ex} }
+@function in() { @return #{in} }
+@function mm() { @return #{mm} }
+@function pc() { @return #{pc} }
+@function pt() { @return #{pt} }
+@function px() { @return #{px} }
+@function vh() { @return #{vh} }
+@function vw() { @return #{vw} }
+@function vmin() { @return #{vmin} }

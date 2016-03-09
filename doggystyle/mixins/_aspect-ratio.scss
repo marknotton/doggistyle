@@ -1,0 +1,25 @@
+// Retain an images aspect ratio
+@mixin aspect-ratio($dimensions) {
+  // Set default aspect ratios
+  $aspect-w : 1; 
+  $aspect-h : 1;
+  // Image
+  @if (type-of($dimensions) == string) {
+    // Set the width and height of the image from the image supplied;
+    @if ($dimensions == "video") {
+      $aspect-w : 16;
+      $aspect-h : 9;
+    } @else {
+      $aspect-w : strip(image-width($dimensions));
+      $aspect-h : strip(image-height($dimensions));
+    }
+  // Defined dimensions
+  } @else if(type-of($dimensions) == list or type-of($dimensions) == number) { 
+    // Set the width and heigh by user defined dimensions
+    $aspect-w : nth($dimensions, 1);
+    // If a second parameter isn't made, use the first one. Essentially making the width and height the same.
+    $aspect-h : if(length($dimensions) == 1, nth($dimensions, 1), nth($dimensions, 2)); 
+  }
+  // The magic that retains the apect ratio
+  &:before { content:""; display:block; width:100%; padding-top:($aspect-h / $aspect-w) * 100%; }
+}
