@@ -1,5 +1,7 @@
-// Doggy Style
+// Doggy Style 0.0.1
 // http://marknotton.uk
+// Copyright 2013-2016 Mark Notton
+// MIT License
 
 @import "vendors/ceaser-easing";
 
@@ -8,11 +10,9 @@
 @import "functions/convert";
 @import "functions/dots";
 @import "functions/is-false";
-@import "functions/is-length";
-@import "functions/is-number";
-@import "functions/is-size";
 @import "functions/light-or-dark";
 @import "functions/lines";
+@import "functions/lists";
 @import "functions/maps";
 @import "functions/opposite-direction";
 @import "functions/pad";
@@ -77,7 +77,6 @@
 @import "mixins/unwrap";
 @import "mixins/vertical";
 @import "mixins/video-aspect-ratio";
-@import "mixins/width";
 
 // @import "animations/jump";
 // @import "animations/wobble";

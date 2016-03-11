@@ -7,6 +7,10 @@
 ///   background-color:rc();
 ///
 /// @return {String}
-@function rc($opacity:0.3) {
+@function random-colour($opacity:1) {
   @return rgba(random(256) - 1, random(256) - 1, random(256) - 1, $opacity);
+}
+
+@function rc($opacity:0.3) {
+  @return random-colour($opacity);
 }

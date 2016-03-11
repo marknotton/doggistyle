@@ -54,3 +54,8 @@ $force-yello : false;
     @include container($args...);
   }
 }
+
+// @mixin a($args...) { @include ani($args...); }
+// @mixin b($args...) { @include break($args...); }
+// @function u($args...) { @include addUnit($args...); }
+// @function c($args...) { @return calc($args...); }

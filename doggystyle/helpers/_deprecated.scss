@@ -1,4 +1,17 @@
-
+// Quick way of adding a calc for width only.
+@mixin width($calc){
+  $formula:null;
+  $symbol:null;
+  @each $calculation in $calc {
+    $symbol:first-character($calculation);
+    @if ( $symbol == '-' or $symbol == '+' or $symbol == '/' or $symbol == '*') {
+      $formula:$formula str-insert(#{$calculation}, " ", 2);
+    } @else {
+      $formula:$formula $calculation;
+    }
+  }
+  @include calc("width", $formula);
+}
 
 // Create Arrows/Triangles in any direction.
 @mixin old-arrow($width:20, $height:20, $colour:$red, $direction:right, $sudo:before) {

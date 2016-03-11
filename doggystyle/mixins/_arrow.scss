@@ -27,7 +27,7 @@
   // Deafult settings
   $size      : ();
   $sudo      : before;
-  $colour    : red;
+  $colour    : random-colour();
   $direction : right;
   $center    : false;
   $arrow     : map-fetch($arrow-settings, $direction points);
@@ -101,6 +101,9 @@
         #{$x-pos}:$x-amount;
       }
     }
+    
+    @include arrow-for-ie($width $height $colour $direction);
+
     @content;
   }
 }
@@ -147,3 +150,56 @@ $arrow-settings: (
     x : ( right , 0 )
   ),
 );
+
+// Fallback for IE Users
+@mixin arrow-for-ie($args) {  
+  @include ie {
+    $width     : nth($args, 1);
+    $height    : nth($args, 2);
+    $colour    : nth($args, 3);
+    $direction : nth($args, 4);
+    
+    background-image:none $imp;
+    height:0; 
+    width:0;
+    border-style:solid; 
+    border-color:transparent;
+    border-width:0;
+      
+    // Directions
+    @if $direction == left {
+      border-width:addUnit($height/2) addUnit($width) addUnit($height/2) 0;
+      border-right-color:$colour;
+    }
+    @elseif $direction == right {
+      border-width:addUnit($height/2) 0 addUnit($height/2) addUnit($width);
+      border-left-color:$colour;
+    }
+    @elseif $direction == up {
+      border-width:0 addUnit($width/2) addUnit($height) addUnit($width/2);
+      border-bottom-color:$colour;
+    }
+    @elseif $direction == down {
+      border-width:addUnit($height) addUnit($width/2) 0 addUnit($width/2);
+      border-top-color:$colour;
+    }
+    @elseif $direction == top-left {
+      border-width:addUnit($height) addUnit($width) 0 0;
+      border-top-color:$colour;
+    }
+    @elseif $direction == top-right {
+      border-width:0 addUnit($width) addUnit($height) 0;
+      border-right-color:$colour 
+    }
+    @elseif $direction == bottom-left {
+      border-width:addUnit($height) 0 0 addUnit($width);
+      border-left-color:$colour;
+    }
+    @elseif $direction == bottom-right {
+      border-width:0 0 addUnit($height) addUnit($width);
+      border-bottom-color:$colour;
+    } 
+  }
+}
+
+
