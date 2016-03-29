@@ -1,4 +1,0 @@
-@mixin lines($opacity:1, $colour:null ) {
-  background:$colour lines($opacity); 
-  background-attachment:fixed;
-}

@@ -1,9 +1,0 @@
-@mixin calc($property:"width", $expression:100%, $important:false) {
-  #{$property}: calc(#{$expression}) imp($important);
-}
-
-// Compasses Calc support isn't very good. Use this until it's fixed.
-@function c($formula, $percent:100%, $symbol:"-", $important:null){
-  // TODO: Figure a way to remove the quotes around the symbols.
-  @return calc(#{$percent $symbol $formula}) imp($important);
-}

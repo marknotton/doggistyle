@@ -1,0 +1,38 @@
+/// Replace 'search' with '$replace' in '$string'. Reordered to match PHP str_replace parameter order
+///
+/// @author Hugo Giraudel
+///
+/// @access public
+///
+/// @link https://css-tricks.com/snippets/sass/str-replace-function
+///
+/// @param {string} $search - The value being searched for
+///
+/// @param {string} $replace - The replacement value that replaces found search values
+///
+/// @param {string} $string - The string or array being searched and replaced on
+///
+/// @return {string} - Updated string
+
+@function string-replace($search, $replace:'', $string:null) {
+  $index: str-index($string, $search);
+  
+  @if $index {
+    @return str-slice($string, 1, $index - 1) + $replace + str-replace(str-slice($string, $index + str-length($search)), $search, $replace);
+  }
+  
+  @return $string;
+}
+
+
+/// @alias string-replace
+///
+/// @access public
+/// 
+/// @require {function} string-replace
+///
+/// @return {string}
+
+@function str-replace($search, $replace:'', $string:null) {
+  @return string-replace($search, $replace, $string);
+}

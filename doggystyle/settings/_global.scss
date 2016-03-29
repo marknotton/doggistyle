@@ -8,7 +8,7 @@ $warnings: true !default;
 $reset : true !default;
 
 // Default globals
-$border-radius : 10;
+$border-radius : 10 !default;
 
 // Default units
-$default-unit : px;
+$default-unit : px !default;

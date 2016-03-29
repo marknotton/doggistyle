@@ -31,7 +31,7 @@
   }
 
   @if $hash and not str-index(#{$colour}, 'rgba') {
-    @return str-replace(to-string(rgba($colour, $opacity)), '#', '%23');
+    @return string-replace(to-string(rgba($colour, $opacity)), '#', '%23');
   }
   @elseif str-index(#{$colour}, 'rgba') {
     @return $colour;

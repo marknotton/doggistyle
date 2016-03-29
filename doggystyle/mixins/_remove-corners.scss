@@ -1,4 +1,0 @@
-// Remove all rounded corners, useful for responsive sites
-@mixin remove-corners($important:false) {
-  @include border-radius(0 imp($important));
-}

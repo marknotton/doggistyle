@@ -1,7 +1,0 @@
-// Backface Visibility
-// This property is useful when an element is rotated in 3D, and you do not want to see its backside.
-@mixin backface-visibility($value:hidden) {
-  -webkit-backface-visibility:$value;
-  -moz-backface-visibility:$value;
-  -ms-backface-visibility:$value;
-}

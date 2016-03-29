@@ -79,6 +79,7 @@
 @import "functions/maps/map-deep-get";
 @import "functions/maps/map-deep-set";
 @import "functions/maps/map-depth";
+@import "functions/maps/map-set";
 @import "functions/maps/map-extend";
 @import "functions/maps/map-has-keys";
 @import "functions/maps/map-has-nested-keys";
@@ -98,6 +99,7 @@
 
 // Text
 @import "functions/text/smart-lineheight";
+@import "functions/text/string-replace";
 
 // Colours
 @import "functions/colours/colour";
@@ -109,77 +111,75 @@
 @import "functions/svg/dots";
 @import "functions/svg/lines";
 
-@import "functions/maps";
+// Misc Functions
 @import "functions/opposite-direction";
-@import "functions/string-replace";
+@import "functions/mobile-first";
 
-@import "mixins/grid";
-
+// Settings
 @import "settings/colours";
 @import "settings/directories";
 @import "settings/grid";
 @import "settings/padding";
 @import "settings/text";
 
+// Grid
+@import "mixins/grid/grid";
+
+// Media Queries
+@import "mixins/grid/break-between";
+
 // Mixins
-// @import "mixins/cacher";
 @import "mixins/align";
-@import "mixins/transition";
 @import "mixins/animate";
-@import "mixins/triangle";
 @import "mixins/aspect-ratio";
-@import "mixins/backface-visibility";
 @import "mixins/background-image";
-@import "mixins/border-radius";
+@import "mixins/blend";
 @import "mixins/blendmodes";
-@import "mixins/break-between";
+@import "mixins/border-radius";
 @import "mixins/browsers";
-@import "mixins/dropdown";
-@import "mixins/calc";
 @import "mixins/center";
 @import "mixins/clearfix";
 @import "mixins/columns";
 @import "mixins/custom-property";
-@import "mixins/container";
 @import "mixins/devices";
-@import "mixins/first";
+@import "mixins/dropdown";
 @import "mixins/filters";
 @import "mixins/font-face";
 @import "mixins/fontsize";
 @import "mixins/gradient";
+@import "mixins/image-size";
 @import "mixins/image";
 @import "mixins/inputs";
 @import "mixins/keyframes";
 @import "mixins/last";
-@import "mixins/lines";
-@import "mixins/nth";
 @import "mixins/nth-last";
+@import "mixins/nth";
 @import "mixins/placeholder";
 @import "mixins/prefixer";
-@import "mixins/remove-corners";
-@import "mixins/same-height-grid";
 @import "mixins/selection";
 @import "mixins/shadow";
 @import "mixins/size";
-@import "mixins/svg";
 @import "mixins/text-shadow";
 @import "mixins/transforms";
+@import "mixins/transition";
+@import "mixins/triangle";
 @import "mixins/unwrap";
 @import "mixins/vertical";
 
+// Animations
 @import "animations/jump";
 @import "animations/wobble";
 @import "animations/shake";
 
+// Placeholders
 @import "placeholders/clear";
 @import "placeholders/cursor";
 @import "placeholders/rendering";
 @import "placeholders/sudo";
 @import "placeholders/text";
 
-// @import "helpers/noticebars";
+// Helpers
 @import "helpers/eases";
-@import "helpers/aliases";
 @import "helpers/custom-elements";
 @import "helpers/reset";
 @import "helpers/show-breakpoints";
