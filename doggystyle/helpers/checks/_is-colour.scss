@@ -1,0 +1,23 @@
+/// Checks to see if value is a colour
+/// 
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @return {bool}
+
+@function is-colour($value) {
+  @return type-of($value) == 'color';
+}
+
+/// @alias is-colour
+///
+/// @access public
+/// 
+/// @require {function} is-colour
+///
+/// @return {bool}
+
+@function is-color($value) {
+  @return is-colour($value);
+}

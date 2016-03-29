@@ -1,0 +1,51 @@
+/// Fetch nested keys in a map
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+/// @access public
+///
+/// @param (map) $map - Usually a variable name
+///
+/// @param (arglist) $keys - With comma delimination write the path to the disired map element
+///
+/// @return {*}
+///
+/// @example scss - Usage
+/// $foo: (
+///   bar: (
+///     lorem : (
+///       test1: #dcfac0,
+///       test2: #00968b,
+///     ),
+///     ipsom: (
+///       test1: #f4fac7,
+///       test2: #c2454e,
+///     )
+///   )
+/// );
+/// color: map-fetch($foo, bar, lorem, test1);
+///
+/// @example css - Output
+/// color:#dcfac0;
+
+@function map-deep-get($map, $keys...) {
+  @each $key in $keys {
+    $map: map-get($map, $key);
+  }
+  @return $map;
+}
+
+
+/// @alias map-deep-get
+///
+/// @access public
+/// 
+/// @require {function} map-deep-get
+///
+/// @return {*}
+
+@function map-fetch($map, $keys...) {
+  @return map-deep-get($map, $keys...);
+}

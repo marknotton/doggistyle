@@ -1,0 +1,64 @@
+/// Checks to see if a given value exists within a list
+/// 
+/// @author Mark Notton
+///
+/// @access public
+/// 
+/// @param {list} $list - List to be crossed referenced to
+///
+/// @param {string | number | list} $values - The values that will be checked are within the list.
+///   All list and value items will be cast to strings. Specificially useful is a list of numbers are compared
+///   to a list of stringed numbers for example.
+/// 
+/// @param {bool} $recursive - If a list is being cross referenced to another list, this function will
+///   return true if just one of the items are found. If $recursive is true, then this function will
+///   only return true if ALL the list values are found within the other list. 
+///
+/// @example scss - Usage
+///   $list1 : contains(a b c d, a);
+///   $list2 : contains(a b c d, a b);
+///   $list3 : contains(a b c d, a b f);
+///   $list4 : contains(a b c d, a b f, true);
+///
+/// @example scss - Output
+///   $list1 : true;
+///   $list2 : true;
+///   $list3 : true;
+///   $list4 : false;
+///
+/// @return {bool}
+
+@function contains($list, $values, $recursive:false) {
+
+  @if is-string($values) or is-number($values) or is-list($values) or $recursive {
+
+    // Convert all list and values items to strings.
+    $list : _list-items-to-strings($list);
+    $values : _list-items-to-strings($values);
+
+    @if $recursive {
+
+      $bools : ();
+
+      @each $value in $values {
+        @if index($list, $value) {
+          $bools : append($bools, true);
+        } @else {
+          $bools : append($bools, false);
+        }
+      }
+
+      @return if(index($bools, false), false, true);
+
+    } @else {
+
+      @each $value in $list {
+        @if index($values, $value) {
+          @return true;
+        }
+      }
+
+      @return false;
+    }
+  }
+}

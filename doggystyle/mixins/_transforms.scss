@@ -1,37 +1,121 @@
-// generic transform
+/// generic transform
 @mixin transform($transforms) {
-     -moz-transform: $transforms;
-       -o-transform: $transforms;
-      -ms-transform: $transforms;
-  -webkit-transform: $transforms;
-          transform: $transforms;
+  @include prefixer(transform, $transforms, all);
 }
 
-// rotate
-@mixin rotate ($deg) {
-  @include transform(rotate(#{$deg}deg));
-}
- 
-// scale
-@mixin scale($scale) {
-   @include transform(scale($scale));
-} 
-
-// translate
-@mixin translate ($x, $y) {
-   @include transform(translate($x, $y));
-}
-
-// skew
-@mixin skew ($x, $y) {
-   @include transform(skew(#{$x}deg, #{$y}deg));
-}
-
-//transform origin
+/// Transform origin
 @mixin transform-origin ($origin) {
-    moz-transform-origin: $origin;
-       -o-transform-origin: $origin;
-      -ms-transform-origin: $origin;
-  -webkit-transform-origin: $origin;
-          transform-origin: $origin;
+  @include prefixer(transform-origin, $origin, all);
+}
+
+
+/// Matrix
+@mixin matrix($args...) {
+  @include transform(matrix($args...));
+}
+
+@mixin matrix3d($args...) {
+  @include transform(matrix3d($args...));
+}
+
+
+/// Translate
+@mixin translate($values) {
+  $x : nth($values, 1);
+  $y : if( length($values) > 1, nth($values, 2), 0);
+  @include transform(translate(addUnit($x), addUnit($y)));
+}
+
+@mixin translateX($x) {
+  @include transform(translateX(addUnit($x)));
+}
+
+@mixin translateY($y) {
+  @include transform(translateY(addUnit($x)));
+}
+
+@mixin translate3d($valies) {
+  $x : nth($values, 1);
+  $y : if( length($values) > 1, nth($values, 2), 0);
+  $z : if( length($values) > 2, nth($values, 3), 0);
+  @include transform(translate3d($x, $y, $z));
+}
+
+@mixin translateZ($value) {
+  @include transform(translateZ(addUnit($value)));
+}
+
+
+/// Scale
+@mixin scale($values) {
+  $width: nth($values, 1);
+  $height : if( length($values) > 1, nth($values, 2),$width);
+  @include transform(scale($width, $height));
+}
+
+@mixin scaleX($value) {
+  @include transform(scaleX(strip($value)));
+}
+
+@mixin scaleY($value) {
+  @include transform(scaleY(strip($value)));
+}
+
+@mixin scale3d($values) {
+  $x : strip(nth($values, 1));
+  $y : if( length($values) > 1, strip(nth($values, 2)), 0);
+  $z : if( length($values) > 2, strip(nth($values, 3)), 0);
+  @include transform(scale3d($x, $y, $z));
+}
+
+@mixin scaleZ($value) {
+  @include transform(scaleZ(strip($value)));
+}
+
+
+/// Rotate
+@mixin rotate($value) {
+  @include transform(rotate(addUnit($value, deg)));
+}
+
+@mixin rotateX($value) {
+  @include transform(rotateX(addUnit($value, deg)));
+}
+
+@mixin rotateY($value) {
+  @include transform(rotateY(addUnit($value, deg)));
+}
+
+@mixin rotateZ($value) {
+  @include transform(rotateZ(addUnit($value, deg)));
+}
+
+@mixin rotate3d($values) {
+  $x : strip(nth($values, 1));
+  $y : if( length($values) > 1, strip(nth($values, 2)), 0);
+  $z : if( length($values) > 2, strip(nth($values, 3)), 0);
+  $deg : if( length($values) > 3, addUnit(nth($values, 4), deg), 0);
+  @include transform(rotate3d($x, $y, $z, $deg));
+}
+
+
+/// Skew
+@mixin skew($values) {
+  $x : addUnit(nth($values, 1), deg);
+  $y : addUnit(if( length($values) > 1, nth($values, 2), 0), deg);
+  @include transform(skew($x, $y));
+}
+
+@mixin skewX($value) {
+  @include transform(skewX(addUnit($value, deg)));
+}
+
+@mixin skewY($value) {
+  @include transform(skewY(addUnit($value, deg)));
+}
+
+
+/// Perspective
+@mixin perspective($value) {
+  @include transform(perspective(addUnit($value)));
 }

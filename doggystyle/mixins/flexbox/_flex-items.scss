@@ -1,0 +1,135 @@
+// Item properties
+$flex-item-aliases : grow shrink basis self;
+$flex-item         : order flex-grow flex-shrink flex-basis align-self $flex-item-aliases;
+$flex-item         : merge($flex-item, $flex-item-aliases);
+
+// Item values
+$flex-order        : number;
+$flex-grow         : number;
+$flex-shrink       : number; 
+$flex-basis        : number auto;
+$flex-flex         : none number; // flex-grow, flex-shrink, flex-basis
+$flex-align-self   : auto flex-start flex-end center baseline stretch;
+
+/// Flexbox items mixin validates and prefixes the most current Flexbox W3C working draft
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @warning Flexbox does not currently work on buttons, fieldsets or textareas
+///
+/// @warning box-orient, box-direction, box-ordinal-group, box-left, box-positive, box-pack, box-align 
+///          ...and other unsupported/old flexbox values have been excluded
+///
+/// @todo Do special checks for 'flex'
+///
+/// @param {Map} $settings - flexbox item property or alias : flexbox value.
+///
+///   Item
+///   Property         Alias        Default       Values
+///   -------------------------------------------------------------------------------------------------------
+///   order            (-)          (-)           number 
+///   flex-grow        (grow)       (0)           number 
+///   flex-shrink      (shrink)     (2)           number 
+///   flex-basis       (basis)      (auto)        unit | auto
+///   !flex            (-)          (-)           number | none
+///   align-self       (self)       (-)           auto | flex-start | flex-end | center | baseline | stretch
+/// 
+///
+/// @require {Mixin}    contains
+/// @require {Mixin}    prefixer
+/// @require {Function} merge
+/// @require {Variable} flex-item-aliases
+/// @require {Variable} flex-item
+/// @require {Variable} flex-item
+/// @require {Variable} flex-order
+/// @require {Variable} flex-grow
+/// @require {Variable} flex-shrink
+/// @require {Variable} flex-basis
+/// @require {Variable} flex-flex
+/// @require {Variable} flex-align-self
+///
+/// @example scss - Usage
+/// .bar { 
+///   @include flex-items((
+///     order:1,
+///     basis:150
+///   ));
+/// }
+///
+/// @example css - CSS Output
+/// .bar {
+///   -webkit-order: 1;
+///   -moz-order: 1;
+///   -ms-order: 1;
+///   -o-order: 1;
+///   order: 1;
+///   -webkit-flex-basis: 150px;
+///   -moz-flex-basis: 150px;
+///   -ms-flex-basis: 150px;
+///   -o-flex-basis: 150px;
+///   flex-basis: 150px; 
+/// }
+///
+@mixin flex-items($settings) {
+  
+  @each $property, $value in $settings {
+
+    $output : false;
+    $new-value : null;
+
+    @if contains($flex-item, $property) {
+      @if contains($property, (self)) {
+        $property : #{align-}$property;
+      }
+      @elseif contains($property, (grow shrink basis)) {
+        $property : #{flex-}$property;
+      }
+      
+      @if contains($property, (order, flex-grow, flex-shrink)) {
+        $new-value : strip($value);
+        $output : true;
+      }
+      @elseif $property == flex-basis {
+        $new-value : addUnit($value);
+        $output : true;
+      }
+      @elseif $property == align-self and contains($property, $flex-align-self) {
+        $new-value : $value;
+        $output : true;
+      }
+      
+
+      // Only output and prefix everything when $output is true
+      @if $output and $new-value != null {
+        @include prefixer($property, $new-value, all);
+      }
+    }
+  }
+}
+
+// Quick Flex Items Mixins
+@mixin flex-order($value) { 
+  @include flex-items((order:$value));
+}
+
+@mixin flex-grow($value) { 
+  @include flex-items((grow:$value));
+}
+
+@mixin flex-shrink($value) { 
+  @include flex-items((flex-shrink:$value));
+}
+
+@mixin flex-basis($value) { 
+  @include flex-items((flex-basis:$value));
+}
+
+@mixin flex-flex($value) { 
+  @include flex-items((flex:$value));
+}
+
+@mixin flex-align-self($value) { 
+  @include flex-items((self:$value));
+}

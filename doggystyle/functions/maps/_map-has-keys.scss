@@ -1,0 +1,23 @@
+/// Test if map got all `$keys` at first level
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+/// @access public
+///
+/// @param {map} $map - Map
+///
+/// @param {arglist} $keys - Keys to test
+///
+/// @return {bool}
+
+@function map-has-keys($map, $keys...) {
+  @each $key in $keys {
+    @if not map-has-key($map, $key) {
+      @return false;
+    }
+  }
+
+  @return true;
+}

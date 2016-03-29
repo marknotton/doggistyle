@@ -1,8 +1,0 @@
-/// Check if this value is either false, null, 0, off, or def
-///
-/// @param {String} $value
-///
-/// @return {Bool}
-@function is-false($value) {
-  @return not not index(false null 0 off def, $value);
-}

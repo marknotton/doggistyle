@@ -1,0 +1,24 @@
+/// Shift the index of a list
+///
+/// @author Ana Tudor
+///
+/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#miscellaneous
+///
+/// @example scss - Usage
+///   $list: a, b, c, d, e, f;
+///   $new-list: loop($list, 1);
+///   $new-list: loop($list, -3);
+///
+/// @example scss - Output
+///   $new-list: f, a, b, c, d, e
+///   $new-list: d, e, f, a, b, c
+
+@function loop($list, $value: 1) {
+  $result: ();
+    
+  @for $i from 0 to length($list) {
+    $result: append($result, nth($list, ($i - $value) % length($list) + 1));
+  }
+  
+  @return $result;
+}

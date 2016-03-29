@@ -1,0 +1,11 @@
+/// Checks to see if value is any type of false
+/// 
+/// @author Probably Hugo Giraudel
+///
+/// @access public
+///
+/// @return {bool}
+
+@function is-false($value) {
+  @return not not index(false null 0 off def, $value);
+}

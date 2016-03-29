@@ -1,27 +1,100 @@
-body > #wrapper, body > main-wrapper { 
-  @extend %clearfix, %display-flex, %flex-direction-column;
-  position:relative;
-  display:block;
-  min-height:100vh;
-  width:100%;
-  overflow-x: hidden;
-}
+@if $reset {
+  
+  // main-wrapper {essential}
+  // This could be compared to as a 'body' within the 'body'. It should contain all markup and not hidden content (svg's) or javascript
+  // This is usful if you need to hide all the content of a page or you want to blur the background for modals
+  body > #wrapper, body > main-wrapper { 
+    @extend %clearfix; @include flex-container((direction:column));
+    position:relative;
+    min-height:100vh;
+    width:100%;
+    overflow: hidden;
+  }
+  
+  // image-elemnt {essential}
+  // It's a common occurance to have a background image set inside a div element so there is more control over the image
+  // TODO: Find a way of making this custom element a singleton
+  image-element { 
+    @extend %full; 
+    &[style*='background-image'] {
+      background-size:cover;
+      background-repeat:none;
+      background-position:center 33.33%;
+      background-repeat:no-repeat;
+    }
+  }
+  
+  // main-container {optional}
+  // This is designed to be used to wrap the main content of the page without interfering with the html5's 'main' element.
+  // This is useful when you have a footer that you want to stick to the bottom of the page.
+  main-wrapper > main-container {
+    @include flex-container((direction:column)); @include flex-grow(1);
+  }
+  
+  // basic-container {essential}
+  // This sets a few basic settings for a container element. The content will be cetnered, with basic padding.
+  basic-container, .container { 
+    @extend %clearfix;
+    width:100%;
+    max-width:$max-width;
+    margin-left:auto;
+    margin-right:auto;
+    position:relative;
+    display:block;
+  }
 
-main-container, .container { 
-  @extend %clearfix;
-  width:100%;
-  max-width:$max-width;
-  margin:0 auto;
-  position:relative;
-  display:block;
-  padding-left:$pad;
-  padding-right:$pad;
-  @include ani((padding-left, padding-right));
-}
+  // smart-container {essential}
+  // This is essentially the same as basic-container, only has a small media query check to reduce the padding at a certain point
+  smart-container, .smart-container { 
+    @extend basic-container;
+    @include ani(padding-left padding-right);
+    padding-left:$pad;
+    padding-right:$pad;
+    @include break($medium) {
+      padding-left:$pad0;
+      padding-right:$pad0;
+    }
+  }
 
-smart-container, .smart-container { @extend main-container;
-  @include break($medium) {
-    padding-left:$pad0;
-    padding-right:$pad0;
+  // This fakes the results of the smart-container without having to use a smart-container custom element. 
+  // Useful for when you want to avoid additional markup just to position an element.
+  %smart-container-faux { 
+    @extend basic-container; 
+    width:calc(#{$max + px} - #{$pad2});
+    @include ani(padding-left padding-right margin-left margin-right width);
+
+    @include break($max + $padding) {
+      width:calc(100% - #{$pad2}); 
+      margin-left:$pad; margin-right:$pad;
+    }
+    @include break($medium) {
+      width:calc(100% - #{$pad});
+      margin-left:$pad0;
+      margin-right:$pad0;
+    }
+  }
+
+  %smart-container-faux-absolute {
+    @extend %smart-container-faux; 
+    @include ani(padding-left padding-right margin-left margin-right width left);
+    position:absolute;
+    left:50%;
+    margin-left:- $max/2 + $padding + px; 
+    @include break($max + $padding) {
+      left:0;
+      margin-left:$pad;
+    }
+    @include break($medium) {
+      margin-left:$pad0;
+    }
+  }
+  
+  // This also fakes the output of the smart container, only forces the fake padding to extend to the edges of the page
+  %smart-container-faux-stretch { 
+    @extend basic-container;
+    @include break($medium) {
+      width:calc(100% + #{$pad2});
+      left:-$pad;
+    }
   }
 }

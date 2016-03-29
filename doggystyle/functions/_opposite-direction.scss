@@ -1,13 +1,19 @@
+/// Return an opposite direction
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/sass-mixins-kickstart-project/#opposite-direction
+
 @function opposite-direction($directions) {
   $opposite-directions: ();
   $direction-map: (
-    'top':    'bottom',
-    'right':  'left',
-    'bottom': 'top',
-    'left':   'right',
-    'center': 'center',
-    'ltr':    'rtl',
-    'rtl':    'ltr'
+    top    : bottom,
+    right  : left,
+    bottom : top,
+    left   : right,
+    center : center,
+    ltr    : rtl,
+    rtl    : ltr
   );
  
   @each $direction in $directions {
@@ -16,7 +22,7 @@
     @if map-has-key($direction-map, $direction) { 
       $opposite-directions: append($opposite-directions, unquote(map-get($direction-map, $direction)));
     } @else {
-      @warn "No opposite direction can be found for `#{$direction}`. Direction omitted.";
+      @warn "No opposite direction can be found for '#{$direction}'. Direction omitted.";
     }
   }
  

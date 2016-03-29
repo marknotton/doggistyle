@@ -1,0 +1,25 @@
+/// List of all absolute length unit types
+/// 
+/// @link http://www.w3schools.com/cssref/css_units.asp
+///
+/// @type list
+
+$absolute-lengths : cm mm in px pt pc;
+
+
+/// Checks to see if value is a type of unit that can't be manipulated relative to parent elements
+/// 
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
+///
+/// @access public
+///
+/// @require {function} is-number
+/// @require {variable} $abolute-lengths
+///
+/// @return {bool}
+
+@function is-absolute-length($value) {
+  @return is-number($value) and index($absolute-lengths, unit($value)) != null;
+}

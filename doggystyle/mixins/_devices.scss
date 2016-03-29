@@ -1,0 +1,55 @@
+$devices : mobile tablet desktop;
+
+@mixin devices($args...) {
+
+  // This checks to see if the current selector is html. 
+  // This can not be converted into a shorthanded if statement. 
+  $selector : null;
+  @if to-string(&) != html and to-string(&) != body { $selector : &; }
+
+  @each $settings in _arglist-to-list($args...) {
+    
+    $devices-list : ();
+    $types-list : ();
+
+    @each $setting in $settings {
+      @if type-of($setting) == string {
+        @if contains($devices, $setting) and length($devices-list) < 2 {
+          $devices-list : append($devices-list, $setting);
+        } @else {
+          $types-list : append($types-list, $setting);
+        }
+      } 
+    }
+
+    @if length($devices-list) > 1 and length($types-list) > 0 { 
+      @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
+    } @else {
+      @if length($devices-list) > 0 {
+        @if length($types-list) > 0 {
+          @each $type in $types-list {
+            @at-root body.#{$devices-list}.#{$type} #{$selector} { @content }
+          }
+        } @else {
+          @each $device in $devices-list {
+            @at-root body.#{$device} #{$selector} { @content }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Usage : @include mobile { ... }
+// Usage : @include mobile(samgsung) { ... }
+@mixin mobile($type:null) { 
+  @include devices(mobile $type) { @content };
+}
+
+@mixin tablet($type:null) { 
+  @include devices(tablet $type) { @content };
+}
+
+@mixin desktop($type:null) { 
+  @include devices(desktop $type) { @content };
+}

@@ -1,0 +1,18 @@
+/// Quick mixin to devide a flex item using basis
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+@mixin flex-grid($count, $gutter:$pad) { 
+  @if $count <= 1 {
+    @include flex-basis(100%);
+  } 
+  @elseif $count > 1 {
+    @if is-number($gutter) and $gutter != null and strip(to-number($gutter)) > 0 {
+      @include flex-basis(calc(100% / #{$count} - #{addUnit($gutter)}));
+    } @else {
+      @include flex-basis(calc(100% / #{$count}));
+    }
+  }
+}

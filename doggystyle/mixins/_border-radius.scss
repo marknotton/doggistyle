@@ -1,97 +1,74 @@
-@mixin border-radius($radius, $direction:null) {
-  @if      $direction == top { @include border-top-radius($radius); }
-  @else if $direction == right { @include border-right-radius($radius); }
-  @else if $direction == bottom { @include border-bottom-radius($radius); }
-  @else if $direction == left { @include border-left-radius($radius); }
-  @else if $direction == top-right { @include border-top-right-radius($radius); }
-  @else if $direction == top-left { @include border-top-left-radius($radius); }
-  @else if $direction == bottom-right { @include border-bottom-right-radius($radius); }
-  @else if $direction == bottom-left { @include  border-bottom-left-radius($radius); }
-  // @else if type-of($direction) == list {
-  //   // TODO: Loop through each list element: tr tl br bl
-  // }
-  @else { 
-    @if type-of($radius) == number {
-      -webkit-border-radius: addUnit($radius);
-      border-radius: addUnit($radius);
-    } @else if type-of($radius) == list {
-      $new-radius : null;
-      
-      @each $rad in $radius {
-        $new-radius: append($new-radius, addUnit($rad));
-      }
+@mixin border-radius($args...) {
+  $corners : ();
+  $directions : ();
+  $excess-units : 0;
 
-      -webkit-border-radius: $new-radius;
-      border-radius: $new-radius;
+  $args: if(length($args) > 0, $args, null);
+
+  @for $i from 1 through length($args) {    
+
+    @each $rad in nth($args, $i) {
+      @if type-of($rad) == number and length($corners) < 4 {
+        $corners : append($corners, $rad);
+      } @elseif type-of($rad) == number and length($corners) == 4 {
+        $excess-units : $excess-units + 1;
+      }
+    }
+    @each $dir in nth($args, $i) {
+      @if type-of($dir) == string {
+        @if $dir == circle {
+          $corners : 100%;
+        } @else {
+          $directions : append($directions, $dir);
+        }
+      }
     }
   }
-}
-
-// Top
-@mixin border-radius-top($args...) { @include border-top-radius($args...); }
-@mixin border-top-radius($radius) {
-  -webkit-border-top-right-radius: addUnit($radius);
-  border-top-right-radius: addUnit($radius);
-
-  -webkit-border-top-left-radius: addUnit($radius);
-  border-top-left-radius: addUnit($radius);
   
-}
+  @if $excess-units > 0 {
+    @include warning("You can't have more than 4 units per argument. You have added '#{$excess-units}' number"+ if($excess-units != 1, 's', '') +" too many. Squares don't work that way.");
+  }
+  
+  $corners : if(length($corners) == 0, $border-radius, $corners);
+  $corner-count : length($corners);
+  
+  @if length($directions) == 0 {
+    $directions : if($corner-count == 1, all, slice((top-left top-right bottom-right bottom-left), 1, $corner-count));
+  }
 
-// Right
-@mixin border-radius-right($args...) { @include border-right-radius($args...); }
-@mixin border-right-radius($radius) {
-  -webkit-border-bottom-right-radius: addUnit($radius);
-  border-bottom-right-radius: addUnit($radius);
+  $direction-count : length($directions);
 
-  -webkit-border-top-right-radius: addUnit($radius);
-  border-top-right-radius: addUnit($radius);
-}
+  @for $i from 1 through $direction-count {    
+    $direction : nth($directions, $i);
+    $radius : 0;
+    @if $corner-count == $direction-count {
+      $radius: nth($corners, $i);
+    } @else {
+      @if $corner-count > $direction-count and $i == $direction-count { 
+        $radius: nth($corners, $i);
+        @include warning('You have entered more units than directions. Reverting back to the first numbers you entered');
+      } @else {
+        $radius: nth($corners, 1);
+      }
+    }
 
-// Bottom
-@mixin border-radius-bottom($args...) { @include border-bottom-radius($args...); }
-@mixin border-bottom-radius($radius) {
-  -webkit-border-bottom-right-radius: addUnit($radius);
-  border-bottom-right-radius: addUnit($radius);
-
-  -webkit-border-bottom-left-radius: addUnit($radius);
-  border-bottom-left-radius: addUnit($radius);
-}
-
-// Left
-@mixin border-radius-left($args...) { @include border-left-radius($args...); }
-@mixin border-left-radius($radius) {
-  -webkit-border-bottom-left-radius: addUnit($radius);
-  border-bottom-left-radius: addUnit($radius);
-
-  -webkit-border-top-left-radius: addUnit($radius);
-  border-top-left-radius: addUnit($radius);
-}
-
-// Top Right
-@mixin border-radius-top-right($args...) { @include border-top-right-radius($args...); }
-@mixin border-top-right-radius($radius) {
-  -webkit-border-top-right-radius: $radius;
-  border-top-right-radius: $radius;  
-}
-
-// Top Left
-@mixin border-radius-top-left($args...) { @include border-top-left-radius($args...); }
-@mixin border-top-left-radius($radius) {
-  -webkit-border-top-left-radius: addUnit($radius);
-  border-top-left-radius: addUnit($radius);
-}
-
-// Bottom Right
-@mixin border-radius-bottom-right($args...) { @include border-bottom-right-radius($args...); }
-@mixin border-bottom-right-radius($radius) {
-  -webkit-border-bottom-right-radius: addUnit($radius);
-  border-bottom-right-radius: addUnit($radius);
-}
-
-// Bottom Left
-@mixin border-radius-bottom-left($args...) { @include border-bottom-left-radius($args...); }
-@mixin border-bottom-left-radius($radius) {
-  -webkit-border-bottom-left-radius: addUnit($radius);
-  border-bottom-left-radius: addUnit($radius);
+    @if $direction == all { 
+      @include prefixer(border-radius, addUnit($radius));
+    }
+    @elseif $direction == top {
+      @include prefixer(border-top-left-radius border-top-right-radius, addUnit($radius));
+    }
+    @elseif $direction == right {
+      @include prefixer(border-top-right-radius border-bottom-right-radius, addUnit($radius));
+    }
+    @elseif $direction == bottom {
+      @include prefixer(border-bottom-left-radius border-bottom-right-radius, addUnit($radius));
+    }
+    @elseif $direction == left {
+      @include prefixer(border-top-left-radius border-bottom-left-radius, addUnit($radius));      
+    }
+    @else {
+      @include prefixer(border-#{$direction}-radius, addUnit($radius));
+    }
+  }
 }

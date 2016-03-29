@@ -1,0 +1,12 @@
+/// Quick mixin to remove all active flexbox properties
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+@mixin flex-remove() {
+  flex:initial;
+  display:initial;
+  flex-direction:initial;
+  justify-content:initial;
+}

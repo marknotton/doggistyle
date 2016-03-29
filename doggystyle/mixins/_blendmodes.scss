@@ -1,0 +1,21 @@
+$blend-modes : (initial inherit unset screen overlay darken lighten color-dodge color-burn hard-light soft-light difference exclusion hue saturation color luminosity normal);
+
+@mixin blend-background($mode) {
+
+  $blends : ();
+
+  @each $blend in $mode {
+    $blends : append($blends, $blend, comma);
+  }
+  
+  // TODO: Fix this check this is a valid blend mode.
+  // @if contains($blend-modes, $blend) {
+    @include prefixer(background-blend-mode, $blends, moz webkit);
+  // }
+}
+
+@mixin blend-mix($blend) {
+  @if contains($blend-modes, $blend) {
+    @include prefixer(mix-blend-mode, $blend, moz webkit);
+  }
+}

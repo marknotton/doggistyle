@@ -1,3 +1,87 @@
+$breakpoints: () !global;
+
+// Quickly look for any matching breakpoint names and return their number
+@function breaks($key) {
+  @return map-fetch($breakpoints, $key);
+}
+
+// Add a breakpoint to a global map, which can be called on using the 'breaks' function
+@mixin add-breakpoint($args...) {
+ 
+  @for $i from 1 through length($args) {
+
+    $name : null;
+    $size : null;
+
+    $arg: nth($args, $i); 
+
+    @each $rule in $arg {
+      @if type-of($rule) == string {
+        $name : $rule;
+      }
+      @if type-of($rule) == number {
+        $size : strip($rule);
+      }
+    }
+
+    $name : if($name == null and type-of($size) == number, #{$size}, $name);
+
+    @if $name and $size {
+      $breakpoints : map-set($breakpoints, $name, $size) !global;
+    }
+  }  
+  @at-root body { @include set-breakpoints(); }
+}
+
+// This will set a all the of the grid custom properties
+@mixin set-breakpoints($breaks:$breakpoints) {
+  $new-breakpoints : ();  
+  @each $break, $value in $breakpoints {
+    $new-breakpoints : map-set( $new-breakpoints, #{breakpoint-}#{$break}, $value);
+  }
+  @include custom-property($new-breakpoints, null);
+}
+
+// Add a media query breakpoint
+@mixin break($args) {
+
+  $width : null;
+  $condition : if($mobile-first, min-width, max-width);
+
+  @each $rule in $args {
+    @if type-of($rule) == number {
+      $width : $rule;
+    }
+    @if type-of($rule) == string {
+      $condition : $rule;
+    }
+  }
+
+  // @if not contains($breakpoints, $width) {
+  //   @include add-breakpoint($width);
+  // } 
+
+  @media (#{$condition}:addUnit($width)) {
+    @content;
+  }
+}
+
+@mixin hideAt($break) {
+  @include break($break) {
+    display:none;
+    & { @content; }
+  }
+}
+
+@mixin showAt($break) {
+  @include break($break) {
+    display:block;
+    & { @content; }
+  }
+}
+
+
+// The original grid mixin
 @mixin grid($args) {
 
   $count: nth($args, 1);
@@ -35,3 +119,24 @@
 }
 
 // @include grid(4 $pad $max, 2 0 $medium, $small);
+
+
+
+
+// @mixin grid2($args...) {
+
+// }
+
+
+
+
+// Including the mixin for inner grid
+// Specifying the pattern for a single row
+// Which will be repeated for next rows
+// .main {
+//   .block { border:1px solid red; background-color:rc(); height:20px;}
+//   //@include grid2(4, 2, 1); 
+// }
+
+
+

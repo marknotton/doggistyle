@@ -1,0 +1,152 @@
+$global-filter-values : (inherit initial unset);
+
+@mixin is-function($function) {
+  $first-brace : str-index($function, '(');
+  $last-brace : str-index($function, ')');
+  @if $first-brace and $last-brace {
+    $filter : str-slice($function, 1, $first-brace - 1);;
+    $value : str-slice($function, $first-brace + 1, $last-brace - 1);
+  }
+}
+
+// Useage 
+// @include filter(hue-rotate 50);
+// @include filter(hue-rotate 50, grayscale 100%);
+// @include filter(sepia 20, drop-shadow 10 10 5px green);
+
+@mixin filter($args...) {
+
+  $filters : ();
+
+  $args: if(length($args) > 0, $args, null);
+
+  @if not contains($global-filter-values, $args, true) and length($args) >= 1 {
+
+    @for $i from 1 through length($args) {  
+      
+      $filter : null;
+      $value : ();
+      $test : null; 
+
+      @each $rule in nth($args, $i) {
+        @if type-of($rule) == string {
+          $first-brace : str-index($rule, '(');
+          $last-brace : str-index($rule, ')');
+
+          @if $first-brace and $last-brace {
+            $filter : str-slice($rule, 1, $first-brace - 1);;
+            $test : to-number(str-slice($rule, $first-brace + 1, $last-brace - 1));
+          } @elseif $filter == null {
+            // TODO: Fix issue where these spelling mistages checks don't break the '$rule' formatting.
+            // @if $rule == greyscale { $rule : grayscale; }
+            // @if $rule == dropshadow { $rule : drop-shadow; }
+            // @if $rule == hue { $rule : hue-rotate; }
+            $filter : $rule;
+          }
+        }
+
+      }
+
+      // $values : if(contains($filter, $test) and length($value) == 0, nth($args, $i), $test);
+      $values : nth($args, $i);
+      
+      // TODO: Make is so you can do either: @include filter(sepia 40); or @include filter(sepia(40)); or @include filter(sepia(40) grayscale(50));
+      // @debug contains($filter, $test);
+      // @debug length($value);
+      // @debug nth($args, $i);
+      // @debug $test;
+
+
+      @each $rule in $values {
+        @if not contains($filter, $rule) {
+          
+          @if type-of($rule) == string and $value == null {
+            $value : $rule;
+          }      
+          @elseif $filter == blur {
+            $value : append($value, addUnit($rule));
+          }
+          @elseif contains($filter, hue-rotate) {
+            $value : append($value, addUnit($rule, deg));
+          }
+          @elseif contains($filter, invert opacity saturate sepia contrast grayscale) {
+            $value : append($value, addUnit($rule, %));
+          }
+          @elseif contains($filter, drop-shadow) {          
+            @each $r in $rule {
+              $value : if(type-of($r) == number, append($value, addUnit($r)), append($value, $r));
+            }
+          }
+          @else {
+            $value : append($value, $rule);
+          }
+        }
+      }
+
+      $filters : append($filters, $filter+"("+$value+")");
+
+    } 
+
+  } @else {
+
+    $filters : nth($args, 1);
+
+  }
+  
+  @include prefixer(filter, $filters);
+}
+
+// @function decimal-to-percent($number) {
+//   @return strip($number)*100 + %;
+// }
+
+// @function percent-to-decimal($number) {
+//   @return strip($number)/100;
+// }
+
+@mixin url($value:null) {
+  @include filter(url $value);
+}
+
+@mixin blur($value:5px) {
+  @include filter(blur $value);
+}
+
+@mixin brightness($value:0.4) {
+  @include filter(brightness $value);
+}
+
+@mixin contrast($value:200%) {
+  @include filter(contrast $value);
+}
+
+@mixin dropshadow($value) { @include drop-shadow($value); }
+@mixin drop-shadow($value:16px 16px 20px blue) {
+  @include filter(drop-shadow $value);
+}
+
+@mixin greyscale($value) { @include grayscale($value); }
+@mixin grayscale($value:50%) {
+  @include filter(grayscale $value);
+}
+
+@mixin hue($value) { @include hue($value); }
+@mixin hue-rotate($value:90deg) {
+  @include filter(hue-rotate $value);
+}
+
+@mixin invert($value:75%) {
+  @include filter(invert $value);
+}
+
+@mixin opacity($value:25%) {
+  @include filter(opacity $value);
+}
+
+@mixin saturate($value:30%) {
+  @include filter(saturate $value);
+}
+
+@mixin sepia($value:60%) {
+  @include filter(sepia $value);
+}

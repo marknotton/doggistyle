@@ -18,14 +18,11 @@
 @mixin fontsize($size:$fs, $smart:true) {
   @if type-of($size) == number {
     font-size:addUnit($size);
-    line-height:if($smart, addUnit(((($size/50)+($size))*2) + 100, %), addUnit(($size/100*(50))+$size));
+    line-height:smart-lineheight($size, $smart);
   } @else {
     @if (length($size) >= 2) {
-      font-size:addUnit(nth($size, 1)); 
-      
-      $lineheight : nth($size, 2);
-      $lineheight : if(str-index(quote($lineheight), "%") and $smart, addUnit(100+(strip($lineheight)), %), addUnit($lineheight));
-      line-height:$lineheight;
+      font-size:addUnit(nth($size, 1));       
+      line-height:smart-lineheight(nth($size, 2), $smart);
     }
     @if (length($size) == 3) {
       letter-spacing:addUnit(nth($size, 3));
@@ -33,47 +30,82 @@
   }
 }
 
-@mixin responsive-font($args...) {
-  @include smart-fontsize($args...);
-}
+@mixin smart-fontsize($minArgs:null, $maxArgs:null) {
 
-@mixin smart-fontsize($standSize:$fs, $maxSize:$standSize*2, $minSize:$standSize/2, $unit:"vw") {
-  // Standard
-  @if (length($standSize) == 1) {
-    @include fontsize($standSize);
-  } @else {
-    @include fontsize(nth($standSize, 1), nth($standSize, 2));
-  }
+  // Default Settings
+  $min-units : ();
+  $min-size : $font-size;
+  $min-lineheight : smart-lineheight($min-size);
+  $min-lineheight-bool : true;
+  $min-break : $medium;
+
+  $max-units : ();
+  $max-size : $font-size*2 - ($font-size/2);
+  $max-lineheight : smart-lineheight($max-size);
+  $max-lineheight-bool : true;
+  $max-break : $max;
   
-  // Max
-  $max-size: nth($maxSize, 1);
-  $max-line: null;
-  $max-break:$large;
-  @if (length($maxSize) == 3 ) { $max-break: nth($maxSize, 3); }
-  @if (length($maxSize) >= 2 ) { $max-line: nth($maxSize, 2) + px} @else {  $max-line: #{($max-size/10) + $unit} }
-
-  @include break($max-break) {
-    font-size:#{($max-size/10) + $unit};
-    line-height:$max-line;
-  }
-
-  // Min
-  $min-size: nth($minSize, 1);
-  $min-line: null;
-  $min-break:$medium;
-  @if (length($minSize) == 3 ) { $min-break: nth($minSize, 3); }
-  @if (length($minSize) >= 2 ) { $min-line: nth($minSize, 2); }
-
-  @include break($min-break) {
-    @if ($min-line == null) {
-      @include fontsize($min-size);
-    } @else {
-      @include fontsize($min-size, $min-line);
+  // Check Min Settings
+  @each $rule in $minArgs {
+    @if type-of($rule) == bool {
+      $min-lineheight-bool : $rule;
+    }
+    @if type-of($rule) == number {
+      $min-units : append($min-units, $rule);
     }
   }
+
+  @if length($min-units) >= 1 {
+    $min-size : nth($min-units, 1);
+  }
+
+  @if length($min-units) >= 2 and strip(nth($min-units, 2)) <= $min {
+    $min-lineheight : smart-lineheight(nth($min-units, 2), $min-lineheight-bool);
+  } @elseif length($min-units) > 1 {
+    $min-break : nth($min-units, 2);
+  }
+
+  @if length($min-units) >= 3 {
+    $min-break : nth($min-units, 3);
+  }
+  
+  // Check Max Settings  
+  @if $maxArgs {
+    @each $rule in $maxArgs {
+      @if type-of($rule) == bool {
+        $max-lineheight-bool : $rule;
+      }
+      @if type-of($rule) == number {
+        $max-units : append($max-units, $rule);
+      }
+    }
+
+    @if length($max-units) >= 1 {
+      $max-size : nth($max-units, 1);
+    }
+
+    @if length($max-units) >= 2 and strip(nth($max-units, 2)) <= $max {
+      $max-lineheight : smart-lineheight(nth($max-units, 2), $max-lineheight-bool);
+    } @elseif length($max-units) > 1 {
+      $max-break : nth($max-units, 2);
+    }
+
+    @if length($max-units) >= 3 {
+      $max-break : nth($max-units, 3);
+    }
+  }
+
+  font-size : addUnit($max-size/10, vw);
+  line-height: smart-lineheight($max-size);
+
+  @include break($max-break min-width) {
+    font-size:addUnit($max-size);
+    line-height:$max-lineheight;
+  }
+
+  @include break($min-break max-width) {
+    font-size:addUnit($min-size);
+    line-height:$min-lineheight;
+  }
 }
 
-@mixin rf($size:$font-size*2, $minMax:($size/2 $size*2)) {
-  font-size:$size;
-  minMax:$minMax;
-}

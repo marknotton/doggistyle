@@ -1,0 +1,8 @@
+@function _list-items-to-strings($list) {
+  $temp-list : $list;
+  $list : ();
+  @each $value in $temp-list {
+    $list : append($list, to-string($value));
+  }
+  @return $list;
+}

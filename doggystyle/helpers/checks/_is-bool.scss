@@ -1,0 +1,23 @@
+/// Checks to see if value is a boolean
+/// 
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @return {bool}
+
+@function is-bool($value) {
+  @return type-of($value) == 'bool';
+}
+
+/// @alias is-bool
+///
+/// @access public
+/// 
+/// @require {function} is-bool
+///
+/// @return {bool}
+
+@function is-boolean($value) {
+  @return type-of($value) == 'bool';
+}

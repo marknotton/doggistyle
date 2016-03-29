@@ -1,0 +1,51 @@
+/// Default order used to determine which string comes first
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/sorting-function/
+///
+/// @type list
+
+$default-order: "!" "#" "$" "%" "&" "'" "(" ")" "*" "+" "," "-" "." "/" "[" "]" "^" "_" "{" "|" "}" "~" "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z" !default;
+
+
+/// Sort list in a particular order.
+/// 
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/sorting-function/
+///
+/// @access public
+///
+/// @param {list} $list - list to sort
+///
+/// @param {list} $order - Order to use for sorting - Default is $default-order;
+///
+/// @require {function} _string-compare
+/// @require {variable} default-order
+///
+/// @return {list}
+
+@function sort($list, $order: $default-order) {
+  $less:  ();
+  $equal: ();
+  $large: ();
+
+  @if length($list) > 1 {
+    $seed: nth($list, ceil(length($list) / 2));
+
+    @each $item in $list {
+      @if $item == $seed {
+        $equal: append($equal, $item, list-separator($list));
+      } @else if _string-compare($item, $seed, $order) {
+        $less: append($less, $item, list-separator($list));
+      } @else if not _string-compare($item, $seed, $order) {
+        $large: append($large, $item, list-separator($list));
+      }
+    }
+
+    @return join(join(sort($less, $order), $equal), sort($large, $order));
+  }
+
+  @return $list;
+}

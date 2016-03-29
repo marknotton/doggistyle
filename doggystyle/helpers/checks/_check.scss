@@ -1,0 +1,69 @@
+/// If a value does not exist or is invalid, revert to a fallback value
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @param {*} $unit - The unit you want to check exists and is valid. Normally an nth list item or variable.
+///
+/// @param {*} $fallback - If the first parameter doesn't exist or isn't valid, revert back to this fallback
+///
+/// @param {string} $check - Check for a certain type of condition. Default is number.
+///   Accepted check types : angel, duration, false, frequency, integer, length, number, percentage, position, pseudo, sudo, resolution, time
+///
+/// @require {function} is-absolute-length
+/// @require {function} is-angel
+/// @require {function} is-bool
+/// @require {function} is-colour
+/// @require {function} is-duration
+/// @require {function} is-false
+/// @require {function} is-frequency
+/// @require {function} is-integer
+/// @require {function} is-length
+/// @require {function} is-list
+/// @require {function} is-map
+/// @require {function} is-null
+/// @require {function} is-number
+/// @require {function} is-percentage
+/// @require {function} is-position
+/// @require {function} is-pseudo
+/// @require {function} is-relative-length
+/// @require {function} is-resolution
+/// @require {function} is-string
+/// @require {function} is-time
+/// @require {variable} warnings
+///
+/// @return {*}
+
+@function check($value, $fallback, $check:number) {
+  @if index(angel duration false frequency integer length number percentage position pseudo sudo resolution time string bool boolean colour color list map null, $check) {
+    @if $check == angel     and is-angel($value)
+    or $check == duration   and is-duration($value)
+    or $check == false      and is-false($value)
+    or $check == frequency  and is-frequency($value)
+    or $check == integer    and is-integer($value)
+    or $check == length     and is-length($value)
+    or $check == number     and is-number($value)
+    or $check == percentage and is-percentage($value)
+    or $check == position   and is-position($value)
+    or $check == pseudo     and is-pseudo($value)
+    or $check == sudo       and is-sudo($value)
+    or $check == resolution and is-resolution($value)
+    or $check == string     and is-string($value)
+    or $check == bool       and is-bool($value) 
+    or $check == boolean    and is-boolean($value) 
+    or $check == color      and is-color($value) 
+    or $check == colour     and is-colour($value) 
+    or $check == list       and is-list($value) 
+    or $check == map        and is-map($value) 
+    or $check == null       and is-null($value) {
+      @return $value;
+    } @else {
+      @return $fallback;
+    }
+  } @else {
+    @if $warnings { @warn "#{$check} is not a valid type check. Returning the initial value: #{$value}"; }
+    @return $value;
+  }
+}
+

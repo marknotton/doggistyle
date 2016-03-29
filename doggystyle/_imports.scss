@@ -1,63 +1,152 @@
-// Doggy Style 0.0.1
-// http://marknotton.uk
+// Doggy Style 0.0.1-alpha
+// http://marknotton.uk/doggystyle
 // Copyright 2013-2016 Mark Notton
 // MIT License
 
-@import "vendors/ceaser-easing";
+@import "settings/global";
+@import "helpers/warnings";
 
-@import "functions/add-unit";
-@import "functions/col";
-@import "functions/convert";
-@import "functions/dots";
-@import "functions/is-false";
-@import "functions/light-or-dark";
-@import "functions/lines";
-@import "functions/lists";
+// Private Helpers
+@import "helpers/private/arglist-to-list";
+@import "helpers/private/find-digits";
+@import "helpers/private/list-items-to-strings";
+@import "helpers/private/find-integer";
+@import "helpers/private/from-hex";
+@import "helpers/private/brightness";
+@import "helpers/private/lightness";
+@import "helpers/private/from-hsl";
+@import "helpers/private/from-rgb";
+@import "helpers/private/get-color-value";
+@import "helpers/private/hex-to-dec";
+@import "helpers/private/sudo";
+@import "helpers/private/string-compare";
+@import "helpers/private/length";
+@import "helpers/private/pow";
+
+// Checks
+@import "helpers/checks/is-number";
+@import "helpers/checks/is-absolute-length";
+@import "helpers/checks/is-relative-length";
+@import "helpers/checks/is-angel";
+@import "helpers/checks/is-bool";
+@import "helpers/checks/is-colour";
+@import "helpers/checks/is-duration";
+@import "helpers/checks/is-false";
+@import "helpers/checks/is-frequency";
+@import "helpers/checks/is-integer";
+@import "helpers/checks/is-length";
+@import "helpers/checks/is-list";
+@import "helpers/checks/is-map";
+@import "helpers/checks/is-null";
+@import "helpers/checks/is-dark";
+@import "helpers/checks/is-light";
+@import "helpers/checks/is-percentage";
+@import "helpers/checks/is-position";
+@import "helpers/checks/is-pseudo";
+@import "helpers/checks/is-resolution";
+@import "helpers/checks/is-unit";
+@import "helpers/checks/is-string";
+@import "helpers/checks/is-time";
+@import "helpers/checks/check";
+
+// Casts
+@import "functions/casts/to-bool";
+@import "functions/casts/to-color";
+@import "functions/casts/to-list";
+@import "functions/casts/to-map";
+@import "functions/casts/to-null";
+@import "functions/casts/to-number";
+@import "functions/casts/to-string";
+
+// Lists
+@import "functions/lists/contains";
+@import "functions/lists/first";
+@import "functions/lists/second";
+@import "functions/lists/insert-nth";
+@import "functions/lists/last";
+@import "functions/lists/merge";
+@import "functions/lists/prepend";
+@import "functions/lists/remove";
+@import "functions/lists/remove-nth";
+@import "functions/lists/replace";
+@import "functions/lists/replace-nth";
+@import "functions/lists/reverse";
+@import "functions/lists/shift";
+@import "functions/lists/slice";
+@import "functions/lists/sort";
+
+// Maps
+@import "functions/maps/map-deep-get";
+@import "functions/maps/map-deep-set";
+@import "functions/maps/map-depth";
+@import "functions/maps/map-extend";
+@import "functions/maps/map-has-keys";
+@import "functions/maps/map-has-nested-keys";
+@import "functions/maps/map-zip";
+
+// Flexbox
+@import "mixins/flexbox/flex-container";
+@import "mixins/flexbox/flex-grid";
+@import "mixins/flexbox/flex-items";
+@import "mixins/flexbox/flex-remove";
+
+// Numbers
+@import "functions/numbers/add-unit";
+@import "functions/numbers/units";
+@import "functions/numbers/pad";
+@import "functions/numbers/strip";
+
+// Text
+@import "functions/text/smart-lineheight";
+
+// Colours
+@import "functions/colours/colour";
+@import "functions/colours/colour-contrast";
+@import "functions/colours/random-colour";
+
+// SVG
+@import "functions/svg/svg";
+@import "functions/svg/dots";
+@import "functions/svg/lines";
+
 @import "functions/maps";
 @import "functions/opposite-direction";
-@import "functions/pad";
-@import "functions/random-colour";
-@import "functions/reverse";
-@import "functions/strip";
-@import "functions/svg";
-@import "functions/transitions";
-@import "functions/units";
+@import "functions/string-replace";
 
-@import "settings/ascii";
-@import "settings/aspect-ratio";
+@import "mixins/grid";
+
 @import "settings/colours";
 @import "settings/directories";
 @import "settings/grid";
-@import "settings/important";
 @import "settings/padding";
-@import "settings/reset";
 @import "settings/text";
 
+// Mixins
 // @import "mixins/cacher";
-// @import "mixins/image-size";
 @import "mixins/align";
-@import "mixins/ani";
+@import "mixins/transition";
 @import "mixins/animate";
-@import "mixins/arrow";
+@import "mixins/triangle";
 @import "mixins/aspect-ratio";
 @import "mixins/backface-visibility";
 @import "mixins/background-image";
 @import "mixins/border-radius";
-@import "mixins/break";
+@import "mixins/blendmodes";
 @import "mixins/break-between";
 @import "mixins/browsers";
+@import "mixins/dropdown";
 @import "mixins/calc";
 @import "mixins/center";
 @import "mixins/clearfix";
 @import "mixins/columns";
+@import "mixins/custom-property";
 @import "mixins/container";
-@import "mixins/corners";
-@import "mixins/dots";
+@import "mixins/devices";
 @import "mixins/first";
+@import "mixins/filters";
 @import "mixins/font-face";
 @import "mixins/fontsize";
 @import "mixins/gradient";
-@import "mixins/grid";
 @import "mixins/image";
 @import "mixins/inputs";
 @import "mixins/keyframes";
@@ -66,6 +155,7 @@
 @import "mixins/nth";
 @import "mixins/nth-last";
 @import "mixins/placeholder";
+@import "mixins/prefixer";
 @import "mixins/remove-corners";
 @import "mixins/same-height-grid";
 @import "mixins/selection";
@@ -76,30 +166,24 @@
 @import "mixins/transforms";
 @import "mixins/unwrap";
 @import "mixins/vertical";
-@import "mixins/video-aspect-ratio";
 
-// @import "animations/jump";
-// @import "animations/wobble";
+@import "animations/jump";
+@import "animations/wobble";
 @import "animations/shake";
 
-@import "placeholders/animation";
-@import "placeholders/circular";
 @import "placeholders/clear";
 @import "placeholders/cursor";
 @import "placeholders/rendering";
 @import "placeholders/sudo";
 @import "placeholders/text";
 
-@import "svgs/gradients";
-@import "svgs/icons";
-@import "svgs/social";
-
 // @import "helpers/noticebars";
+@import "helpers/eases";
 @import "helpers/aliases";
 @import "helpers/custom-elements";
-@import "helpers/flexbox";
 @import "helpers/reset";
 @import "helpers/show-breakpoints";
 @import "helpers/warnings";
 
 @if mixin-exists(settings) { @include settings(); }
+@if $show-breakpoints and mixin-exists(show-breakpoints) { @include show-breakpoints(); }

@@ -1,0 +1,15 @@
+/// Convert to string
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access public
+///
+/// @param {*} $value - value to cast
+///
+/// @return {string}
+
+@function to-string($value) {
+  @return if(type-of($value) != string, inspect($value), $value);
+}

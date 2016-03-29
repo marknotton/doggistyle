@@ -1,0 +1,11 @@
+@function smart-lineheight($size, $smart:true) {
+  @if $smart {
+    @if str-index(quote($size), "%") {
+      @return addUnit(100+(strip($size)), %);
+    } @else {
+      @return addUnit(((($size/50)+($size))*2) + 100, %);
+    }
+  } @else {
+    @return addUnit($size);
+  } 
+}

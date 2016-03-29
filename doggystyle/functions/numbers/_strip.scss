@@ -1,0 +1,29 @@
+/// Strips any units from a number
+///
+/// @author Hugo Giraudel
+/// 
+/// @link https://css-tricks.com/snippets/sass/strip-unit-function/
+///
+/// @param {string} $number
+///
+/// @return {number}
+///
+/// @require {function} is-number
+/// @require {function} to-number
+///
+/// @example scss - Usage
+///   strip(50px)
+///
+/// @example scss - Output
+///   50
+
+@function strip($number) {
+  @if not is-number($number) {
+    $number : to-number($number);
+  }
+  @if is-number($number) and not unitless($number) {
+    @return ($number / ($number * 0 + 1));
+  }
+
+  @return $number;
+}

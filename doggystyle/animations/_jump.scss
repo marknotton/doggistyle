@@ -1,5 +1,5 @@
 @mixin animation-jump($amount:10, $animation-name:jump) {
-  @include keyframes(#{$animation-name} { ) { 
+  @include keyframes(#{$animation-name}) {  
     0% { top:0 } 
     50% { top:$amount + px } 
     100% { top:0 } 

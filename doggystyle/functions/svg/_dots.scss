@@ -1,0 +1,84 @@
+/// Create a svg background image with dots. 
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @param {list} $settings
+///   In any order and without comma delimination, add any of the follwing settings
+///   {color} -  The first instance of a colour will be used for top left and bottom right dots. Default is black.
+///              The second instance will be used for bottom left and top right dots. Default is null.
+///   {number} - The first instance of a number will be used for dot size. In 'px'; Default is 4px.
+///              The second instance of a number will be used for dot spacing. In 'px'; Default is 0px.
+///
+/// @todo Add the ability to chose a direction by degrees
+/// @todo Add the option to choose a shape, eg: circles
+///
+/// @require {function} is-colour
+/// @require {function} is-number
+/// @require {function} colour
+/// @require {function} svg
+/// @require {function} strip
+/// @require {function} first
+/// @require {function} second
+///
+/// @example scss - Usage
+///   Red dots at 8px in width and height. Alternative dots don't exist:
+///   background:dots(red 8);
+///
+///   Red dots at 4px in width and height. Alternative dots are the same, but green:
+///   background:dots(red green); 
+///
+///   Red dots at 10px in width and height. Alternative dots are the same, but green. All dots are spaced 5px apart:
+///   background:dots(red green 10 5); 
+///
+/// @return {String}
+
+@function dots($settings:null) {
+  
+  $size : null;
+  $spacing : 0;
+  $colours : ();
+  $colour1 : black;
+  $colour2 : null;
+
+  @each $setting in $settings {
+
+    @if is-colour($setting) and length($colours) <= 1 {
+      $colours : append($colours, $setting);
+    }
+    @elseif is-number($setting) {
+      @if $size == null {
+        $size : strip($setting);
+      }
+      @else {
+        $spacing : strip($setting);
+      }
+    }
+  }
+
+  @if $size == null { 
+    $size : 4;
+  }
+  
+  @if length($colours) == 1 {
+    $colour1 : colour(first($colours), true);
+  }
+  @elseif length($colours) == 2 {
+    $colour1 : colour(first($colours), true);
+    $colour2 : colour(second($colours), true);
+  }
+
+  $dots : "<svg xmlns='http://www.w3.org/2000/svg' width='"+($size*2 + $spacing*2)+"' height='"+($size*2 + $spacing*2)+"' viewBox='0 0 "+($size*2 + $spacing*2)+" "+($size*2 + $spacing*2)+"'>";
+  $dots : $dots + "<rect fill='"+$colour1+"' y='0' x='0' width='"+$size+"' height='"+$size+"'/>";
+  $dots : $dots + "<rect fill='"+$colour1+"' y='"+($size + $spacing)+"' x='"+($size + $spacing)+"' width='"+$size+"' height='"+$size+"'/>";
+  
+  @if length($colours) > 1 {
+    $dots : $dots + "<rect fill='"+$colour2+"' y='"+($size + $spacing)+"' x='0' width='"+$size+"' height='"+$size+"'/>";
+    $dots : $dots + "<rect fill='"+$colour2+"' y='0' x='"+($size + $spacing)+"' width='"+$size+"' height='"+$size+"'/>";
+  }
+
+  $dots : $dots + "</svg>";
+
+  @return svg($dots); 
+}

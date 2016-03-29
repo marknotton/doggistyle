@@ -1,0 +1,15 @@
+/// Checks to see if value ends with 's' or 'ms'
+/// 
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
+///
+/// @access public
+///
+/// @require {function} is-number
+///
+/// @return {bool}
+
+@function is-time($value) {
+  @return is-number($value) and index('ms' 's', unit($value)) != null;
+}

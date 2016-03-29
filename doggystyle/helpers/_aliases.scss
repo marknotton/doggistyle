@@ -2,11 +2,12 @@
 $bourbon : file_exists('bourbon/bourbon') and variable-exists(em-base);
 $neat    : file_exists('neat/neat') and variable-exists(visual-grid);
 
-// Force mixins from the Yello framework to be used instead of all other conflicting and aliased mixins
+/// Force certain mixins and functions from the Doggy Style library to be used 
+/// Instead of conflicting mixins and funtions from the Bourbon libary
 $force-yello : false; 
 
 
-// Alias Yello mixins to Bourbon mixins
+// Alias Doggy Style mixins to Bourbon mixins
 @if ($bourbon and not $force-yello) {
   @mixin strip($args...) {
     @include warning("This project uses the Bourbon framework. The 'strip' mixin has been aliased to Bourbon's 'strip-units'.");

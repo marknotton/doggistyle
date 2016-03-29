@@ -1,53 +1,73 @@
-$browsers : ('ie', 'edge', 'firefox', 'chrome', 'opera', 'mobile');
+$browsers : ie edge firefox chrome opera;
 
-// TODO: Scope is messed up when these mixins are used directly in a html selector
+// Usage : @include browsers(ie 9 10) { ... }
+// Usage : @include browsers(ie 9, firefox) { ... }
+// Usage : @include browsers(ie) { ... }
+// Usage : @include browsers(edge 12, ie 11) { ... }
 
-@mixin ie($version:null) { 
-  $version : if($version == null, null, "[data-browser$='#{$version}']");
-  html[data-browser^=ie]#{$version} & { @content } 
-}
+@mixin browsers($args...) {
 
-@mixin edge($version:null) { 
-  // TODO: When the browser plugin can detect edge version number, uncomment this line
-  // $version : if($version == null, null, "[data-browser$='#{$version}']");
-  $version : null;
-  html[data-browser^=edge]#{$version} & { @content } 
-}
+  // This checks to see if the current selector is html. 
+  // This can not be converted into a shorthanded if statement. 
+  $selector : null;
+  @if not is-selector(html) { $selector : &; }
 
-@mixin firefox($version:null) { 
-  $version : if($version == null, null, "[data-browser$='#{$version}']");
-  html[data-browser^=firefox]#{$version} & { @content } 
-}
+  @each $settings in _arglist-to-list($args...) {
+    
+    $browsers-list : ();
+    $versions-list : ();
 
-@mixin chrome($version:null) { 
-  $version : if($version == null, null, "[data-browser$='#{$version}']");
-  html[data-browser^=chrome]#{$version} & { @content } 
-}
+    @each $setting in $settings {
+      @if type-of($setting) == string and contains($browsers, $setting) {
+        $browsers-list : append($browsers-list, $setting);
+      } 
+      @elseif type-of($setting) == number or type-of($setting) == list{
+        @each $version in $setting {
+          $versions-list : append($versions-list, $version);
+        }
+      }
+    }
 
-@mixin opera($version:null) { 
-  $version : if($version == null, null, "[data-browser$='#{$version}']");
-  html[data-browser^=opera]#{$version} & { @content } 
-}
-
-@mixin browsers($args) {
-  @each $browser in $args {
-    @if ( index($browsers, $browser) ) {
-      html[data-browser^=#{$browser}] & { 
-        @content;
+    @if length($browsers-list) > 1 and length($versions-list) > 0 { 
+      @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
+    } @else {
+      @if length($browsers-list) > 0 {
+        @if length($versions-list) > 0 {
+          @each $version in $versions-list {
+            @at-root html[data-browser^=#{$browsers-list}][data-browser$='#{$version}'] #{$selector} { @content }
+          }
+        } @else {
+          @each $browser in $browsers-list {
+            @at-root html[data-browser^=#{$browser}] #{$selector} { @content }
+          }
+        }
       }
     }
   }
 }
 
-// TODO: Scope is messed up when these mixins are used directly in a body selector
-@mixin mobile() { 
-  body.mobile & { @content } 
+// Usage : @include ie(9 10) { ... }
+// Usage : @include ie { ... }
+@mixin ie($version:null) { 
+  @include browsers(ie $version) { @content };
 }
 
-@mixin tablet() { 
-  body.tablet & { @content } 
+@mixin edge($version:null) { 
+  // TODO: When the browser plugin can detect edge version numbers, uncomment remove the next line
+  @include warning('As of March 2016: The plugin used to detect browser versions can not currently output the Edge browser version.
+    This mixin will exclude all version numbers for now.')
+  $version : null;
+  @include browsers(edge $version) { @content };
 }
 
-@mixin desktop() { 
-  body.desktop & { @content } 
+@mixin firefox($version:null) { 
+  @include browsers(firefox $version) { @content };
+}
+
+@mixin chrome($version:null) { 
+  @include browsers(chrome $version) { @content };
+}
+
+@mixin opera($version:null) { 
+  @include browsers(opera $version) { @content };
 }

@@ -1,0 +1,14 @@
+// Shorthand for !important
+$imp:!important; 
+
+// Allow wanring messages to be displayed (For Developers)
+$warnings: true !default;
+
+// When enabled, the page will include a variety of 'normaliser' settings
+$reset : true !default;
+
+// Default globals
+$border-radius : 10;
+
+// Default units
+$default-unit : px;

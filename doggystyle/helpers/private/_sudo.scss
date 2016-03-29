@@ -1,0 +1,23 @@
+/// Check to see if the given pseduo is valid
+///
+/// @author Mark Notton
+///
+/// @access private
+/// 
+/// @require {function} is-pseudo
+///
+/// @return {string}
+/// 
+/// @example scss - Usage
+///   &#{_sudo(before)} { ... }
+///
+/// @example scss - Output
+///   &:before { ... }
+
+@function _sudo($pseudo, $colon:true) {
+  @if is-pseudo($pseudo) {
+    @return if($colon, ':'+$pseudo, $pseudo);
+  } @else {
+    @return null;
+  }
+}
