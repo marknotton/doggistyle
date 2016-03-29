@@ -1,4 +1,4 @@
-![alt tag](http://i.imgur.com/Kju0hRe.png)
+![alt tag](http://i.imgur.com/DrR97Jt.png)
 
 # Doggy Style
 Doggy Style is a Sass Library
