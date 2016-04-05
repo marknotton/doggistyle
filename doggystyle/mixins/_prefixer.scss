@@ -35,8 +35,8 @@ $vendors : webkit moz ms o;
   $prefixes : if($prefixes == all, $vendors, $prefixes);
   $strict : false;
 
-  @if contains($prefixes, only, true) {
-    $prefixes: list-remove($prefixes, only);
+  @if contains($prefixes, only) {
+    $prefixes: remove($prefixes, only);
     $strict : true;
   }  
 

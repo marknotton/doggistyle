@@ -1,0 +1,3 @@
+@function is-selector($value) {
+  @return #{&} == #{html};
+}

@@ -1,7 +1,7 @@
 // // Sets the width and height to the same values
-@mixin size($sizes) {
-  $width: nth($sizes, 1);
-  $height : check(second($sizes), first($sizes));
+@mixin size($sizes, $height:null) {
+  $width: first($sizes);
+  $height : check($height, check(second($sizes), first($sizes)));
   width: addUnit($width);
   height: addUnit($height);
 }

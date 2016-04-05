@@ -5,7 +5,7 @@ $devices : mobile tablet desktop;
   // This checks to see if the current selector is html. 
   // This can not be converted into a shorthanded if statement. 
   $selector : null;
-  @if to-string(&) != html and to-string(&) != body { $selector : &; }
+  @if not is-selector(html) and not is-selector(body) { $selector : &; }
 
   @each $settings in _arglist-to-list($args...) {
     
@@ -52,4 +52,16 @@ $devices : mobile tablet desktop;
 
 @mixin desktop($type:null) { 
   @include devices(desktop $type) { @content };
+}
+
+
+/// Add specical styling for specific classes that sit on the body of the page. 
+/// for example, iphone devices specifcally. 
+/// @todo Add checks and validation
+@mixin identify($class) {
+  
+  $selector : null;
+  @if not is-selector(html) and not is-selector(body){ $selector : &; }
+
+  @at-root body.#{$class} #{$selector} { @content }
 }

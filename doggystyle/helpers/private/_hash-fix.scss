@@ -1,0 +1,15 @@
+/// For reasons specific to Firefox (currently version 45), 
+/// SVG's require all hash symbols to be replaced with '%23'. This includes hex colours and <use> xlinks
+/// This function will find and replace that hash symbol with the appropriate new string (which also works in other browsers)
+///
+/// @author Mark Notton
+///
+/// @access private
+///
+/// @link http://stackoverflow.com/questions/28588050/how-to-use-a-hex-value-for-svg-in-firefox#answer-28588194
+///
+/// @return {string} - Without "#" as the first character
+
+@function _hash-fix($string) {
+  @return if(is-first-character($string, '#'), str-replace(#{$string}, '#', '%23'), $string);
+}

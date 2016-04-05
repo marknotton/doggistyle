@@ -1,24 +1,25 @@
 /// An alternative to the native rgba function. With a few extra checks.
 ///
+/// @author Mark Notton
+///
+/// @access public
+///
 /// @param {list} $settings
 ///   In any order and without comma delimination, add any of the follwing settings
 ///   {color} - The first instance of a colour will be used
 ///   {opacity} - The first instance of a number will be used as the opacity
 /// 
-/// @param {bool} $hash
-///   If true, the '#' will be replaced with an encoded version '%23'. 
-///   This will not take effect if the colour is a native css colour word (red, green, blue), 
-///   or if any opacity has been defined. This is for bespoke circomstances like when using inline svg's and fill/strokes
-///
-/// @link http://stackoverflow.com/questions/28588050/how-to-use-a-hex-value-for-svg-in-firefox#answer-28588194
+/// @param {opacity} $opacity
+///   Perhaps a little over engineered, but if you mistype the function and set the opacity as a seperate 
+///   parameter rather than part of the settings list. This function will still work. 
 ///
 /// @return {color}
 
-@function colour($settings:null, $hash:false) { 
+@function colour($settings:null, $opacity:null) { 
 
   // Deafult settings
   $colour  : random-colour();
-  $opacity : 1;
+  $new-opacity : if($opacity == null, 1, $opacity);
   
   // Check Settings
   @each $setting in $settings {
@@ -26,18 +27,19 @@
       $colour : $setting;
     }
     @elseif is-number($setting) {
-      $opacity : strip($setting);
+      @if $opacity == null {
+        $new-opacity : strip($setting);
+      } @else {
+        $new-opacity : $opacity;
+      }
     }
   }
 
-  @if $hash and not str-index(#{$colour}, 'rgba') {
-    @return string-replace(to-string(rgba($colour, $opacity)), '#', '%23');
-  }
-  @elseif str-index(#{$colour}, 'rgba') {
+  @if str-index(#{$colour}, 'rgba') {
     @return $colour;
   }
   @else {
-    @return rgba($colour, $opacity);
+    @return rgba($colour, $new-opacity);
   }
 }
 
@@ -49,8 +51,8 @@
 ///
 /// @return {bool}
 
-@function color($settings:null, $hash:false) {
-  @return colour($settings, $hash);
+@function color($settings:null, $opacity:null) {
+  @return colour($settings, $opacity);
 }
 
 
@@ -62,6 +64,6 @@
 ///
 /// @return {bool}
 
-@function col($settings:null, $hash:false) {
-  @return colour($settings, $hash);
+@function col($settings:null, $opacity:null) {
+  @return colour($settings, $opacity);
 }

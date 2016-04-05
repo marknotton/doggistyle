@@ -11,7 +11,7 @@
 /// @example scss - Usage
 ///   random-colour(0.5);
 ///
-/// @example scss - Output
+/// @example css - Output
 ///   rgba(38, 153, 180, 0.5);
 ///
 /// @return {color}
@@ -44,4 +44,35 @@
 
 @function rc($opacity:0.3) {
   @return random-colour($opacity);
+}
+
+
+/// Random colours on a range of elements. Ideal for developers wanting to visually see elements quickly
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @param {number} $amount - How many items are there. Default is 10
+///
+/// @param {string} $target - Add any children elements you want to target
+///
+/// @param {number} $opacity - The opacity strength. Default is 0.5
+///
+/// @example scss - Usage
+///   li { random-colours(5, '.link'); }
+///
+/// @example css - Output
+///   li:nth-of-type(1) .link { background-color: rgba(166, 213, 186, 0.5); }
+///   li:nth-of-type(2) .link { background-color: rgba(118, 134, 177, 0.5); }
+///   li:nth-of-type(3) .link { background-color: rgba(223, 47, 35, 0.5); }
+///   li:nth-of-type(4) .link { background-color: rgba(175, 255, 1, 0.5); }
+///   li:nth-of-type(5) .link { background-color: rgba(100, 108, 80, 0.5); }
+///
+/// @return {*}
+
+@mixin random-colours($amount:10, $target:null, $opacity:0.5) {
+  @for $i from 1 through $amount {
+    &:nth-of-type(#{$i}) #{$target} { background-color:random-colour($opacity); }
+  }
 }

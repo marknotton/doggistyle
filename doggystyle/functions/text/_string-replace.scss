@@ -1,4 +1,4 @@
-/// Replace 'search' with '$replace' in '$string'. Reordered to match PHP str_replace parameter order
+/// Replace 'search' with '$replace' in '$string'. Reordered parameter order to match PHP str_replace 
 ///
 /// @author Hugo Giraudel
 ///
@@ -14,9 +14,9 @@
 ///
 /// @return {string} - Updated string
 
-@function string-replace($search, $replace:'', $string:null) {
+@function str-replace($string, $search, $replace:'') {
   $index: str-index($string, $search);
-  
+
   @if $index {
     @return str-slice($string, 1, $index - 1) + $replace + str-replace(str-slice($string, $index + str-length($search)), $search, $replace);
   }
@@ -33,6 +33,6 @@
 ///
 /// @return {string}
 
-@function str-replace($search, $replace:'', $string:null) {
-  @return string-replace($search, $replace, $string);
+@function string-replace($search, $replace:'', $string:'') {
+  @return str-replace($search, $replace, $string);
 }

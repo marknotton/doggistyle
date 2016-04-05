@@ -4,15 +4,6 @@
   background-image: linear-gradient($args);
 }
 
-// Vertical gradient, from top to bottom
-@mixin gradient-vertical($start-colour:white, $end-colour:black, $direction: top) {
-  background-image: -webkit-linear-gradient($direction, $start-colour, $end-colour);  // Safari 5.1-6, Chrome 10+
-  background-image: -o-linear-gradient($direction, $start-colour, $end-colour);  // Opera 12
-  background-image: linear-gradient(to opposite-direction($direction), $start-colour, $end-colour); // Standard, IE10, Firefox 16+, Opera 12.10+, Safari 7+, Chrome 26+
-  background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#{ie-hex-str(nth($start-colour, 1))}', endColorstr='#{ie-hex-str(nth($end-colour, 1))}', GradientType=0); // IE9 and down
-}
-
 @mixin gradient-right($start-colour:white, $end-colour:black, $direction:left) {
   @include gradient-horizontal($start-colour, $end-colour, $direction);
 }
@@ -37,6 +28,17 @@
 }
 
 @mixin gradient-horizontal($args...) {
+  $properties : _gradient-properties($args...);
+
+  // $properties : @if(contains($properties, left right), to $properties, $properties);
+
+  background-image: -webkit-linear-gradient(#{$properties}); // Safari 5.1-6, Chrome 10+
+  background-image: -o-linear-gradient(#{$properties}); // Opera 12
+  background-image: linear-gradient(#{$properties}); // Standard, IE10, Firefox 16+, Opera 12.10+, Safari 7+, Chrome 26+
+  background-repeat: repeat-x;
+}
+
+@mixin gradient-vertical($args...) {
   $properties : _gradient-properties($args...);
 
   // $properties : @if(contains($properties, left right), to $properties, $properties);

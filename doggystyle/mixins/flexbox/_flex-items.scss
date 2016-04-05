@@ -26,12 +26,11 @@ $flex-align-self   : auto flex-start flex-end center baseline stretch;
 ///
 /// @param {Map} $settings - flexbox item property or alias : flexbox value.
 ///
-///   Item
 ///   Property         Alias        Default       Values
 ///   -------------------------------------------------------------------------------------------------------
 ///   order            (-)          (-)           number 
 ///   flex-grow        (grow)       (0)           number 
-///   flex-shrink      (shrink)     (2)           number 
+///   flex-shrink      (shrink)     (1)           number 
 ///   flex-basis       (basis)      (auto)        unit | auto
 ///   !flex            (-)          (-)           number | none
 ///   align-self       (self)       (-)           auto | flex-start | flex-end | center | baseline | stretch
@@ -80,13 +79,15 @@ $flex-align-self   : auto flex-start flex-end center baseline stretch;
     $new-value : null;
 
     @if contains($flex-item, $property) {
-      @if contains($property, (self)) {
+      // Alias checks
+      @if contains($property, self) {
         $property : #{align-}$property;
       }
       @elseif contains($property, (grow shrink basis)) {
         $property : #{flex-}$property;
       }
-      
+        
+      // Check these properties against their list of valid values
       @if contains($property, (order, flex-grow, flex-shrink)) {
         $new-value : strip($value);
         $output : true;
@@ -95,12 +96,11 @@ $flex-align-self   : auto flex-start flex-end center baseline stretch;
         $new-value : addUnit($value);
         $output : true;
       }
-      @elseif $property == align-self and contains($property, $flex-align-self) {
+      @elseif $property == align-self and contains($flex-align-self, $value) {
         $new-value : $value;
         $output : true;
       }
-      
-
+           
       // Only output and prefix everything when $output is true
       @if $output and $new-value != null {
         @include prefixer($property, $new-value, all);

@@ -37,7 +37,7 @@ $global-filter-values : (inherit initial unset);
             $filter : str-slice($rule, 1, $first-brace - 1);;
             $test : to-number(str-slice($rule, $first-brace + 1, $last-brace - 1));
           } @elseif $filter == null {
-            // TODO: Fix issue where these spelling mistages checks don't break the '$rule' formatting.
+            // TODO: Fix issue where these spelling mistakes checks don't break the '$rule' formatting.
             // @if $rule == greyscale { $rule : grayscale; }
             // @if $rule == dropshadow { $rule : drop-shadow; }
             // @if $rule == hue { $rule : hue-rotate; }

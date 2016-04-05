@@ -8,10 +8,9 @@ $blend-modes : (initial inherit unset screen overlay darken lighten color-dodge 
     $blends : append($blends, $blend, comma);
   }
   
-  // TODO: Fix this check this is a valid blend mode.
-  // @if contains($blend-modes, $blend) {
+  @if contains($blend-modes, $blends) {
     @include prefixer(background-blend-mode, $blends, moz webkit);
-  // }
+  }
 }
 
 @mixin blend-mix($blend) {

@@ -1,5 +1,6 @@
 /// generic transform
-@mixin transform($transforms) {
+@mixin transform($transforms, $origin:50%) {
+  @if $origin != null { @include transform-origin($origin); }
   @include prefixer(transform, $transforms, all);
 }
 
@@ -31,7 +32,7 @@
 }
 
 @mixin translateY($y) {
-  @include transform(translateY(addUnit($x)));
+  @include transform(translateY(addUnit($y)));
 }
 
 @mixin translate3d($valies) {

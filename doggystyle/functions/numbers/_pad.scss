@@ -12,5 +12,5 @@
 ///
 /// @return {Number} with units
 @function pad($size:1) {
-  @return if($size == 0, $padding/2 + px, $padding*$size + px);
+  @return if($size == 0, to-number(addUnit($padding/2, px)), to-number(addUnit($padding*$size, px)));
 }

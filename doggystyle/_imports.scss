@@ -15,7 +15,9 @@
 @import "helpers/private/brightness";
 @import "helpers/private/lightness";
 @import "helpers/private/from-hsl";
+@import "helpers/private/min-max-number";
 @import "helpers/private/from-rgb";
+@import "helpers/private/hash-fix";
 @import "helpers/private/get-color-value";
 @import "helpers/private/hex-to-dec";
 @import "helpers/private/sudo";
@@ -29,6 +31,7 @@
 @import "helpers/checks/is-relative-length";
 @import "helpers/checks/is-angel";
 @import "helpers/checks/is-bool";
+@import "helpers/checks/is-calc";
 @import "helpers/checks/is-colour";
 @import "helpers/checks/is-duration";
 @import "helpers/checks/is-false";
@@ -40,11 +43,13 @@
 @import "helpers/checks/is-null";
 @import "helpers/checks/is-dark";
 @import "helpers/checks/is-light";
+@import "helpers/checks/is-first-character";
 @import "helpers/checks/is-percentage";
 @import "helpers/checks/is-position";
 @import "helpers/checks/is-pseudo";
 @import "helpers/checks/is-resolution";
 @import "helpers/checks/is-unit";
+@import "helpers/checks/is-selector";
 @import "helpers/checks/is-string";
 @import "helpers/checks/is-time";
 @import "helpers/checks/check";
@@ -85,17 +90,29 @@
 @import "functions/maps/map-has-nested-keys";
 @import "functions/maps/map-zip";
 
-// Flexbox
-@import "mixins/flexbox/flex-container";
-@import "mixins/flexbox/flex-grid";
-@import "mixins/flexbox/flex-items";
-@import "mixins/flexbox/flex-remove";
+@import "helpers/symbols/common";
+// @import "helpers/symbols/arrows";
+// @import "helpers/symbols/block";
+// @import "helpers/symbols/box";
+// @import "helpers/symbols/currency";
+// @import "helpers/symbols/dingbats";
+// @import "helpers/symbols/geometric";
+// @import "helpers/symbols/letterlike";
+// @import "helpers/symbols/misc";
+// @import "helpers/symbols/operators";
+// @import "helpers/symbols/punctuation";
 
 // Numbers
 @import "functions/numbers/add-unit";
 @import "functions/numbers/units";
 @import "functions/numbers/pad";
 @import "functions/numbers/strip";
+
+// Flexbox
+@import "mixins/flexbox/flex-container";
+@import "mixins/flexbox/flex-grid";
+@import "mixins/flexbox/flex-items";
+@import "mixins/flexbox/flex-remove";
 
 // Text
 @import "functions/text/smart-lineheight";
@@ -110,8 +127,9 @@
 @import "functions/svg/svg";
 @import "functions/svg/dots";
 @import "functions/svg/lines";
+@import "functions/svg/fake-radius";
 
-// Misc Functions
+// Functions
 @import "functions/opposite-direction";
 @import "functions/mobile-first";
 
@@ -146,14 +164,15 @@
 @import "mixins/filters";
 @import "mixins/font-face";
 @import "mixins/fontsize";
-@import "mixins/gradient";
-@import "mixins/image-size";
-@import "mixins/image";
-@import "mixins/inputs";
 @import "mixins/keyframes";
+@import "mixins/gallery";
+@import "mixins/gradient";
+@import "mixins/image";
+@import "mixins/image-size";
+@import "mixins/inputs";
 @import "mixins/last";
-@import "mixins/nth-last";
 @import "mixins/nth";
+@import "mixins/nth-last";
 @import "mixins/placeholder";
 @import "mixins/prefixer";
 @import "mixins/selection";
@@ -162,6 +181,7 @@
 @import "mixins/text-shadow";
 @import "mixins/transforms";
 @import "mixins/transition";
+@import "mixins/triangle-classic";
 @import "mixins/triangle";
 @import "mixins/unwrap";
 @import "mixins/vertical";
@@ -185,5 +205,7 @@
 @import "helpers/show-breakpoints";
 @import "helpers/warnings";
 
-@if mixin-exists(settings) { @include settings(); }
-@if $show-breakpoints and mixin-exists(show-breakpoints) { @include show-breakpoints(); }
+@if mixin-exists(settings) and $reset { 
+  @include settings(); 
+}
+@if $show-breakpoints and $reset { @include show-breakpoints(); }

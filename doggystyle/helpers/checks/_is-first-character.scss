@@ -1,0 +1,11 @@
+/// Compare the first character of a string
+/// 
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @return {bool}
+
+@function is-first-character($string, $character) {
+  @return str-slice(#{$string}, 1, 1) == #{$character};
+}

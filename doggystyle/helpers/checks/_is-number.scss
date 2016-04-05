@@ -10,4 +10,10 @@
 
 @function is-number($value) {
   @return type-of($value) == 'number';
+  // @each $number in $value {
+  //   @if type-of($number) != 'number' {
+  //     @return false;
+  //   }
+  // } 
+  // @return true;
 }

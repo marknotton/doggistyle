@@ -82,10 +82,10 @@ $breakpoints: () !global;
 
 
 // The original grid mixin
-@mixin grid($args) {
+@mixin grid($args, $gutter:null) {
 
   $count: nth($args, 1);
-  $gutter: if(length($args) == 2, nth($args, 2), 0);
+  $gutter: if($gutter == null, if(length($args) == 2, nth($args, 2), 0), $gutter);
 
   @if ($gutter == true) { $gutter:$padding; }
 
@@ -116,6 +116,9 @@ $breakpoints: () !global;
   } @else {
     width:$width;
   }
+
+    @content;
+
 }
 
 // @include grid(4 $pad $max, 2 0 $medium, $small);

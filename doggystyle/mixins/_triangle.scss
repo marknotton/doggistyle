@@ -1,3 +1,53 @@
+/// Triangle Settings
+///
+/// @author Mark Notton
+///
+/// @type variables
+
+$triangle-settings: (
+  top-left : (
+    points : "0,100 0,0 100,0",
+    y : ( left , 0 ),
+    x : ( top , 0 )
+  ),
+  up : (
+    points : "100,100 0,100 50,0",
+    y : ( left , 50% ),
+    x : ( bottom , 100% )
+  ),
+  top-right : (
+    points : "100,100 0,0 100,0",
+    y : ( right , 0 ),
+    x : ( top , 0 )
+  ),
+  left : (
+    points : "100,100 0,50 100,0",
+    y : ( right , 100% ),
+    x : ( top , 50% )
+  ),
+  right : (
+    points : "0,100 0,0 100,50",
+    y : ( top , 50% ),
+    x : ( left , 100% )
+  ),
+  bottom-left : (
+    points : "100,100 0,100 0,0",
+    y : ( left , 0 ),
+    x : ( bottom , 0 )
+  ),
+  down : (
+    points : "0,0 100,0 50,100",
+    y : ( left , 50% ),
+    x : ( top , 100% )
+  ),
+  bottom-right : (
+    points : "0,100 100,0 100,100",
+    y : ( bottom , 0 ),
+    x : ( right , 0 )
+  ),
+);
+
+
 /// Create a triangle/carrat/arrow 
 ///
 /// @todo Figure a way to animate the fill colour of the svg background
@@ -14,6 +64,11 @@
 ///
 /// @param {bool} $position
 ///   Determines wether the arrow should be positioned at all
+///
+/// @require {function} random-color
+/// @require {function} map-fetch
+/// @require {function} is-calc
+///
 ///
 /// @example {scss} - Usage
 ///   @include arrow(50% 20 purple right);
@@ -63,7 +118,7 @@
   // Check Triangle Settings
   @each $rule in nth($args, 1) {    
 
-    @if type-of($rule) == number or str-slice(#{$rule}, 0, 4) == 'calc' and length($size) < 2 {
+    @if type-of($rule) == number or is-calc($rule) and length($size) < 2 {
       $size : append($size, $rule);
     }
     @elseif type-of($rule) == color {
@@ -129,10 +184,10 @@
   $height : if(length($size) == 1, $width, nth($size, 2));
   
   // Define all settings with strings
-  $fill : "' fill='" + col($colour, true);
+  $fill : "' fill='" + _hash-fix($colour);
   
   @if $stroke {
-    $s-colour    : "' stroke='" + col($s-colour, true);
+    $s-colour    : "' stroke='" + _hash-fix($s-colour);
     $s-width     : "' stroke-width='" + strip($s-width);
     $s-alignment : "' stroke-alignment='inner";
     $s-linecap   : if($s-linecap, "' stroke-linecap='" + $s-linecap, '');
@@ -140,7 +195,7 @@
     $s-dasharray : if($s-dasharray, "' stroke-dasharray='" + $s-dasharray, '');
   } 
 
-  &:#{$sudo} { 
+  &#{_sudo($sudo)} {
     content:""; 
     @include size($width $height);
     position:absolute;
@@ -173,110 +228,22 @@
   }
 
   @include ie {
-    @include triangle-border-method($width $height $colour $direction $sudo) { @content };
+    @include triangle-classic($width $height $colour $direction $sudo) { background-image:none $imp; @content };
   }
 }
 
-// Arrow aliases to triangle mixin
-@mixin arrow($args...) { @include triangle($args...) { @content }}
 
-$triangle-settings: (
-  top-left : (
-    points : "0,100 0,0 100,0",
-    y : ( left , 0 ),
-    x : ( top , 0 )
-  ),
-  up : (
-    points : "100,100 0,100 50,0",
-    y : ( left , 50% ),
-    x : ( bottom , 100% )
-  ),
-  top-right : (
-    points : "100,100 0,0 100,0",
-    y : ( right , 0 ),
-    x : ( top , 0 )
-  ),
-  left : (
-    points : "100,100 0,50 100,0",
-    y : ( right , 100% ),
-    x : ( top , 50% )
-  ),
-  right : (
-    points : "0,100 0,0 100,50",
-    y : ( top , 50% ),
-    x : ( left , 100% )
-  ),
-  bottom-left : (
-    points : "100,100 0,100 0,0",
-    y : ( left , 0 ),
-    x : ( bottom , 0 )
-  ),
-  down : (
-    points : "0,0 100,0 50,100",
-    y : ( left , 50% ),
-    x : ( top , 100% )
-  ),
-  bottom-right : (
-    points : "0,100 100,0 100,100",
-    y : ( bottom , 0 ),
-    x : ( right , 0 )
-  ),
-);
+/// @alias triangle
+///
+/// @access public
+/// 
+/// @require {mixin} triangle
+///
+/// @return {*}
 
-// Fallback for IE Users
-@mixin triangle-border-method($args, $position:true) {  
-  $width     : nth($args, 1);
-  $height    : nth($args, 2);
-  $colour    : nth($args, 3);
-  $direction : nth($args, 4);
-  $sudo      : nth($args, 5);
-  
-  &:#{$sudo} {
-    content:"";
-    position:absolute;
-    top:0; 
-    left:0; 
-    background-image:none $imp;
-    height:0; 
-    width:0;
-    border-style:solid; 
-    border-color:transparent;
-    border-width:0;
-      
-    // Directions
-    @if $direction == left {
-      border-width:addUnit($height/2) addUnit($width) addUnit($height/2) 0;
-      border-right-color:$colour;
-    }
-    @elseif $direction == right {
-      border-width:addUnit($height/2) 0 addUnit($height/2) addUnit($width);
-      border-left-color:$colour;
-    }
-    @elseif $direction == up {
-      border-width:0 addUnit($width/2) addUnit($height) addUnit($width/2);
-      border-bottom-color:$colour;
-    }
-    @elseif $direction == down {
-      border-width:addUnit($height) addUnit($width/2) 0 addUnit($width/2);
-      border-top-color:$colour;
-    }
-    @elseif $direction == top-left {
-      border-width:addUnit($height) addUnit($width) 0 0;
-      border-top-color:$colour;
-    }
-    @elseif $direction == top-right {
-      border-width:0 addUnit($width) addUnit($height) 0;
-      border-right-color:$colour 
-    }
-    @elseif $direction == bottom-left {
-      border-width:addUnit($height) 0 0 addUnit($width);
-      border-left-color:$colour;
-    }
-    @elseif $direction == bottom-right {
-      border-width:0 0 addUnit($height) addUnit($width);
-      border-bottom-color:$colour;
-    }
-
-    @content;
+@mixin arrow($args...) { 
+  @include triangle($args...) { 
+    @content 
   }
 }
+
