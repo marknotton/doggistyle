@@ -1,13 +1,11 @@
-// TODO: Make it so you can past a string of formats that then get exploded into a list
 @mixin font-face($family, $file, $formats) {
   @font-face {
-    $source : "";      
+    $source : ();      
     font-family:$family;
     @each $format in $formats {
-      $source : $source + ( url($font-url + $file + '.' + $format))// format(quote($format)) + ',') ;
+      $source : append($source, url($font-url + $file + '.' + $format), comma);
     }
-    // $source:str-slice($source, 0, str-length($source) - 1);
-    src:unquote($source);
+    src: $source;
     @content;
   }
 }

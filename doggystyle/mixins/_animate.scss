@@ -2,7 +2,7 @@
 
 //@include keyframes(testing) { to { @include rotate(360deg);}}
 //@include animate(testing, 1, linear, null, infinite);
-@mixin animate($name, $duration:0.2, $ease:ease-in-out, $delay:0, $replay:1, $direction:normal, $fill:none) {
+@mixin animate($name, $duration:0.2, $ease:ease-in-out, $delay:0, $replay:1, $direction:normal, $fill:forwards) {
   @if ($duration == null) { $duration:0.3;}
   @if ($ease == null) { $ease:ease-in-out;}
   @if ($delay == null) { $delay:0;}

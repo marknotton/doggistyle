@@ -6,20 +6,25 @@ $devices : mobile tablet desktop;
   // This can not be converted into a shorthanded if statement. 
   $selector : null;
   @if not is-selector(html) and not is-selector(body) { $selector : &; }
+  
+  $selector : str-replace(#{&}, 'body', '');
 
   @each $settings in _arglist-to-list($args...) {
     
     $devices-list : ();
     $types-list : ();
+    $no-space : false;
 
     @each $setting in $settings {
-      @if type-of($setting) == string {
+      @if is-string($setting) {
         @if contains($devices, $setting) and length($devices-list) < 2 {
           $devices-list : append($devices-list, $setting);
         } @else {
           $types-list : append($types-list, $setting);
         }
-      } 
+      } @elseif is-bool($setting) {
+        $no-space : $setting;
+      }
     }
 
     @if length($devices-list) > 1 and length($types-list) > 0 { 
@@ -28,11 +33,11 @@ $devices : mobile tablet desktop;
       @if length($devices-list) > 0 {
         @if length($types-list) > 0 {
           @each $type in $types-list {
-            @at-root body.#{$devices-list}.#{$type} #{$selector} { @content }
+            @at-root #{if(not $no-body, body, null)}#{$devices-list}.#{$type} #{$selector} { @content }
           }
         } @else {
           @each $device in $devices-list {
-            @at-root body.#{$device} #{$selector} { @content }
+            @at-root body.#{$device}#{if($no-space, '', ' ')}#{$selector}{ @content }
           }
         }
       }

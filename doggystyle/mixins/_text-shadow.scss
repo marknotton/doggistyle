@@ -4,6 +4,27 @@
 /// @param {Size} $blur [2px] - Blur
 /// @param {Color} $color [rgba(0,0,0,.4)] - Color
 
-@mixin text-shadow($x: 2px, $y: 2px, $blur: 5px, $color: rgba(0,0,0,.4)) {
-    text-shadow: $x $y $blur $color;
+@mixin text-shadow($x: 2px, $y: 2px, $blur: 5px, $color: rgba(0,0,0,0.4)) {
+    @include prefixer(text-shadow, addUnit($x) addUnit($y) addUnit($blur) $color);
+}
+
+
+/// Box Shadow
+/// @param {Size} $x [2px] - X
+/// @param {Size} $y [2px] - Y
+/// @param {Size} $blur [2px] - Blur
+/// @param {Color} $color [rgba(0,0,0,.4)] - Color
+
+@mixin box-shadow($x: 2px, $y: 2px, $blur: 5px, $color: rgba(0,0,0,0.4)) {
+  @include prefixer(box-shadow, addUnit($x) addUnit($y) addUnit($blur) $color);
+}
+
+/// Box Inner Shadow
+/// @param {Size} $x [2px] - X
+/// @param {Size} $y [2px] - Y
+/// @param {Size} $blur [2px] - Blur
+/// @param {Color} $color [rgba(0,0,0,.4)] - Color
+
+@mixin box-inner-shadow($x: 2px, $y: 2px, $blur: 5px, $color: rgba(0,0,0,0.4)) {
+  @include prefixer(box-shadow, inset addUnit($x) addUnit($y) addUnit($blur) $color);
 }

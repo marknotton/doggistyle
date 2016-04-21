@@ -1,6 +1,6 @@
-@mixin selection($background-color:null, $text-colour:$background-color) {
+@mixin selection($background-color:$selection, $text-colour:$background-color) {
   @if ($text-colour == null or $text-colour == $background-color) { 
-    $text-colour:light-or-dark($background-color);
+    $text-colour:colour-contrast($background-color);
   }
   ::-moz-selection { 
     color: $text-colour;

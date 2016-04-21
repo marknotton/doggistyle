@@ -1,0 +1,44 @@
+/// Designed to check for special function types. For example, filters or transforms: rotate(45deg)
+/// 
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @require {function} to-number
+/// @require {function} is-string
+/// @require {function} string-explode
+///
+/// @example scss - Usage
+///   @debug is-function(rotate(45deg));
+///   @debug is-function(transform);
+///
+/// @example scss - Output
+///   (rotate, 45deg)
+///   false
+///
+/// @return {bool | list} If value is not a string or does not fit the 'function' syntax, return false. 
+/// Otherwise, return a list with the 'function' name and the 'value' that was passed.
+
+@function is-function($value) {
+  
+  $values : ();
+
+  @if is-string($value) {
+    $first-brace : str-index($value, '(');
+    $last-brace : str-index($value, ')');
+    @if $first-brace and $last-brace {
+      $function : str-slice($value, 1, $first-brace - 1);;
+      $value : str-slice($value, $first-brace + 1, $last-brace - 1);
+      // If a number was passed, it would be returns back as a string. This converts it to a number, unless it's not really a number.
+      $value : _string-explode($value);
+      @each $val in $value {
+        $values : append($values, if(to-number($val) != 0, to-number($val), $val), comma)
+      }
+      @return ($function $values);
+    } @else {      
+      @return false;
+    }
+  } @else {
+    @return false;
+  } 
+}

@@ -12,6 +12,10 @@ $ease-in        : cubic-bezier(0.420, 0.000, 1.000, 1.000);
 $ease-out       : cubic-bezier(0.000, 0.000, 0.580, 1.000);
 $ease-in-out    : cubic-bezier(0.420, 0.000, 0.580, 1.000);
 
+$easeIn         : $ease-in;
+$easeOut        : $ease-out;
+$easeInOut      : $ease-in-out;
+
 $easeInQuad     : cubic-bezier(0.550, 0.085, 0.680, 0.530);
 $easeInCubic    : cubic-bezier(0.550, 0.055, 0.675, 0.190);
 $easeInQuart    : cubic-bezier(0.895, 0.030, 0.685, 0.220);

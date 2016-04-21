@@ -4,7 +4,7 @@
 /// 
 /// @param {number} $value
 ///
-/// @param {string} $unit - If a value is unitless add the default "px".
+/// @param {string} $unit - If a value is unitless add the default unit.
 ///
 /// @param {bool} $convert - If the value already has a unit, and a different unit was specifically 
 ///   supplied, this boolean desides wether to replace the unit.

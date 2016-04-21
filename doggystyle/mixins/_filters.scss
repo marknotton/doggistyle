@@ -1,108 +1,119 @@
-$global-filter-values : (inherit initial unset);
+$filter-values : inherit initial unset;
+$filter-types : url blur brightness contrast drop-shadow grayscale hue-rotate invert opacity saturate sepia;
 
-@mixin is-function($function) {
-  $first-brace : str-index($function, '(');
-  $last-brace : str-index($function, ')');
-  @if $first-brace and $last-brace {
-    $filter : str-slice($function, 1, $first-brace - 1);;
-    $value : str-slice($function, $first-brace + 1, $last-brace - 1);
-  }
-}
+/// Filter mixin that allows various syntax's
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @param {Map} $settings - Each argument should consist of a filter type and it's value
+///
+/// @require {variable} transform-types
+/// @require {variable} transform-values
+/// @require {function} _arglist-to-list
+/// @require {function} contains
+/// @require {function} is-function
+/// @require {function} is-string
+/// @require {mixin} prefixer
+///
+/// @example scss - Usage
+///   Doggy Style Syntax
+///   @include filter(blur 5, sepia 100); 
+///   Bourbon Syntax
+///   @include filter(blur(5), sepia(100));
+///   Generic Syntax
+///   @include filter(blur(5) sepia(100)); 
+///
+/// @example css - CSS Output
+///   -webkit-filter: blur(5px) sepia(100%);
+///   -moz-filter: blur(5px) sepia(100%);
+///   filter: blur(5px) sepia(100%);
 
-// Useage 
-// @include filter(hue-rotate 50);
-// @include filter(hue-rotate 50, grayscale 100%);
-// @include filter(sepia 20, drop-shadow 10 10 5px green);
-
-@mixin filter($args...) {
-
+@mixin filter($settings...) {
+  
   $filters : ();
+  $fallback-settings : ();
 
-  $args: if(length($args) > 0, $args, null);
+  @if not contains($filter-values, $settings, true) and length($settings) >= 1 {
+    
+    // This is an over-engineered section of code to to allow for all types of syntaxes.
+    // Essestially making it work with Bourbon and other frameworks.
+    @if length($settings) == 1  {
+      @for $i from 1 through length($settings) {
+        @each $setting in nth($settings, $i) {   
+          @if is-function($setting) {     
+            $fallback-settings : append($fallback-settings, $setting, comma);
+          }
+        }
+      } 
+    }
+    $settings-lists : if(length($fallback-settings) > 1, $fallback-settings,  _arglist-to-list($settings));
 
-  @if not contains($global-filter-values, $args, true) and length($args) >= 1 {
 
-    @for $i from 1 through length($args) {  
-      
+    @each $settings in $settings-lists {      
+
+      @if is-function($settings) {
+        $settings : is-function($settings);
+      } 
+    
+
       $filter : null;
       $value : ();
-      $test : null; 
 
-      @each $rule in nth($args, $i) {
-        @if type-of($rule) == string {
-          $first-brace : str-index($rule, '(');
-          $last-brace : str-index($rule, ')');
 
-          @if $first-brace and $last-brace {
-            $filter : str-slice($rule, 1, $first-brace - 1);;
-            $test : to-number(str-slice($rule, $first-brace + 1, $last-brace - 1));
-          } @elseif $filter == null {
-            // TODO: Fix issue where these spelling mistakes checks don't break the '$rule' formatting.
-            // @if $rule == greyscale { $rule : grayscale; }
-            // @if $rule == dropshadow { $rule : drop-shadow; }
-            // @if $rule == hue { $rule : hue-rotate; }
-            $filter : $rule;
-          }
-        }
-
+      // Check for transforms
+      @each $setting in $settings {
+        @if is-string($setting) and contains($filter-types, $setting) {
+          $filter : $setting;
+        } 
       }
-
-      // $values : if(contains($filter, $test) and length($value) == 0, nth($args, $i), $test);
-      $values : nth($args, $i);
+      // @debug $filter;
       
-      // TODO: Make is so you can do either: @include filter(sepia 40); or @include filter(sepia(40)); or @include filter(sepia(40) grayscale(50));
-      // @debug contains($filter, $test);
-      // @debug length($value);
-      // @debug nth($args, $i);
-      // @debug $test;
-
-
-      @each $rule in $values {
-        @if not contains($filter, $rule) {
-          
-          @if type-of($rule) == string and $value == null {
-            $value : $rule;
-          }      
-          @elseif $filter == blur {
-            $value : append($value, addUnit($rule));
+      // Check and validate all transform types
+      @each $setting in $settings {
+        @if not is-string($setting) {
+          @if contains($filter, (blur)) {
+            // Values that require a unit
+            $value : append($value, addUnit($setting));
+          } @elseif contains($filter, (hue-rotate)) {
+            // Values that require an angle
+            $value : append($value, addUnit($setting, deg));   
+          } @elseif contains($filter, (invert opacity saturate sepia contrast grayscale)) {
+            // Values that require an percent
+            $value : append($value, addUnit($setting, %));   
+          } @elseif $filter == drop-shadow {
+            // Specific for drop-shdaow
+            @each $val in $setting {
+              @if is-number($val) {
+                $value : append($value, addUnit($val));
+              } @elseif is-colour($val) {
+                $value : append($value, $val);
+              }
+            } 
+          } @else {
+            // All other values
+            $value : append($value, $setting);     
           }
-          @elseif contains($filter, hue-rotate) {
-            $value : append($value, addUnit($rule, deg));
-          }
-          @elseif contains($filter, invert opacity saturate sepia contrast grayscale) {
-            $value : append($value, addUnit($rule, %));
-          }
-          @elseif contains($filter, drop-shadow) {          
-            @each $r in $rule {
-              $value : if(type-of($r) == number, append($value, addUnit($r)), append($value, $r));
-            }
-          }
-          @else {
-            $value : append($value, $rule);
-          }
+        } @elseif contains($filter-values, $setting) {
+          // Values that are strings and are global values
+           $value : append($value, $setting);  
         }
       }
 
-      $filters : append($filters, $filter+"("+$value+")");
-
-    } 
-
+      // Append transform and value to the transforms list
+      @if $filter != null {
+        $filters : append($filters, $filter+"("+$value+")");
+      }
+      
+    }
   } @else {
-
-    $filters : nth($args, 1);
-
+   $filters : nth($settings, 1);
   }
-  
+
   @include prefixer(filter, $filters);
+
 }
-
-// @function decimal-to-percent($number) {
-//   @return strip($number)*100 + %;
-// }
-
-// @function percent-to-decimal($number) {
-//   @return strip($number)/100;
-// }
 
 @mixin url($value:null) {
   @include filter(url $value);

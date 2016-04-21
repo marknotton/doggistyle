@@ -6,7 +6,7 @@
 /// 
 /// @param {list} $list - List to be crossed referenced to
 ///
-/// @param {string | number | list} $values - The values that will be checked are within the list.
+/// @param {string | number | list} $values - These are the values that will be checked within the list from the first param.
 ///   All list and value items will be cast to strings. Specificially useful is a list of numbers are compared
 ///   to a list of stringed numbers for example.
 /// 

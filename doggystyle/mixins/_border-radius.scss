@@ -1,3 +1,31 @@
+/// 10px on each corner. Call also use the string "all"
+/// @include border-radius(10) 
+/// @include border-radius(all 10) 
+
+/// 10 top left, 20 top right, 0 bottom right, 0 bottom left
+/// @include border-radius(10 20) 
+
+/// 10 top left, 20 top right, 30 bottom right, 0 bottom left
+/// @include border-radius(10 20 30) 
+
+/// 10 top left, 20 top right, 30 bottom right, 40 bottom left
+/// @include border-radius(10 20 30 40) 
+
+/// 10 top left, 10 top right, 0 bottom right, 0 bottom left
+/// @include border-radius(10 top) 
+
+/// 0 top left, 10 top right, 10 bottom right, 0 bottom left
+/// @include border-radius(10 right) 
+
+/// 0 top left, 0 top right, 10 bottom right, 10 bottom left
+/// @include border-radius(10 bottom) 
+
+/// 10 top left, 0 top right, 0 bottom right, 10 bottom left
+/// @include border-radius(10 left) 
+
+/// 10 top left, 0 top right, 30 bottom right, 0 bottom left
+/// @include border-radius(10 top-left, 30 bottom-right) 
+
 @mixin border-radius($args...) {
   $corners : ();
   $directions : ();

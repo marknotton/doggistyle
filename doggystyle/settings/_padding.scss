@@ -1,7 +1,7 @@
 $padding:   16 !default;
 $pad:       pad(1) !default;
 $pad0:      pad(0) !default;
-$pad1:      $pad   !default;
+$pad1:      addUnit($pad) !default;
 $pad2:      pad(2) !default;
 $pad3:      pad(3) !default;
 $pad4:      pad(4) !default;

@@ -1,0 +1,92 @@
+//
+$column-global-rules : inherit, initial, unset;
+$break-before-after-rules : auto, always, left, right, recto, verso, page, column, region, avoid, avoid-page, avoid-column, avoid-region;
+$break-inside-rules : auto, avoid, avoid-page, avoid-column, avoid-region;
+$column-rule-style-rules : none, hidden, dotted, dashed, solid, double, groove, ridge, inset, outset;
+
+//
+@mixin break-after($setting) {
+  @if contains($break-before-after-rules, $setting) {
+    @include prefixer(break-after, $setting);
+  }
+}
+
+//
+@mixin break-before($setting) {
+  @if contains($break-before-after-rules, $setting) {
+    @include prefixer(break-before, $setting);
+  }
+}
+
+//
+@mixin break-inside($setting) {
+  @if contains($break-inside, $setting) {
+    @include prefixer(break-inside, $setting);
+  }
+}
+
+//
+@mixin column-count($setting) {
+  @if is-number($setting) or contains(join($column-global-rules, auto), $setting) {
+    @include prefixer(column-count, strip($setting));
+  }
+}
+
+//
+@mixin column-fill($setting) {
+  @if contains(join($column-global-rules, (auto, balance)), $setting) {
+    @include prefixer(column-fill, $setting);
+  }
+}
+
+//
+@mixin column-gap($setting) {
+  @if is-number($setting) or contains(join($column-global-rules, normal), $setting) {
+    @include prefixer(column-gap, addUnit($setting));
+  }
+}
+
+//
+@mixin column-rule($setting) {
+  @include prefixer(column-rule, $setting);
+}
+
+//
+@mixin column-rule-color($setting) {
+  @if is-colour($setting) or contains($column-global-rules, $setting) {
+    @include prefixer(column-rule-color, $setting);
+  }
+}
+
+//
+@mixin column-rule-style($setting) {
+  @if is-string($setting) and contains(join($column-global-rules, $column-rule-style-rules), $setting) {
+    @include prefixer(column-rule-style, $setting);
+  }
+}
+
+//
+@mixin column-rule-width($setting) {
+  @if is-number($setting) or contains(join($column-global-rules, (thin, medium, thick)), $setting) {
+    @include prefixer(column-rule-width, addUnit($setting));
+  }
+}
+
+//
+@mixin column-span($setting) {
+  @if is-string($setting) and contains(join($column-global-rules, (none, all)), $setting) {
+    @include prefixer(column-span, $setting);
+  }
+}
+
+//
+@mixin column-width($setting) {
+  @if is-number($setting) or contains(join($column-global-rules, auto), $setting) {
+    @include prefixer(column-width, addUnit($setting));
+  }
+}
+
+//
+@mixin columns($setting) {
+  @include prefixer(columns, $setting);
+}

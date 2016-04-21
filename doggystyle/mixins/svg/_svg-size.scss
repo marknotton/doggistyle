@@ -1,0 +1,4 @@
+@mixin svg-size($class) {
+  @extend .svg-#{$class}-size;
+}
+

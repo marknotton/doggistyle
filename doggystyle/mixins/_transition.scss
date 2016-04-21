@@ -1,4 +1,3 @@
-
 /// Transition mixin handles animation for any number of transitions in any format/order
 ///
 /// @author Mark Notton
@@ -12,7 +11,7 @@
 ///   [delay]     - delay times are always calculated in seconds (not miliseconds). You do not have to define the 's'
 ///   [ease-type] - ease-in, ease-in-out etc... You can also refer to the eases variables. $easeInSine, $easeInOutBack
 ///   [duration]  - duration times are always calculated in seconds (not miliseconds). You do not have to define the 's'
-///   [direction] - direction should be in it's own argment, not part of a list of transition settings. It can however be in the same argument as 'stagger'.
+///   [direction] - forwards, default, backwards, reverse. direction should be in it's own argment, not part of a list of transition settings. It can however be in the same argument as 'stagger'.
 ///                 Directions can be backwards or forwards (default). Setting it backwards will reverse the order
 ///                 of the delays if more than one argument has been made.
 ///   [stagger]   - stagger should be in it's own argment, not part of a list of transition settings. It can however be in the same argument as 'direction'.
@@ -41,7 +40,7 @@
 /// }
 ///
 
-@mixin transition($args...) {
+@mixin transition($settings...) {
   
   // Default Settings
   $direction : forwards;
@@ -57,21 +56,21 @@
  
   // Quick check to make sure anything at all has been passed.
   // If not, set 'all' as the default transition
-  $args: if(length($args) > 0, $args, all);  
+  // $args: if(length($args) > 0, $args, all);  
 
-  // Loop through and check all arguments for any special options
-  @for $i from 1 through length($args) {
-    @each $option in nth($args, $i) {
-      @if contains($option, forwards default backwards reverse) {
-        $direction : $option;
-      } @elseif contains($option, stagger) {
-        $stagger : true;
-      }
+  $settings-list : _arglist-to-list($settings);
+
+  // Loop through and check all arguments for any special options 
+  @each $settings in $settings-list {
+    @if contains($settings, forwards default backwards reverse) {
+      $direction : $settings;
+    } @elseif contains($settings, stagger) {
+      $stagger : true;
     }
   }
   
   // Loop through and set all the necessary settings for each animation set
-  @for $i from 1 through length($args) {  
+  @each $settings in $settings-list {
 
     // Default Settings
     $animation : ();
@@ -83,33 +82,33 @@
     $excluded : false;
     $value-counter : 0;      
     
-    @each $rule in nth($args, $i) {
+    @each $setting in $settings {
       // Check a range of special rules. Exclude this transition if this is true.
-      @if contains($rule, forwards default backwards reverse stagger) {
+      @if contains($setting, forwards default backwards reverse stagger) {
         $excluded : true;
       } @else {
         // Checks for 'strings'
-        @if type-of($rule) == string {
-          @if contains(str-slice(#{$rule}, 0, 4), ease line step cubi init) {
+        @if type-of($setting) == string {
+          @if contains(str-slice(#{$setting}, 0, 4), ease line step cubi init) {
             // If the first 4 characters of the string match the first 4 characters
             // of a ease type, update the ease variable
-            $ease : $rule;
-          } @elseif contains($rule, transform matrix translate translateX translateY scale scaleX scaleY rotate skew skewX skewY matrix3d translate3d translateZ scale3d scaleZ rotate3d rotateX rotateY rotateZ perspective) {
+            $ease : $setting;
+          } @elseif contains($setting, transform matrix translate translateX translateY scale scaleX scaleY rotate skew skewX skewY matrix3d translate3d translateZ scale3d scaleZ rotate3d rotateX rotateY rotateZ perspective) {
             // If the string mataches a transform type, define the animation as a transform
             $animation : append($animation, transform);
           } @else {
-            $animation : append($animation, $rule);
+            $animation : append($animation, $setting);
           }
         }
         // Checks for 'numbers'
-        @if type-of($rule) == number {
+        @if type-of($setting) == number {
           @if $value-counter < 1 {
             // Add the first instance of a number as the delay
-            $delay : $rule;
+            $delay : $setting;
             $value-counter : $value-counter + 1;
           } @elseif $value-counter >= 1 {
             // Add the second instance of a number as the duration
-            $duration : $rule;
+            $duration : $setting;
           }
         }
       }
@@ -119,7 +118,7 @@
       // Quick check to make sure animation has a fallback if none were defined
       $animations : if(length($animation) == 0, append($animations, all), append($animations, $animation));
       // Quick check for the direction rule. If backwards or reversed, add delays the the start of the $delays list
-      $delays     : if(contains($direction, backwards reverse), prepend($delay, $delays), append($delays, $delay));
+      $delays     : if(contains($direction, backwards reverse), prepend($delays, $delay), append($delays, $delay));
       $eases      : append($eases, $ease);
       $durations  : append($durations, $duration);
     }
@@ -146,7 +145,7 @@
 }
 
 /// @alias transition
-@mixin ani($args...) { @include transition($args...); }
+@mixin ani($settings...) { @include transition($settings...); }
 
 
  

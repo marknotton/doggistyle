@@ -30,82 +30,98 @@
   }
 }
 
-@mixin smart-fontsize($minArgs:null, $maxArgs:null) {
-
+@function _define-smart-fontsize-settings($args:null, $condition:null) {
+  
+  $units : ();
+  $lineheight-bool : true;
+  
   // Default Settings
-  $min-units : ();
-  $min-size : $font-size;
-  $min-lineheight : smart-lineheight($min-size);
-  $min-lineheight-bool : true;
-  $min-break : $medium;
-
-  $max-units : ();
-  $max-size : $font-size*2 - ($font-size/2);
-  $max-lineheight : smart-lineheight($max-size);
-  $max-lineheight-bool : true;
-  $max-break : $max;
+  $settings : ( );
   
-  // Check Min Settings
-  @each $rule in $minArgs {
-    @if type-of($rule) == bool {
-      $min-lineheight-bool : $rule;
+  // Add a default lineheight based off the default size setting
+  @if $condition == max {
+    // Size
+    $settings : map-set($settings, size, ($font-size*2 - ($font-size/2)));
+    // Lineheight
+    $settings : map-set($settings, lineheight, smart-lineheight(map-get($settings, size)));
+    // Break
+    $settings : map-set($settings, break, $max);
+  } @else {
+    // Size
+    $settings : map-set($settings, size, $font-size);
+    // Lineheight
+    $settings : map-set($settings, lineheight, smart-lineheight(map-get($settings, size)));
+    // Break
+    $settings : map-set($settings, break, ceil((($large - $medium) / 2) + $medium));
+  } 
+
+  // Check arguments
+  @each $rule in $args {
+    @if is-bool($rule) {
+      $lineheight-bool : $rule;
     }
-    @if type-of($rule) == number {
-      $min-units : append($min-units, $rule);
+    @if is-number($rule) {
+      $units : append($units, $rule);
     }
   }
 
-  @if length($min-units) >= 1 {
-    $min-size : nth($min-units, 1);
+  // Set fontsize
+  @if length($units) >= 1 {
+    $settings : map-set($settings, size, nth($units, 1));
   }
 
-  @if length($min-units) >= 2 and strip(nth($min-units, 2)) <= $min {
-    $min-lineheight : smart-lineheight(nth($min-units, 2), $min-lineheight-bool);
-  } @elseif length($min-units) > 1 {
-    $min-break : nth($min-units, 2);
-  }
-
-  @if length($min-units) >= 3 {
-    $min-break : nth($min-units, 3);
+  // Set lineheight
+  @if length($units) >= 2 {
+    $settings : map-set($settings, lineheight, smart-lineheight(nth($units, 2), $lineheight-bool));
+  } 
+  
+  // Set breakpoint
+  @if length($units) >= 3 {
+    $settings : map-set($settings, break, nth($units, 3));
   }
   
-  // Check Max Settings  
-  @if $maxArgs {
-    @each $rule in $maxArgs {
-      @if type-of($rule) == bool {
-        $max-lineheight-bool : $rule;
-      }
-      @if type-of($rule) == number {
-        $max-units : append($max-units, $rule);
-      }
-    }
+  // Return settings
+  @return $settings;
+}
 
-    @if length($max-units) >= 1 {
-      $max-size : nth($max-units, 1);
-    }
-
-    @if length($max-units) >= 2 and strip(nth($max-units, 2)) <= $max {
-      $max-lineheight : smart-lineheight(nth($max-units, 2), $max-lineheight-bool);
-    } @elseif length($max-units) > 1 {
-      $max-break : nth($max-units, 2);
-    }
-
-    @if length($max-units) >= 3 {
-      $max-break : nth($max-units, 3);
-    }
-  }
-
-  font-size : addUnit($max-size/10, vw);
-  line-height: smart-lineheight($max-size);
+@mixin smart-fontsize($minArgs:null, $maxArgs:null, $defArgs:null) {
+ 
+  // Max
+  $max-settings : _define-smart-fontsize-settings($maxArgs, max);  
+  $max-size : map-get($max-settings, size);
+  $max-lineheight : map-get($max-settings, lineheight);
+  $max-break : map-get($max-settings, break);
 
   @include break($max-break min-width) {
     font-size:addUnit($max-size);
     line-height:$max-lineheight;
   }
 
+  // Min
+  $min-settings : _define-smart-fontsize-settings($minArgs, min);  
+  $min-size : map-get($min-settings, size);
+  $min-lineheight : map-get($min-settings, lineheight);
+  $min-break : map-get($min-settings, break);
+
   @include break($min-break max-width) {
     font-size:addUnit($min-size);
     line-height:$min-lineheight;
+  }
+
+  // Inbetween
+  @if $defArgs == null {
+    font-size : addUnit($max-size/11, vw);
+    line-height: smart-lineheight(if($max-size > 30, $max-size/2.28, $max-size));
+  } @else {
+    $def-settings : _define-smart-fontsize-settings($defArgs);  
+    $def-size : map-get($def-settings, size);
+    $def-lineheight : map-get($def-settings, lineheight);
+    $def-break : map-get($def-settings, break);
+
+    @include break-between($min-break, $max-break) {
+      font-size : if(unitless($def-size), addUnit($def-size/11, vw), addUnit($def-size));
+      line-height:$def-lineheight;
+    }
   }
 }
 

@@ -33,10 +33,18 @@
 //   text-indent:0; overflow:visible; white-space:normal; @include user-select(all); 
 // }
 
-// %selectable {
-//   @include user-select(all); 
-// }
+@mixin user-select($setting) {
+  @if contains($setting, (none auto text contain all)) {
+    @include prefixer(user-select, $setting);
+  }
+}
 
-// %unselectable {
-//   @include user-select(none); 
-// }
+
+%selectable {
+  @include user-select(all); 
+}
+
+%unselectable {
+  @include user-select(none); 
+}
+

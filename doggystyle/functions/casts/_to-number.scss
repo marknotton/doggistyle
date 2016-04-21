@@ -35,7 +35,7 @@
 
   // Early check for errors
   @if not index($allowed, $first) {
-    @warn "Could not cast `#{inspect($value)} into number.";
+    // @warn "Could not cast `#{inspect($value)} into number.";
     @return 0;
   }
 

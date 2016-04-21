@@ -1,5 +1,5 @@
 @mixin keyframes($animationName) {
-  @at-root {
+  @at-root (without: media) {
     @-webkit-keyframes #{$animationName} { @content; }
     @-moz-keyframes #{$animationName} { @content; }
     @-o-keyframes #{$animationName} { @content; }

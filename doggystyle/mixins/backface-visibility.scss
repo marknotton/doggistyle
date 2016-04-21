@@ -1,0 +1,7 @@
+@mixin backface-visibility($value) {
+  @if contains((visible hidden initial inherit), $value) {
+    @include prefixer(transform-style, $value, webkit);
+  } @else {
+    @include warning($value + ": is an invalid value for 'backface-visibility'");
+  }
+}
