@@ -5,4 +5,5 @@
     @include size($size);
   }
   @extend .svg-#{$class};
+  @content;
 }

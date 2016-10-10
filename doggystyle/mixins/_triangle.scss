@@ -65,6 +65,7 @@ $triangle-settings: (
 /// @param {bool} $position
 ///   Determines wether the arrow should be positioned at all
 ///
+/// @require {map} triangle-settings
 /// @require {function} random-color
 /// @require {function} map-fetch
 /// @require {function} is-calc

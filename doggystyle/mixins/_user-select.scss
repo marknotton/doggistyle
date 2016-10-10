@@ -1,0 +1,5 @@
+@mixin user-select($setting) {
+  @if contains($setting, (none auto text contain all)) {
+    @include prefixer(user-select, $setting);
+  }
+}

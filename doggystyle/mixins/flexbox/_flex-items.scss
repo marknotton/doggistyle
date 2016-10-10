@@ -9,7 +9,7 @@ $flex-grow         : number;
 $flex-shrink       : number; 
 $flex-basis        : number auto;
 $flex-flex         : none number; // flex-grow, flex-shrink, flex-basis
-$flex-align-self   : auto flex-start flex-end center baseline stretch;
+$flex-align-self   : auto flex-start flex-end start end center baseline stretch;
 
 /// Flexbox items mixin validates and prefixes the most current Flexbox W3C working draft
 ///
@@ -86,6 +86,10 @@ $flex-align-self   : auto flex-start flex-end center baseline stretch;
       @elseif contains($property, (grow shrink basis)) {
         $property : #{flex-}$property;
       }
+
+      @if contains($value, (start end)) {
+        $value : #{flex-}$value;
+      }
         
       // Check these properties against their list of valid values
       @if contains($property, (order, flex-grow, flex-shrink)) {
@@ -103,6 +107,7 @@ $flex-align-self   : auto flex-start flex-end center baseline stretch;
            
       // Only output and prefix everything when $output is true
       @if $output and $new-value != null {
+        // This checks to see if any aliases have been used in the values
         @include prefixer($property, $new-value, all);
       }
     }

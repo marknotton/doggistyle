@@ -4,7 +4,16 @@
 ///
 /// @link http://www.sitepoint.com/sass-mixins-kickstart-project/#opposite-direction
 
+
 @function opposite-direction($directions) {
+  
+  $has-hyphen : false;
+
+  @if str-index(to-string($directions), '-') {
+    $has-hyphen : true;
+    $directions : string-explode(to-string($directions), '-');
+  }
+
   $opposite-directions: ();
   $direction-map: (
     top    : bottom,
@@ -27,6 +36,10 @@
       @warn "No opposite direction can be found for '#{$direction}'. Direction omitted.";
     }
   }
- 
-  @return $opposite-directions;
+
+  @if $has-hyphen == true {
+    @return string-replace(to-string($opposite-directions), ' ', '-');
+  } @else {   
+    @return $opposite-directions;
+  }
 }

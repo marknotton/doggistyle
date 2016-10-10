@@ -27,33 +27,31 @@
 ///   $list4 : false;
 ///
 /// @return {bool}
-
 @function contains($list, $values, $recursive:false) {
 
   @if is-string($values) or is-number($values) or is-list($values) or $recursive {
-
     // Convert all list and values items to strings.
-    $list : _list-items-to-strings($list);
-    $values : _list-items-to-strings($values);
+    $temp-list : _list-items-to-strings($list);
+    $temp-values : _list-items-to-strings($values);
 
     @if $recursive {
-
-      $bools : ();
-
-      @each $value in $values {
-        @if index($list, $value) {
-          $bools : append($bools, true);
-        } @else {
-          $bools : append($bools, false);
+      
+      @if length($values) == length($list) {
+      
+        @each $value in $temp-values {
+          @if not index($temp-list, $value) {
+            @return false;
+          }         
         }
+        @return true;
+      } @else {
+        @return false;
       }
-
-      @return if(index($bools, false), false, true);
 
     } @else {
 
-      @each $value in $list {
-        @if index($values, $value) {
+      @each $value in $temp-list {
+        @if index($temp-values, $value) {
           @return true;
         }
       }

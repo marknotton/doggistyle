@@ -29,10 +29,10 @@
     @if $first-brace and $last-brace {
       $function : str-slice($value, 1, $first-brace - 1);;
       $value : str-slice($value, $first-brace + 1, $last-brace - 1);
-      // If a number was passed, it would be returns back as a string. This converts it to a number, unless it's not really a number.
+      // If a number was passed, it would be returned back as a string. This converts it to a number, unless it's not really a number.
       $value : _string-explode($value);
       @each $val in $value {
-        $values : append($values, if(to-number($val) != 0, to-number($val), $val), comma)
+        $values : append($values, if(to-number($val) != 0, to-number($val), $val), comma);
       }
       @return ($function $values);
     } @else {      

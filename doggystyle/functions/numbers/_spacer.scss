@@ -12,5 +12,5 @@
 ///
 /// @return {Number} with units
 @function spacer($size:1) {
-  @return if($size == 0, to-number(addUnit($spacer/2, vh)), to-number(addUnit($spacer*$size, vh)));
+  @return if($size == 0, to-number(addUnit($spacing/2, vh)), to-number(addUnit($spacing*$size, vh)));
 }

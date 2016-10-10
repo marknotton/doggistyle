@@ -7,13 +7,13 @@ $breakpoints: () !global;
 
 // Add a breakpoint to a global map, which can be called on using the 'breaks' function
 @mixin add-breakpoint($args...) {
- 
+
   @for $i from 1 through length($args) {
 
     $name : null;
     $size : null;
 
-    $arg: nth($args, $i); 
+    $arg: nth($args, $i);
 
     @each $rule in $arg {
       @if type-of($rule) == string {
@@ -29,41 +29,47 @@ $breakpoints: () !global;
     @if $name and $size {
       $breakpoints : map-set($breakpoints, $name, $size) !global;
     }
-  }  
+  }
   @at-root body { @include set-breakpoints(); }
 }
 
 // This will set a all the of the grid custom properties
 @mixin set-breakpoints($breaks:$breakpoints) {
-  $new-breakpoints : ();  
+  $new-breakpoints : ();
   @each $break, $value in $breakpoints {
     $new-breakpoints : map-set( $new-breakpoints, #{breakpoint-}#{$break}, $value);
   }
   @include custom-property($new-breakpoints, null);
 }
 
-// Add a media query breakpoint
 @mixin break($args) {
 
-  $width : null;
-  $condition : if($mobile-first, min-width, max-width);
-
-  @each $rule in $args {
-    @if type-of($rule) == number {
-      $width : $rule;
-    }
-    @if type-of($rule) == string {
-      $condition : $rule;
-    }
-  }
-
-  // @if not contains($breakpoints, $width) {
-  //   @include add-breakpoint($width);
-  // } 
-
-  @media (#{$condition}:addUnit($width)) {
+  @if (is-null($args)) {
     @content;
+  } @else {
+    $width : null;
+    $condition : if($mobile-first, min-width, max-width);
+
+    @each $rule in $args {
+      @if is_number($rule) {
+        $width : addUnit($rule);
+      }
+      @if is_string($rule) {
+        $rule : if($rule == 'min', 'min-width', $rule);
+        $rule : if($rule == 'max', 'max-width', $rule);
+        $condition : $rule;
+      }
+    }
+
+    // @if not contains($breakpoints, $width) {
+    //   @include add-breakpoint($width);
+    // }
+
+    @media (#{$condition}:addUnit($width)) {
+      @content;
+    }
   }
+
 }
 
 @mixin hideAt($break) {
@@ -92,25 +98,25 @@ $breakpoints: () !global;
   @if ($gutter == true) { $gutter:$padding; }
 
   @if ($gutter != 0 or $count == 1) {
-    @for $i from 1 through $count { 
-      @include nth($i, true) { 
-        clear:none; margin-right:addUnit($gutter); 
+    @for $i from 1 through $count {
+      @include nth($i, true) {
+        clear:none; margin-right:addUnit($gutter);
       }
     }
     @include nth($count, true) { margin-right:0; }
   }
 
-  @if ($count == 1) { 
+  @if ($count == 1) {
     @include nth($count, true) {
       margin-right:0;
-    } 
+    }
   }
 
   // Checks
   $width:     if($count  >  1, 100%/$count, 100%);
   $remainder: if($gutter != 0, #{'+ '} addUnit($gutter/$count), null);
   $gutter:    if($gutter != 0, #{'- '} addUnit($gutter), null);
-  
+
   // Output
   float:left;
   @if ( $gutter != null ) {
@@ -140,8 +146,5 @@ $breakpoints: () !global;
 // Which will be repeated for next rows
 // .main {
 //   .block { border:1px solid red; background-color:rc(); height:20px;}
-//   //@include grid2(4, 2, 1); 
+//   //@include grid2(4, 2, 1);
 // }
-
-
-

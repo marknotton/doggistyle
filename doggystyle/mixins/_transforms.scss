@@ -52,13 +52,11 @@ $transform-values : inherit initial unset none;
       } 
     }
     $settings-lists : if(length($fallback-settings) > 1, $fallback-settings,  _arglist-to-list($settings));
-
-
+  
     @each $settings in $settings-lists {      
-
+    
       @if is-function($settings) {
         $settings : is-function($settings);
-        // @debug $settings;
       } 
 
       $transform : null;
@@ -103,6 +101,7 @@ $transform-values : inherit initial unset none;
   } @else {
    $transforms : nth($settings, 1);
   }
+
 
   @include prefixer(transform, $transforms);
 
@@ -159,7 +158,7 @@ $transform-values : inherit initial unset none;
   @include transform(translateY(addUnit($y)));
 }
 
-@mixin translate3d($valies) {
+@mixin translate3d($values) {
   $x : nth($values, 1);
   $y : if( length($values) > 1, nth($values, 2), 0);
   $z : if( length($values) > 2, nth($values, 3), 0);
@@ -174,7 +173,7 @@ $transform-values : inherit initial unset none;
 /// Scale
 @mixin scale($values) {
   $width: nth($values, 1);
-  $height : if(length($values) > 1, nth($values, 2), null);
+  $height : if(length($values) > 1, nth($values, 2), $width);
 
 
   @include transform(scale($width, $height));

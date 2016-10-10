@@ -1,5 +1,5 @@
-// Doggy Style 0.0.1-alpha
-// http://marknotton.uk/doggystyle
+// D-Style 0.0.1-alpha
+// http://goo.gl/RorsoL
 // Copyright 2013-2016 Mark Notton
 // MIT License
 
@@ -7,144 +7,147 @@
 @import "helpers/warnings";
 
 // Private Helpers
-@import "helpers/private/arglist-to-list";
-@import "helpers/private/find-digits";
-@import "helpers/private/list-items-to-strings";
-@import "helpers/private/find-integer";
-@import "helpers/private/from-hex";
-@import "helpers/private/brightness";
-@import "helpers/private/lightness";
-@import "helpers/private/from-hsl";
-@import "helpers/private/min-max-number";
-@import "helpers/private/from-rgb";
-@import "helpers/private/hash-fix";
-@import "helpers/private/get-color-value";
-@import "helpers/private/hex-to-dec";
-@import "helpers/private/sudo";
-@import "helpers/private/string-explode";
-@import "helpers/private/string-compare";
-@import "helpers/private/length";
-@import "helpers/private/pow";
+@import "helpers/private/arglist-to-list",
+        "helpers/private/find-digits",
+        "helpers/private/list-items-to-strings",
+        "helpers/private/find-integer",
+        "helpers/private/from-hex",
+        "helpers/private/brightness",
+        "helpers/private/lightness",
+        "helpers/private/from-hsl",
+        "helpers/private/min-max-number",
+        "helpers/private/from-rgb",
+        "helpers/private/hash-fix",
+        "helpers/private/get-color-value",
+        "helpers/private/hex-to-dec",
+        "helpers/private/sudo",
+        "helpers/private/string-explode",
+        "helpers/private/string-compare",
+        "helpers/private/length",
+        "helpers/private/pow",
+        "helpers/strings";
 
 // Checks
-@import "helpers/checks/is-number";
-@import "helpers/checks/is-absolute-length";
-@import "helpers/checks/is-relative-length";
-@import "helpers/checks/is-angel";
-@import "helpers/checks/is-bool";
-@import "helpers/checks/is-calc";
-@import "helpers/checks/is-colour";
-@import "helpers/checks/is-duration";
-@import "helpers/checks/is-false";
-@import "helpers/checks/is-function";
-@import "helpers/checks/is-frequency";
-@import "helpers/checks/is-integer";
-@import "helpers/checks/is-length";
-@import "helpers/checks/is-list";
-@import "helpers/checks/is-map";
-@import "helpers/checks/is-null";
-@import "helpers/checks/is-dark";
-@import "helpers/checks/is-light";
-@import "helpers/checks/is-first-character";
-@import "helpers/checks/is-percentage";
-@import "helpers/checks/is-position";
-@import "helpers/checks/is-pseudo";
-@import "helpers/checks/is-resolution";
-@import "helpers/checks/is-unit";
-@import "helpers/checks/is-selector";
-@import "helpers/checks/is-string";
-@import "helpers/checks/is-time";
-@import "helpers/checks/check";
+@import "helpers/checks/is-number",
+        "helpers/checks/is-arglist",
+        "helpers/checks/is-absolute-length",
+        "helpers/checks/is-relative-length",
+        "helpers/checks/is-angel",
+        "helpers/checks/is-bool",
+        "helpers/checks/is-calc",
+        "helpers/checks/is-colour",
+        "helpers/checks/is-duration",
+        "helpers/checks/is-false",
+        "helpers/checks/is-function",
+        "helpers/checks/is-frequency",
+        "helpers/checks/is-integer",
+        "helpers/checks/is-length",
+        "helpers/checks/is-list",
+        "helpers/checks/is-map",
+        "helpers/checks/is-null",
+        "helpers/checks/is-dark",
+        "helpers/checks/is-light",
+        "helpers/checks/is-first-character",
+        "helpers/checks/is-percentage",
+        "helpers/checks/is-position",
+        "helpers/checks/is-pseudo",
+        "helpers/checks/is-resolution",
+        "helpers/checks/is-unit",
+        "helpers/checks/is-selector",
+        "helpers/checks/is-string",
+        "helpers/checks/is-time",
+        "helpers/checks/check";
 
 // Casts
-@import "functions/casts/to-bool";
-@import "functions/casts/to-color";
-@import "functions/casts/to-list";
-@import "functions/casts/to-map";
-@import "functions/casts/to-null";
-@import "functions/casts/to-number";
-@import "functions/casts/to-string";
+@import "functions/casts/to-bool",
+        "functions/casts/to-color",
+        "functions/casts/to-list",
+        "functions/casts/to-map",
+        "functions/casts/to-null",
+        "functions/casts/to-number",
+        "functions/casts/to-string";
 
 // Lists
-@import "functions/lists/contains";
-@import "functions/lists/first";
-@import "functions/lists/second";
-@import "functions/lists/insert-nth";
-@import "functions/lists/last";
-@import "functions/lists/merge";
-@import "functions/lists/prepend";
-@import "functions/lists/remove";
-@import "functions/lists/remove-nth";
-@import "functions/lists/replace";
-@import "functions/lists/replace-nth";
-@import "functions/lists/reverse";
-@import "functions/lists/shift";
-@import "functions/lists/slice";
-@import "functions/lists/sort";
+@import "functions/lists/contains",
+        "functions/lists/first",
+        "functions/lists/second",
+        "functions/lists/insert-nth",
+        "functions/lists/last",
+        "functions/lists/merge",
+        "functions/lists/prepend",
+        "functions/lists/remove",
+        "functions/lists/remove-nth",
+        "functions/lists/replace",
+        "functions/lists/replace-nth",
+        "functions/lists/reverse",
+        "functions/lists/shift",
+        "functions/lists/slice",
+        "functions/lists/sort";
 
 // Maps
-@import "functions/maps/map-deep-get";
-@import "functions/maps/map-deep-set";
-@import "functions/maps/map-depth";
-@import "functions/maps/map-set";
-@import "functions/maps/map-extend";
-@import "functions/maps/map-has-keys";
-@import "functions/maps/map-has-nested-keys";
-@import "functions/maps/map-zip";
+@import "functions/maps/map-deep-get",
+        "functions/maps/map-deep-set",
+        "functions/maps/map-depth",
+        "functions/maps/map-set",
+        "functions/maps/map-extend",
+        "functions/maps/map-has-keys",
+        "functions/maps/map-has-nested-keys",
+        "functions/maps/map-zip";
 
 @import "helpers/symbols/common";
-// @import "helpers/symbols/arrows";
-// @import "helpers/symbols/block";
-// @import "helpers/symbols/box";
-// @import "helpers/symbols/currency";
-// @import "helpers/symbols/dingbats";
-// @import "helpers/symbols/geometric";
-// @import "helpers/symbols/letterlike";
-// @import "helpers/symbols/misc";
-// @import "helpers/symbols/operators";
-// @import "helpers/symbols/punctuation";
+//      "helpers/symbols/arrows",
+//      "helpers/symbols/block",
+//      "helpers/symbols/box",
+//      "helpers/symbols/currency",
+//      "helpers/symbols/dingbats",
+//      "helpers/symbols/geometric",
+//      "helpers/symbols/letterlike",
+//      "helpers/symbols/misc",
+//      "helpers/symbols/operators",
+//      "helpers/symbols/punctuation";
 
 // Numbers
-@import "functions/numbers/add-unit";
-@import "functions/numbers/units";
-@import "functions/numbers/pad";
-@import "functions/numbers/spacer";
-@import "functions/numbers/strip";
+@import "functions/numbers/add-unit",
+        "functions/numbers/units",
+        "functions/numbers/pad",
+        "functions/numbers/spacer",
+        "functions/numbers/strip";
 
 // Flexbox
-@import "mixins/flexbox/flex-container";
-@import "mixins/flexbox/flex-grid";
-@import "mixins/flexbox/flex-items";
-@import "mixins/flexbox/flex-remove";
+@import "mixins/flexbox/flex-container",
+        "mixins/flexbox/flex-grid",
+        "mixins/flexbox/flex-items",
+        "mixins/flexbox/flex-remove";
 
 // Text
-@import "functions/text/smart-lineheight";
-@import "functions/text/string-replace";
+@import "functions/text/smart-lineheight",
+        "functions/text/string-explode",
+        "functions/text/string-replace";
 
 // Colours
-@import "functions/colours/colour";
-@import "functions/colours/colour-contrast";
-@import "functions/colours/random-colour";
+@import "functions/colours/colour",
+        "functions/colours/colour-contrast",
+        "functions/colours/random-colour";
 
 // SVG
-@import "mixins/svg/svg";
-@import "mixins/svg/svg-size";
-@import "functions/svg/svg";
-@import "functions/svg/dots";
-@import "functions/svg/lines";
-@import "functions/svg/fake-radius";
+@import "mixins/svg/svg",
+        "mixins/svg/svg-size",
+        "functions/svg/svg",
+        "functions/svg/dots",
+        "functions/svg/lines",
+        "functions/svg/fake-radius";
 
 // Functions
-@import "functions/opposite-direction";
-@import "functions/mobile-first";
+@import "functions/opposite-direction",
+        "functions/mobile-first";
 
 // Settings
-@import "settings/colours";
-@import "settings/directories";
-@import "settings/grid";
-@import "settings/padding";
-@import "settings/spacing";
-@import "settings/text";
+@import "settings/colours",
+        "settings/directories",
+        "settings/grid",
+        "settings/padding",
+        "settings/spacing",
+        "settings/text";
 
 // Grid
 @import "mixins/grid/grid";
@@ -156,67 +159,71 @@
 @import "mixins/grid/break-between";
 
 // Mixins
-@import "mixins/align";
-@import "mixins/animate";
-@import "mixins/aspect-ratio";
-@import "mixins/background-image";
-@import "mixins/blend";
-@import "mixins/blendmodes";
-@import "mixins/border-radius";
-@import "mixins/backface-visibility";
-@import "mixins/browsers";
-@import "mixins/center";
-@import "mixins/clearfix";
-@import "mixins/columns";
-@import "mixins/custom-property";
-@import "mixins/devices";
-@import "mixins/dropdown";
-@import "mixins/filters";
-@import "mixins/font-face";
-@import "mixins/fontsize";
-@import "mixins/flip";
-@import "mixins/keyframes";
-@import "mixins/gallery";
-@import "mixins/gradient";
-@import "mixins/image";
-@import "mixins/image-size";
-@import "mixins/inputs";
-@import "mixins/last";
-@import "mixins/nth";
-@import "mixins/nth-last";
-@import "mixins/placeholder";
-@import "mixins/prefixer";
-@import "mixins/selection";
-@import "mixins/shadow";
-@import "mixins/size";
-@import "mixins/text-shadow";
-@import "mixins/transforms";
-@import "mixins/transition";
-@import "mixins/triangle-classic";
-@import "mixins/triangle";
-@import "mixins/unwrap";
-@import "mixins/vertical";
+@import "mixins/align",
+        "mixins/animate",
+        "mixins/aspect-ratio",
+        "mixins/background-image",
+        "mixins/blend",
+        "mixins/blendmodes",
+        "mixins/border-radius",
+        "mixins/backface-visibility",
+        "mixins/bulletpoint",
+        "mixins/browsers",
+        "mixins/center",
+        "mixins/clearfix",
+        "mixins/columns",
+        "mixins/custom-property",
+        "mixins/devices",
+        "mixins/dropdown",
+        "mixins/filters",
+        "mixins/font-face",
+        "mixins/fontsize",
+        "mixins/flip",
+        "mixins/keyframes",
+        "mixins/gallery",
+        "mixins/gradient",
+        "mixins/image",
+        "mixins/image-size",
+        "mixins/inputs",
+        "mixins/last",
+        "mixins/nth",
+        "mixins/nth-last",
+        "mixins/placeholder",
+        "mixins/prefixer",
+        "mixins/selection",
+        "mixins/user-select",
+        "mixins/shadow",
+        "mixins/smart-horizontal",
+        "mixins/sudo-image",
+        "mixins/size",
+        "mixins/text-shadow",
+        "mixins/transforms",
+        "mixins/transition",
+        "mixins/triangle-classic",
+        "mixins/triangle",
+        "mixins/unwrap",
+        "mixins/vertical";
 
 // Animations
-@import "animations/jump";
-@import "animations/wobble";
-@import "animations/shake";
+@import "animations/jump",
+        "animations/wobble",
+        "animations/shake";
 
 // Placeholders
-@import "placeholders/clear";
-@import "placeholders/cursor";
-@import "placeholders/rendering";
-@import "placeholders/sudo";
-@import "placeholders/text";
+@import "placeholders/clear",
+        "placeholders/cursor",
+        "placeholders/rendering",
+        "placeholders/misc",
+        "placeholders/text";
 
 // Helpers
-@import "helpers/eases";
-@import "helpers/custom-elements";
-@import "helpers/reset";
-@import "helpers/show-breakpoints";
-@import "helpers/warnings";
+@import "helpers/eases",
+        "helpers/custom-elements",
+        "helpers/reset",
+        "helpers/show-breakpoints",
+        "helpers/warnings";
 
-@if mixin-exists(settings) and $reset { 
-  @include settings(); 
+@if mixin-exists(settings) and $reset {
+  @include settings();
 }
 @if $show-breakpoints and $reset { @include show-breakpoints(); }

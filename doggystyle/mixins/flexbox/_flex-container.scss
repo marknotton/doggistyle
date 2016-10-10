@@ -10,9 +10,9 @@ $flex-display           : flex inline-flex;
 $flex-direction         : row row-reverse column column-reverse inherit; // default row
 $flex-wrap              : nowrap wrap wrap-reverse; // default no-wrap
 $flex-flow              : merge($flex-direction, $flex-wrap);
-$flex-justify-content   : flex-start flex-end center space-between space-around; // default flex-start
-$flex-align-items       : flex-start flex-end center baseline stretch; // default stretch
-$flex-align-content     : flex-start flex-end center space-between space-around stretch; // default stretch
+$flex-justify-content   : flex-start flex-end center space-between space-around start end between around; // default flex-start
+$flex-align-items       : flex-start flex-end center baseline stretch start end; // default stretch
+$flex-align-content     : flex-start flex-end center space-between space-around stretch start end between around; // default stretch
 
 /// Flexbox container mixin validates and prefixes the most current Flexbox W3C working draft
 ///
@@ -42,8 +42,8 @@ $flex-align-content     : flex-start flex-end center space-between space-around 
 /// @param {Bool} $display - If no display value is used, 'display:flex' will be defined automatically. 
 ///   Unless this paramater is set to 'false'
 ///
-/// @require {mixin} contains
-/// @require {mixin} prefixer
+/// @require {mixin}    contains
+/// @require {mixin}    prefixer
 /// @require {function} merge
 /// @require {variable} flex-container-aliases
 /// @require {variable} flex-container
@@ -116,7 +116,12 @@ $flex-align-content     : flex-start flex-end center space-between space-around 
       @elseif $property == justify {
         $property : justify-content;
       }
-      
+
+      @if contains($value, (start end)) {
+        $value : #{flex-}$value;
+      } @elseif contains($value, (around between)) {
+        $value : #{space-}$value;
+      }      
       
       @if $property == display and $value != null {
         @if $value == inline-flex {

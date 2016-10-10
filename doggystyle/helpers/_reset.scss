@@ -7,18 +7,18 @@
 		vertical-align: baseline;
 	}
 
-	/// normalize.css v4.0.0 
+	/// normalize.css v4.0.0
 	/// @link github.com/necolas/normalize.css
 	html {
 	  -ms-text-size-adjust: 100%; /* 2 */
 	  -webkit-text-size-adjust: 100%; /* 2 */
 	}
 
-	article, aside, details, figcaption, figure, footer, header, main, menu, nav, section, summary { 
+	article, aside, details, figcaption, figure, footer, header, main, menu, nav, section, summary {
 	  display: block;
 	}
 
-	audio, canvas, progress, video { 
+	audio, canvas, progress, video {
 		display: inline-block;
 	}
 
@@ -82,6 +82,7 @@
 	img {
 	  border-style: none;
 	  max-width:100vw;
+	  display:block;
 	}
 
 	svg:not(:root) {
@@ -100,10 +101,10 @@
 	hr {
 	  box-sizing: content-box;
 	  height: 0;
-	  overflow: visible; 
+	  overflow: visible;
 	}
 
-	button, input, select, textarea { 
+	button, input, select, textarea {
 		font: inherit;
 	  margin: 0;
 	}
@@ -124,7 +125,7 @@
 	  cursor: pointer;
 	}
 
-	[disabled] { 
+	[disabled] {
 		cursor: default;
 	}
 
@@ -152,7 +153,7 @@
 
 	[type="checkbox"], [type="radio"] {
 	  box-sizing: border-box;
-	  padding: 0; 
+	  padding: 0;
 	}
 
 	[type="number"]::-webkit-inner-spin-button,
@@ -173,23 +174,23 @@
 
 	html { height:100%; font-size: 62.5%; }
 
-	html, body { 
-		min-width:$minimum; 
-		min-height:100%; 
+	html, body {
+		min-width:$minimum;
+		min-height:100%;
 	}
 
 	body {
-		color:$text; 
-	  @extend %font-default, .font1 !optional; 
+	  @extend .font-default, .font1 !optional;
 	  @include size(100%);
 	  @include fontsize($font-size);
 	  @include selection($selection);
 	}
 
-	p { 
+	p {
 		@include smart-fontsize($font-size, $font-size + 2);
 		margin-bottom:$pad;
 		&:last-of-type { margin-bottom:initial; }
+		&:empty { display:none; }
 	}
 
 	ol, ul {
@@ -209,60 +210,71 @@
 		border-spacing: 0;
 	}
 
-	*, *:after, *:before { 
-		&:focus { outline:0; }; 
-		box-sizing:border-box; 
-		-moz-box-sizing:border-box; 
+	*, *:after, *:before {
+		&:focus { outline:0; };
+		box-sizing:border-box;
+		-moz-box-sizing:border-box;
 	}
 
-	a { 
-		text-decoration:none; 
-		color:$text; 
+	a {
+		text-decoration:none;
+		color:$text;
 	}
 
-	hr { 
-		border:none; 
-		height:1px; 
-		background-color:$text; 
-		margin:$pad 0; 
+	hr {
+		border:none;
+		height:1px;
+		background-color:$text;
+		margin:$pad 0;
 	}
 
-	strong { 
-		font-weight:bold; 
+	strong {
+		font-weight:bold;
 	}
 
-	em { 
+	em {
 		font-style:italic;
 	}
 
-	textarea { 
-		resize:none; 
+	address {
+		font-style:normal;
 	}
 
-	button, input[type="button"], input[type="submit"], input[type="reset"] { 
-		@extend %clear-button; 
+	textarea {
+		resize:none;
+	}
+
+	button, input[type="button"], input[type="submit"], input[type="reset"] {
+		@extend %clear-button;
 	}
 
 	main { @include flex-container((direction:column)); @include flex-grow(1);  }
 
-	select { 
-		-webkit-appearance:none; 
-		-webkit-border-radius:0; 
-		border-radius:0; 
+	select {
+		-webkit-appearance:none;
+		-webkit-border-radius:0;
+		border-radius:0;
 		border:0;
 	}
 
 	svg { overflow:visible; }
 
-	
 	@include input-text() {
-		-webkit-appearance:none; 
-		-webkit-border-radius:0; 
-		border-radius:0; 
+		-webkit-appearance:none;
+		-webkit-border-radius:0;
+		border-radius:0;
 		border:0;
 		&:focus { outline:0; }
 
 		@include placeholder();
+	}
+
+	h1, h2, h3, h4, h5, h6 {
+		-webkit-margin-before:0em;
+		-webkit-margin-after:0em;
+		-webkit-margin-start:0px;
+		-webkit-margin-end:0px;
+		font-weight: normal;
 	}
 
 	h1{ @include smart-fontsize($h2, $h1); }

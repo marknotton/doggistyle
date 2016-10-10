@@ -1,7 +1,7 @@
-$spacer:   5 !default;
+$spacing:   5 !default;
 $spacer:   spacer(1) !default;
 $spacer0:  spacer(0) !default;
-$spacer1:  addUnit($spacer, vh) !default;
+$spacer1:  addUnit($spacing, vh) !default;
 $spacer2:  spacer(2) !default;
 $spacer3:  spacer(3) !default;
 $spacer4:  spacer(4) !default;

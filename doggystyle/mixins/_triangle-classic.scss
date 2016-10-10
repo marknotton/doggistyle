@@ -1,3 +1,29 @@
+/// Create a triangle/carrat/arrow 
+///
+/// @param {list} $args
+///   In any order and without comma delimination, add any of the follwing arrow settings
+///   Colour { color } - Hex or RGBA
+///   Width { int } - First intiger is used as the width. 'px' units are used by defualt if not specified.
+///   Height { int } - Second intiger is used as the height. 'px' units are used by defualt if not specified. Width is used if second unit is not found.
+///   Direction { string } - top-left, up, top-right, left, right, bottom-left, down, bottom-right.
+///   Center { string } - In addition to the direction, you can add the unquote string 'center' to center the arrow
+///   Sudo { string } - Use an unquote string 'before' or 'after' to distinguish what sudo element to use
+///
+/// @param {bool} $position
+///   Determines wether the arrow should be positioned at all
+///
+/// @require {map} triangle-settings
+/// @require {function} random-color
+/// @require {function} map-fetch
+/// @require {function} is-calc
+///
+///
+/// @example {scss} - Usage
+///   @include triangle-classic(50% 20 purple right);
+///   @include triangle-classic(100 100 green up center after);
+///
+/// @return {sudo}
+
 
 @mixin triangle-classic($args...) {  
 
@@ -71,9 +97,7 @@
   
   &#{_sudo($sudo)} {
     content:"";
-    position:absolute;
-    top:0; 
-    left:0;     
+    position:absolute;    
     height:0; 
     width:0;
     border-style:solid; 
@@ -115,23 +139,31 @@
     @elseif $direction == down {
       border-width:addUnit($height) addUnit($width/2) 0 addUnit($width/2);
     }
-    @elseif $direction == top-left {
+    
+    @if contains(left right up down, $direction) {
+      border-#{opposite-direction($direction)}-color:$colour;
+    }
+    
+    @if $direction == top-left {
       border-width:addUnit($height) addUnit($width) 0 0;
+      border-top-color:$colour;
     }
     @elseif $direction == top-right {
       border-width:0 addUnit($width) addUnit($height) 0;
+      border-right-color:$colour;
     }
     @elseif $direction == bottom-left {
       border-width:addUnit($height) 0 0 addUnit($width);
+      border-left-color:$colour;
     }
     @elseif $direction == bottom-right {
       border-width:0 0 addUnit($height) addUnit($width);
+      border-bottom-color:$colour;
     }
 
      @if $direction == up { $direction : top; }
      @if $direction == down { $direction : bottom; }
 
-     border-#{opposite-direction($direction)}-color:$colour;
 
     @content;
   }

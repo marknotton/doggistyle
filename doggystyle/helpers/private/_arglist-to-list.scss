@@ -15,14 +15,22 @@
 /// @return {list}
 
 @function _arglist-to-list($args...) {
-  
+
   $args: if(length($args) > 0, $args, null);
 
   $lists : ();
 
   @for $i from 1 through length($args) {
-    $lists : append($lists, nth($args, $i));
-  } 
+
+    $setting : nth($args, $i);
+    @if is-arglist($setting) {
+      @each $set in $setting {
+        $lists : append($lists, $set);
+      }
+    } @else {
+      $lists : append($lists, $setting);
+    }
+  }
 
   @return $lists;
 }

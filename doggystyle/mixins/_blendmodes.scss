@@ -1,5 +1,7 @@
 $blend-modes : (initial inherit unset screen overlay darken lighten color-dodge color-burn hard-light soft-light difference exclusion hue saturation color luminosity normal);
 
+
+// Blend Background
 @mixin blend-background($mode) {
 
   $blends : ();
@@ -13,6 +15,8 @@ $blend-modes : (initial inherit unset screen overlay darken lighten color-dodge 
   }
 }
 
+
+// Blend Mix
 @mixin blend-mix($blend) {
   @if contains($blend-modes, $blend) {
     @include prefixer(mix-blend-mode, $blend, moz webkit);

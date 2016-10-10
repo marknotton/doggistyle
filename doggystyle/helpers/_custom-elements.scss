@@ -15,7 +15,7 @@
   // It's a common occurance to have a background image set inside a div element so there is more control over the image
   // TODO: Find a way of making this custom element a singleton
   image-element, gallery-image { 
-    @extend %full; max-width:100vw;
+    @extend %full; max-width:100vw; display:block;
     &[style*='background-image'] {
       background-size:cover;
       background-repeat:none;
@@ -24,20 +24,20 @@
     }
   }
   
-  gallery-container { position:relative; overflow:hidden; width:100%;
-    gallery-image:not(:first-of-type) { opacity:0; }
+  gallery-container, .gallery-container { position:relative; overflow:hidden; width:100%;
+    gallery-image:not(:first-of-type), .gallery-image:not(:first-of-type) { opacity:0; }
   }
   
   // main-container {optional}
   // This is designed to be used to wrap the main content of the page without interfering with the html5's 'main' element.
   // This is useful when you have a footer that you want to stick to the bottom of the page.
-  main-wrapper > main-container {
+  main-wrapper > main-container, .main-wrapper > .main-container {
     @include flex-container((direction:column)); @include flex-grow(1);
   }
   
   // basic-container {essential}
   // This sets a few basic settings for a container element. The content will be cetnered, will have no padding.
-  basic-container, .container { 
+  basic-container, .basic-container, .container { 
     @extend %clearfix;
     width:100%;
     max-width:$max-width;
@@ -45,6 +45,16 @@
     margin-right:auto;
     position:relative;
     display:block;
+  }
+
+  nav-container, .nav-container { 
+    @include ani(padding-left padding-right);
+    padding-left:$pad;
+    padding-right:$pad;
+    @include break($medium) {
+      padding-left:$pad0;
+      padding-right:$pad0;
+    }
   }
 
   // smart-container {essential}

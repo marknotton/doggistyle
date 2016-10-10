@@ -1,26 +1,26 @@
-%font-smooth { 
-  -webkit-font-smoothing: antialiased; 
-  -moz-osx-font-smoothing: grayscale; 
+%font-smooth {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-%font-default { 
+%font-default {
   font-family: Helvetica, Arial, sans-serif;
   @extend %font-smooth;
 }
 
-%lowercase { 
+%lowercase {
   text-transform:lowercase;
 }
 
-%uppercase { 
+%uppercase {
   text-transform:uppercase;
 }
 
-%capitalize { 
+%capitalize {
   text-transform:capitalize;
 }
 
-%no-wrap { 
+%no-wrap {
   white-space:nowrap;
 }
 
@@ -28,23 +28,14 @@
   text-indent:110%; overflow:hidden; white-space:nowrap;
 }
 
-
-// %show-text {
-//   text-indent:0; overflow:visible; white-space:normal; @include user-select(all); 
-// }
-
-@mixin user-select($setting) {
-  @if contains($setting, (none auto text contain all)) {
-    @include prefixer(user-select, $setting);
-  }
+%show-text {
+  text-indent:0; overflow:visible; white-space:normal; @include user-select(all);
 }
 
-
 %selectable {
-  @include user-select(all); 
+  @include user-select(all);
 }
 
 %unselectable {
-  @include user-select(none); 
+  @include user-select(none);
 }
-

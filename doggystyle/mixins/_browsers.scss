@@ -102,7 +102,7 @@ $browsers : ie edge firefox chrome opera;
 }
 
 @mixin edge($version:null) { 
-  // TODO: When the browser plugin can detect edge version numbers, uncomment remove the next line
+  // TODO: When the browser plugin can detect edge version numbers, remove the next line
   @include warning('As of March 2016: The plugin used to detect browser versions can not currently output the Edge browser version.
     This mixin will exclude all version numbers for now.')
   $version : null;
@@ -133,7 +133,7 @@ $browsers : ie edge firefox chrome opera;
 }
 
 @mixin not-edge($version:null) { 
-  // TODO: When the browser plugin can detect edge version numbers, uncomment remove the next line
+  // TODO: When the browser plugin can detect edge version numbers, remove the next line
   @include warning('As of March 2016: The plugin used to detect browser versions can not currently output the Edge browser version.
     This mixin will exclude all version numbers for now.')
   $version : null;

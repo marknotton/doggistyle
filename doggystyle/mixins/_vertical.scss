@@ -3,3 +3,8 @@
   display:table; height:100%;
   > #{$element} { display: table-cell; vertical-align: middle; }
 }
+
+// Align vertically using the table method. Ideal when trying to avoid using specific units
+@mixin vertical-image($element:"img") {
+  > #{$element} { max-height:100%; max-width: 90%; width:auto; height:auto; position:absolute; top:0; bottom:0; left:0; right:0; margin:auto; }
+}

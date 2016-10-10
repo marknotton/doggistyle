@@ -1,0 +1,12 @@
+@mixin bulletpoint($colour:$red, $size:8, $sudo:before) { position:relative;
+  &:#{$sudo} { content:"";
+    position:absolute;
+    display:block;
+    @include size($size);
+    @include border-radius(circle);
+    background-color:$colour;
+    left:0;
+    top:addUnit($size/2);
+    @content;
+  }
+}

@@ -17,6 +17,7 @@
 ///   [stagger]   - stagger should be in it's own argment, not part of a list of transition settings. It can however be in the same argument as 'direction'.
 ///                 Stagger can be defined just by passing the string 'stagger'. This will add previous transition delays and directions to the current
 ///                 transtion so each argument is called one after the other.
+///   [off]       - passing off within any argument will ignore everything and set the transition to 'initial'. Essentially disabling all transitions
 /// 
 /// @require {Mixin} contains
 /// @require {Mixin} prepend
@@ -53,6 +54,7 @@
   $delays : ();
   $eases : ();
   $durations : ();
+  $off : false;
  
   // Quick check to make sure anything at all has been passed.
   // If not, set 'all' as the default transition
@@ -66,7 +68,13 @@
       $direction : $settings;
     } @elseif contains($settings, stagger) {
       $stagger : true;
+    } @elseif contains($settings, off) {
+      $off : true;
     }
+  }
+
+  @if $off == true { 
+    @include prefixer(transition, initial);
   }
   
   // Loop through and set all the necessary settings for each animation set
