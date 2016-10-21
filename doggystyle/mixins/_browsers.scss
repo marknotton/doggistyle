@@ -9,14 +9,14 @@ $browsers : ie edge firefox chrome opera;
 
 @mixin browsers($args...) {
 
-  // This checks to see if the current selector is html. 
-  // This can not be converted into a shorthanded if statement. 
+  // This checks to see if the current selector is html.
+  // This can not be converted into a shorthanded if statement.
   $selector : null;
   @if not is-selector(html) { $selector : &; }
   $selector : string-replace(#{$selector}, 'html', '');
 
   @each $settings in _arglist-to-list($args...) {
-    
+
     $browsers-list : ();
     $versions-list : ();
     $not : true;
@@ -24,7 +24,7 @@ $browsers : ie edge firefox chrome opera;
     @each $setting in $settings {
       @if is-string($setting) and contains($browsers, $setting) {
         $browsers-list : append($browsers-list, $setting);
-      } 
+      }
       @elseif is-bool($setting) {
         $not : $setting;
       }
@@ -35,7 +35,7 @@ $browsers : ie edge firefox chrome opera;
       }
     }
 
-    @if length($browsers-list) > 1 and length($versions-list) > 0 { 
+    @if length($browsers-list) > 1 and length($versions-list) > 0 {
       @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
     } @else {
       @if length($browsers-list) > 0 {
@@ -84,7 +84,7 @@ $browsers : ie edge firefox chrome opera;
                 }
               }
             } @else {
-              @at-root html:not([data-browser^=#{$browser}]) { 
+              @at-root html:not([data-browser^=#{$browser}]) {
                 #{$selector} { @content }
               }
             }
@@ -97,11 +97,11 @@ $browsers : ie edge firefox chrome opera;
 
 // Usage : @include ie(9 10) { ... }
 // Usage : @include ie { ... }
-@mixin ie($version:null) { 
+@mixin ie($version:null) {
   @include browsers(ie $version) { @content };
 }
 
-@mixin edge($version:null) { 
+@mixin edge($version:null) {
   // TODO: When the browser plugin can detect edge version numbers, remove the next line
   @include warning('As of March 2016: The plugin used to detect browser versions can not currently output the Edge browser version.
     This mixin will exclude all version numbers for now.')
@@ -109,30 +109,28 @@ $browsers : ie edge firefox chrome opera;
   @include browsers(edge $version) { @content };
 }
 
-@mixin safari($version:null) { 
+@mixin safari($version:null) {
   @include browsers(safari $version) { @content };
 }
 
-@mixin firefox($version:null) { 
+@mixin firefox($version:null) {
   @include browsers(firefox $version) { @content };
 }
 
-@mixin chrome($version:null) { 
+@mixin chrome($version:null) {
   @include browsers(chrome $version) { @content };
 }
 
-@mixin opera($version:null) { 
+@mixin opera($version:null) {
   @include browsers(opera $version) { @content };
 }
 
-
-
 //////
-@mixin not-ie($version:null) { 
+@mixin not-ie($version:null) {
   @include browsers(ie $version false) { @content };
 }
 
-@mixin not-edge($version:null) { 
+@mixin not-edge($version:null) {
   // TODO: When the browser plugin can detect edge version numbers, remove the next line
   @include warning('As of March 2016: The plugin used to detect browser versions can not currently output the Edge browser version.
     This mixin will exclude all version numbers for now.')
@@ -140,19 +138,18 @@ $browsers : ie edge firefox chrome opera;
   @include browsers(edge $version false) { @content };
 }
 
-@mixin not-safari($version:null) { 
+@mixin not-safari($version:null) {
   @include browsers(safari $version false) { @content };
 }
 
-@mixin not-firefox($version:null) { 
+@mixin not-firefox($version:null) {
   @include browsers(firefox $version false) { @content };
 }
 
-@mixin not-chrome($version:null) { 
+@mixin not-chrome($version:null) {
   @include browsers(chrome $version false) { @content };
 }
 
-@mixin not-opera($version:null) { 
+@mixin not-opera($version:null) {
   @include browsers(opera $version false) { @content };
 }
-

@@ -85,10 +85,6 @@
 	  display:block;
 	}
 
-	svg:not(:root) {
-	  overflow: hidden;
-	}
-
 	code, kbd, pre, samp {
 	  font-family: monospace, monospace; /* 1 */
 	  font-size: 1em; /* 2 */
@@ -257,7 +253,7 @@
 		border:0;
 	}
 
-	svg { overflow:visible; }
+	svg, symbol { overflow:visible; }
 
 	@include input-text() {
 		-webkit-appearance:none;

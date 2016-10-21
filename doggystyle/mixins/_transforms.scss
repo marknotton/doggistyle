@@ -34,61 +34,63 @@ $transform-values : inherit initial unset none;
 ///    transform: rotate(90deg) scale(0.8);
 
 @mixin transform($settings...) {
-  
+
   $transforms : ();
   $fallback-settings : ();
+  $important : null;
 
   @if not contains($transform-values, $settings, true) and length($settings) >= 1 {
-    
+
     // This is an over-engineered section of code to to allow for all types of syntaxes.
     // Essestially making it work with Bourbon and other frameworks.
     @if length($settings) == 1  {
       @for $i from 1 through length($settings) {
-        @each $setting in nth($settings, $i) {   
-          @if is-function($setting) {     
+        @each $setting in nth($settings, $i) {
+          @if is-function($setting) {
             $fallback-settings : append($fallback-settings, $setting, comma);
           }
         }
-      } 
+      }
     }
     $settings-lists : if(length($fallback-settings) > 1, $fallback-settings,  _arglist-to-list($settings));
-  
-    @each $settings in $settings-lists {      
-    
+
+    @each $settings in $settings-lists {
+
       @if is-function($settings) {
         $settings : is-function($settings);
-      } 
+      }
 
       $transform : null;
+
       $value : ();
-      
+
       // Check for transforms
       @each $setting in $settings {
         @if is-string($setting) and contains($transform-types, $setting) {
           $transform : $setting;
-        } 
+        }
       }
-      
+
       // Check and validate all transform types
       @each $setting in $settings {
         @if not is-string($setting) {
           @if contains($transform, (translate translateY translateX translateZ translate3d perspective)) {
             // Values that require a unit
             @each $val in $setting {
-              $value : append($value, addUnit($val), comma); 
-            }  
+              $value : append($value, addUnit($val), comma);
+            }
           } @elseif contains($transform, (rotate rotateX rotateY rotateZ skew skewX skewY)) {
             // Values that require an angle
             @each $val in $setting {
-              $value : append($value, addUnit($val, deg), comma); 
-            }  
+              $value : append($value, addUnit($val, deg), comma);
+            }
           } @else {
             // All other values
-            $value : append($value, $setting);     
+            $value : append($value, $setting);
           }
         } @elseif contains($transform-values, $setting) {
           // Values that are strings and are global values
-           $value : append($value, $setting);  
+           $value : append($value, $setting);
         }
       }
 
@@ -96,14 +98,14 @@ $transform-values : inherit initial unset none;
       @if $transform != null {
         $transforms : append($transforms, $transform+"("+$value+")");
       }
-      
+
     }
   } @else {
    $transforms : nth($settings, 1);
   }
 
 
-  @include prefixer(transform, $transforms);
+  @include prefixer(transform, $transforms, webkit moz, $important);
 
 }
 
@@ -135,11 +137,11 @@ $transform-values : inherit initial unset none;
 
 /// Matrix
 @mixin matrix($args...) {
-  @include transform(matrix($args...));
+  @include transform(matrix($args));
 }
 
 @mixin matrix3d($args...) {
-  @include transform(matrix3d($args...));
+  @include transform(matrix3d($args));
 }
 
 
