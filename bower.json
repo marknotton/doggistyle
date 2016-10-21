@@ -1,14 +1,14 @@
 {
   "authors": [
-    "thoughtbot (http://thoughtbot.com)"
+    "marknotton (http://marknotton.uk)"
   ],
-  "description": "A simple and lightweight mixin library for Sass.",
-  "homepage": "http://bourbon.io",
+  "description": "A collection of Sass resources found from an array of sources, forums, and tutorials.",
+  "homepage": "https://github.com/marknotton/doggystyle",
   "ignore": [
     "**/.*",
     "_site",
     "bin",
-    "bourbon.gemspec",
+    "doggystyle.gemspec",
     "eyeglass-exports.js",
     "features",
     "Gemfile",
@@ -28,11 +28,11 @@
     "scss"
   ],
   "license": "MIT",
-  "main": "core/_bourbon.scss",
-  "name": "bourbon",
+  "main": "core/_doggystyle.scss",
+  "name": "doggystyle",
   "repository": {
     "type": "git",
-    "url": "https://github.com/thoughtbot/bourbon.git"
+    "url": "https://github.com/marknotton/doggystyle.git"
   },
   "version": "5.0.0-beta.6"
 }
