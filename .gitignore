@@ -1,1 +1,16 @@
-.DS_Store
+/.bundle/
+/.yardoc
+/Gemfile.lock
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+*gem
+*swp
+.DS_store
+.sass-cache
+_site
+Gemfile.lock
+npm-debug.log
