@@ -1,4 +1,4 @@
-<img src="http://i.imgur.com/DrR97Jt.png" alt="Doggy Style" align="left" height="150" />
+<img src="http://i.imgur.com/DrR97Jt.png" alt="Doggy Style" height="150" />
 
 # Doggy Style [![GitHub release](https://img.shields.io/github/release/marknotton/doggystyle.svg)](https://github.com/marknotton/doggystyle/releases)
 
@@ -44,4 +44,4 @@ A collection of Sass resources found from an array of sources, forums, and tutor
 
 ## Thanks
 
-A special thank you to the talented people at [thoughtbot, inc.][https://thoughtbot.com/] for keeping their prodcts open source; and allowing me the opportunity to learn, adapt and publish my own gem. 
+A special thank you to the talented people at [thoughtbot, inc.][https://thoughtbot.com/] for keeping their prodcts open source; and allowing me the opportunity to learn, adapt and publish my own gem.
