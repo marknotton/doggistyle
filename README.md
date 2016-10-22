@@ -1,40 +1,47 @@
-![alt tag](http://i.imgur.com/DrR97Jt.png)
-# Doggy Style
-Doggy Style is a Sass Library
+<img src="http://i.imgur.com/DrR97Jt.png" alt="Doggy Style" align="left" height="150" />
+
+# Doggy Style [![GitHub release](https://img.shields.io/github/release/marknotton/doggystyle.svg)](https://github.com/marknotton/doggystyle/releases)
 
 A collection of Sass resources found from an array of sources, forums, and tutorials. Many of my own mixins and functions have been writen to take advantage of Sass lists and maps, allowing users to enter settings without strict ordering.
 
+- **[Changelog](https://github.com/marknotton/doggystyle/releases)**
+- **[Issues & Bugs](https://github.com/marknotton/doggystyle/issues)**
+
+## Requirements
+
+- [Sass](https://github.com/sass/sass) 3.4+ or [LibSass](https://github.com/sass/libsass) 3.3+
+
 ## Installation
 
-Add this line to your application's Gemfile:
+1. Install the Doggy Style gem using the [RubyGems](https://rubygems.org) package manager:
 
-```ruby
-gem 'doggystyle'
-```
+  ```bash
+  gem install doggystyle
+  ```
 
-And then execute:
+  Alternatively, you can install Doggy Style with [Bower](http://bower.io).
 
-    $ bundle
+1. Install the Doggy Style library into the current directory:
 
-Or install it yourself as:
+  ```bash
+  doggystyle install
+  ```
 
-    $ gem install doggystyle
+  **Pro Tip:** You can target installation into a specific directory using the `path` flag:
 
-## Usage
+  ```bash
+  doggystyle install --path my/custom/path/
+  ```
 
-TODO: Write usage instructions here
+1. Import Doggy Style at the beginning of your stylesheet:
 
-## Development
+  ```scss
+  @import "doggystyle/_import";
+  ```
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/doggystyle. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+  It’s not recommended to add or modify the Doggy Style files so that you can update them easily.
 
 
-## License
+## Thanks
 
-The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
+A special thank you to the talented people at [thoughtbot, inc.][https://thoughtbot.com/] for keeping their prodcts open source; and allowing me the opportunity to learn, adapt and publish my own gem. 
