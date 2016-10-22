@@ -28,7 +28,7 @@
     "scss"
   ],
   "license": "MIT",
-  "main": "core/_doggystyle.scss",
+  "main": "core/_import.scss",
   "name": "doggystyle",
   "repository": {
     "type": "git",
