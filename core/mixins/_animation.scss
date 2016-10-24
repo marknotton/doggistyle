@@ -1,0 +1,118 @@
+/// Create a css animation with fallbacks
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @param {arglist} $args - Pass in the following animation settings.
+///   [name]       - name of the animation must be the first parameter
+///   [duration]   - length of time it takes for an animation to complete one cycle.
+///   [ease]       - ease-in, ease-in-out etc... You can also refer to the eases variables. $easeInSine, $easeInOutBack.
+///   [delay]      - delay times are always calculated in seconds (not miliseconds). You do not have to define the 's'.
+///   [iterations] - the number of times the animation should be performed. 'loop' or 'infinite' will result in a never-ending loop
+///   [direction]  - sets the direction of the animation after the cycle. Its default resets on each cycle.
+///   [fill]       - sets which values are applied before/after the animation.
+///   [state]      - pause/play the animation.
+///
+/// @require {Mixin} contains
+/// @require {Mixin} prefixer
+/// @require {Function} is-string
+/// @require {Function} is-number
+/// @require {Function} is-null
+/// @require {Function} is-ease
+/// @require {Function} is-time
+/// @require {Function} addUnit
+/// @require {Function} _arglist-to-list
+/// @require {Variables} eases - optional
+///
+/// @example scss - Usage
+/// .foo {
+///   @include animation(play 3s steps(81) infinite);
+/// }
+///
+/// @example css - CSS output
+/// .foo {
+///   -webkit-animation: play 3s steps(81) infinite;
+///      -moz-animation: play 3s steps(81) infinite;
+///           animation: play 3s steps(81) infinite;
+/// }
+///
+
+//@include keyframes(testing) { to { @include rotate(360deg);}}
+
+@mixin animation($settings...) {
+
+  // Default Settings
+  $name: null;
+  $duration: null; // seconds
+  $ease: ease-in-out;
+  $delay: null;
+  $iterations: null;
+  $direction: normal;
+  $fill: forwards;
+  $state : null;
+
+  $settings-list : _arglist-to-list($settings);
+
+  // Loop through and check all arguments for any special options
+  @each $settings in $settings-list {
+
+    $firstSetting: nth($settings, 1);
+
+    @if not is-string($firstSetting) {
+      @error "The first parameter must be the animation name as a string";
+    }
+
+    $name : $firstSetting;
+
+    @each $setting in remove-nth($settings, 1) {
+
+      @if contains($setting, forwards backwards both none) {
+        $fill : $setting;
+      } @elseif contains($setting, normal alternate) {
+        $direction : $setting;
+      } @elseif contains($setting, paused running) {
+        $state : $setting;
+      } @elseif is-string($setting) {
+        @if contains($setting, infinite loop) {
+          $iterations : infinite;
+        } @elseif is-ease($setting) {
+          $ease : $setting;
+        }
+      } @elseif is-number($setting) or is-time($setting) {
+        @if is-null($duration) {
+          @if is-time($setting) {
+            $duration : $setting;
+          } @else {
+            $duration : add-unit($setting, s, true);
+          }
+        } @elseif is-null($delay) {
+          @if is-time($setting) {
+            $delay : $setting;
+          } @else {
+            $delay : add-unit($setting, s, true);
+          }
+        } @elseif is-null($iterations) {
+          $iterations : $setting;
+        }
+      }
+    }
+
+    $duration: if(is-null($duration), 1s, $duration);
+    $iterations: if(is-null($iterations), 1, $iterations);
+
+    // @debug #{'name:'} $name;
+    // @debug #{'duration:'} $duration;
+    // @debug #{'ease:'} $ease;
+    // @debug #{'delay:'} $delay;
+    // @debug #{'iterations:'} $iterations;
+    // @debug #{'direction:'} $direction;
+    // @debug #{'fill:'} $fill;
+    // @debug #{'state:'} $state;
+
+    @include prefixer(animation, $name $duration $ease $delay $iterations $direction $fill $state);
+  }
+}
+
+/// @alias animation
+@mixin animate($settings...) { @include animation($settings...); }

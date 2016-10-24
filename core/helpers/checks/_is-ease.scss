@@ -1,0 +1,14 @@
+/// Checks to see if string is an ease
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @require {function} contains
+/// @require {function} is-string
+///
+/// @return {bool}
+
+@function is-ease($string) {
+  @return is-string($string) and contains(str-slice(#{$string}, 0, 4), ease line step cubi init)
+}

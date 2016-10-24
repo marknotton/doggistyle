@@ -40,6 +40,7 @@
         "helpers/checks/is-false",
         "helpers/checks/is-function",
         "helpers/checks/is-frequency",
+        "helpers/checks/is-ease",
         "helpers/checks/is-integer",
         "helpers/checks/is-length",
         "helpers/checks/is-list",
@@ -160,7 +161,7 @@
 
 // Mixins
 @import "mixins/align",
-        "mixins/animate",
+        "mixins/animation",
         "mixins/aspect-ratio",
         "mixins/background-image",
         "mixins/blend",
