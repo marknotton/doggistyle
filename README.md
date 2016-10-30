@@ -30,7 +30,7 @@ A collection of Sass resources found from an array of sources, forums, and tutor
   **Pro Tip:** You can target installation into a specific directory using the `path` flag:
 
   ```bash
-  doggystyle install --path my/custom/path/
+  doggystyle install --path sass/
   ```
 
 1. Import Doggy Style at the beginning of your stylesheet:
