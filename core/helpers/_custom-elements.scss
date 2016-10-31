@@ -1,20 +1,20 @@
 @if $reset {
-  
+
   // main-wrapper {essential}
   // This could be compared to as a 'body' within the 'body'. It should contain all markup and not hidden content (svg's) or javascript
   // This is usful if you need to hide all the content of a page or you want to blur the background for modals
-  body > #wrapper, body > main-wrapper { 
+  body > #wrapper, body > main-wrapper {
     @extend %clearfix; @include flex-container((direction:column));
     position:relative;
     min-height:100vh;
     width:100%;
     overflow: hidden;
   }
-  
+
   // image-elemnt {essential}
   // It's a common occurance to have a background image set inside a div element so there is more control over the image
   // TODO: Find a way of making this custom element a singleton
-  image-element, gallery-image { 
+  image-element, gallery-image {
     @extend %full; max-width:100vw; display:block;
     &[style*='background-image'] {
       background-size:cover;
@@ -23,21 +23,23 @@
       background-repeat:no-repeat;
     }
   }
-  
+
+  featured-image { @extend %full; background-position:center center; background-size:cover; }
+
   gallery-container, .gallery-container { position:relative; overflow:hidden; width:100%;
     gallery-image:not(:first-of-type), .gallery-image:not(:first-of-type) { opacity:0; }
   }
-  
+
   // main-container {optional}
   // This is designed to be used to wrap the main content of the page without interfering with the html5's 'main' element.
   // This is useful when you have a footer that you want to stick to the bottom of the page.
   main-wrapper > main-container, .main-wrapper > .main-container {
     @include flex-container((direction:column)); @include flex-grow(1);
   }
-  
+
   // basic-container {essential}
   // This sets a few basic settings for a container element. The content will be cetnered, will have no padding.
-  basic-container, .basic-container, .container { 
+  basic-container, .basic-container, .container {
     @extend %clearfix;
     width:100%;
     max-width:$max-width;
@@ -47,7 +49,7 @@
     display:block;
   }
 
-  nav-container, .nav-container { 
+  nav-container, .nav-container {
     @include ani(padding-left padding-right);
     padding-left:$pad;
     padding-right:$pad;
@@ -59,7 +61,7 @@
 
   // smart-container {essential}
   // This is essentially the same as basic-container, only has a small media query check to reduce the padding at a certain point
-  smart-container, .smart-container { 
+  smart-container, .smart-container {
     @extend basic-container;
     @include ani(padding-left padding-right);
     padding-left:$pad;
@@ -70,15 +72,15 @@
     }
   }
 
-  // This fakes the results of the smart-container without having to use a smart-container custom element. 
+  // This fakes the results of the smart-container without having to use a smart-container custom element.
   // Useful for when you want to avoid additional markup just to position an element.
-  %smart-container-faux { 
-    @extend basic-container; 
+  %smart-container-faux {
+    @extend basic-container;
     width:calc(#{$max + px} - #{$pad2});
     @include ani(padding-left padding-right margin-left margin-right width);
 
     @include break($max + $padding) {
-      width:calc(100% - #{$pad2}); 
+      width:calc(100% - #{$pad2});
       margin-left:$pad; margin-right:$pad;
     }
     @include break($medium) {
@@ -89,11 +91,11 @@
   }
 
   %smart-container-faux-absolute {
-    @extend %smart-container-faux; 
+    @extend %smart-container-faux;
     @include ani(padding-left padding-right margin-left margin-right width left);
     position:absolute;
     left:50%;
-    margin-left:- $max/2 + $padding + px; 
+    margin-left:- $max/2 + $padding + px;
     @include break($max + $padding) {
       left:0;
       margin-left:$pad;
@@ -102,9 +104,9 @@
       margin-left:$pad0;
     }
   }
-  
+
   // This also fakes the output of the smart container, only forces the fake padding to extend to the edges of the page
-  %smart-container-faux-stretch { 
+  %smart-container-faux-stretch {
     @extend basic-container;
     @include break($medium) {
       width:calc(100% + #{$pad2});
