@@ -4,9 +4,16 @@
 ///
 /// @access public
 ///
-@mixin flex-remove() {
-  flex:initial;
-  display:initial;
-  flex-direction:initial;
-  justify-content:initial;
+@mixin flex-remove($important:null) {
+  @if ($important is true) {
+    flex:initial !important;
+    display:initial !important;
+    flex-direction:initial !important;
+    justify-content:initial !important;
+  } @else {
+    flex:initial;
+    display:initial;
+    flex-direction:initial;
+    justify-content:initial;
+  }
 }
