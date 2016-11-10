@@ -35,7 +35,10 @@
 	  display: none;
 	}
 
-	a { background-color: transparent; }
+	a {
+		background-color: transparent;
+		text-decoration:none;
+	}
 
 	a:active, a:hover {
 	  outline-width: 0;
@@ -47,12 +50,8 @@
 	  text-decoration: underline dotted;
 	}
 
-	b, strong {
+	b {
 	  font-weight: inherit;
-	}
-
-	b, strong {
-	  font-weight: bolder;
 	}
 
 	dfn {
@@ -176,14 +175,17 @@
 	}
 
 	body {
-	  @extend .font-default, .font1 !optional;
+	  @extend %font-default, .font1 !optional;
 	  @include size(100%);
 	  @include fontsize($font-size);
 	  @include selection($selection);
 	}
 
+	body, a, button {
+		color:$text;
+	}
+
 	p {
-		@include smart-fontsize($font-size, $font-size + 2);
 		margin-bottom:$pad;
 		&:last-of-type { margin-bottom:initial; }
 		&:empty { display:none; }
@@ -210,11 +212,6 @@
 		&:focus { outline:0; };
 		box-sizing:border-box;
 		-moz-box-sizing:border-box;
-	}
-
-	a {
-		text-decoration:none;
-		color:$text;
 	}
 
 	hr {
@@ -271,6 +268,7 @@
 		-webkit-margin-start:0px;
 		-webkit-margin-end:0px;
 		font-weight: normal;
+		@extend .font1 !optional;
 	}
 
 	h1{ @include smart-fontsize($h2, $h1); }
@@ -279,4 +277,5 @@
 	h4{ @include smart-fontsize($h5, $h4); }
 	h5{ @include smart-fontsize($h6, $h5); }
 	h6{ @include smart-fontsize($h6/2, $h6); }
+
 }

@@ -1,13 +1,13 @@
 /// Adds a default unit if one is not used.
-///
+/// 
 /// @author Mark Notton
-///
+/// 
 /// @param {number} $value
 ///
 /// @param {string} $unit - If a value is unitless add the default unit.
 ///
-/// @param {bool} $convert - If the value already has a unit, and a different unit was specifically
-///   pass, when 'true', this will override the unit.
+/// @param {bool} $convert - If the value already has a unit, and a different unit was specifically 
+///   supplied, this boolean desides wether to replace the unit.
 ///
 /// @require {variable} default-unit
 /// @require {variable} $relative-lengths
@@ -28,6 +28,14 @@
 ///   50%
 ///   50%
 
+// @function addUnit($value, $unit:$default-unit) {
+//   @if is-number($value) and unitless($value) {
+//     @return strip($value) + $unit;
+//   } @else {
+//     @return $value;
+//   }
+// }
+
 @function addUnit($value, $unit:null, $replace:false) {
   @if is-number($value) {
     @if unitless($value) {
@@ -43,8 +51,4 @@
   } @else {
     @return $value;
   }
-}
-
-@function add-unit($settings...) {
-  @return addUnit($settings...);
 }

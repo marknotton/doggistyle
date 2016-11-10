@@ -1,15 +1,15 @@
-$blend-modes : (initial inherit unset screen overlay darken lighten color-dodge color-burn hard-light soft-light difference exclusion hue saturation color luminosity normal);
+$blend-modes : (initial inherit unset multiply screen overlay darken lighten color-dodge color-burn hard-light soft-light difference exclusion hue saturation color luminosity normal);
 
 
 // Blend Background
-@mixin blend-background($mode) {
+@mixin blend-background($mode : multiply) {
 
   $blends : ();
 
   @each $blend in $mode {
     $blends : append($blends, $blend, comma);
   }
-  
+
   @if contains($blend-modes, $blends) {
     @include prefixer(background-blend-mode, $blends, moz webkit);
   }
@@ -17,7 +17,7 @@ $blend-modes : (initial inherit unset screen overlay darken lighten color-dodge 
 
 
 // Blend Mix
-@mixin blend-mix($blend) {
+@mixin blend-mix($blend : multiply) {
   @if contains($blend-modes, $blend) {
     @include prefixer(mix-blend-mode, $blend, moz webkit);
   }

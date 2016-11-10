@@ -1,0 +1,16 @@
+// Keyframe animation [name, duration, ease, delay, iteration-count, direction, fill]
+
+//@include keyframes(testing) { to { @include rotate(360deg);}}
+//@include animate(testing, 1, linear, null, infinite);
+@mixin animate($name, $duration:0.2, $ease:ease-in-out, $delay:0, $replay:1, $direction:normal, $fill:forwards) {
+  @if ($duration == null) { $duration:0.3;}
+  @if ($ease == null) { $ease:ease-in-out;}
+  @if ($delay == null) { $delay:0;}
+  @if ($replay == null) { $replay:1;}
+  @if ($direction == null) { $direction:normal;}
+  @if ($fill == null) { $fill:forwards;}
+
+  $vendors : "-webkit-", "";
+  $ani: #{$name} #{$duration+"s"} #{$ease} #{$delay+"s"} #{$replay} #{$direction} #{$fill};
+  @each $vendor in $vendors { #{$vendor+"animation"}:$ani; }
+}
