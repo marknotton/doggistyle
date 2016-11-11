@@ -95,7 +95,7 @@ $breakpoints: () !global;
   $count: nth($args, 1);
   $gutter: if($gutter == null, if(length($args) == 2, nth($args, 2), 0), $gutter);
 
-  @if ($gutter == true) { $gutter:$padding; }
+  @if ($gutter == true) { $gutter:$gaps; }
 
   @if ($gutter != 0 or $count == 1) {
     @for $i from 1 through $count {
@@ -129,7 +129,7 @@ $breakpoints: () !global;
 
 }
 
-// @include grid(4 $pad $max, 2 0 $medium, $small);
+// @include grid(4 $gap $max, 2 0 $medium, $small);
 
 
 

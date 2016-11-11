@@ -1,0 +1,18 @@
+$gaps : 16 !default;
+$gap  : gap(1) !default;
+$gap0 : gap(0) !default;
+$gap1 : addUnit($gap) !default;
+$gap2 : gap(2) !default;
+$gap3 : gap(3) !default;
+$gap4 : gap(4) !default;
+$gap5 : gap(5) !default;
+
+// Soon to be depricated
+$padding : $gaps !default;
+$pad     : $gap  !default;
+$pad0    : $gap0 !default;
+$pad1    : $gap1 !default;
+$pad2    : $gap2 !default;
+$pad3    : $gap3 !default;
+$pad4    : $gap4 !default;
+$pad5    : $gap5 !default;

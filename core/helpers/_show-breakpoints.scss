@@ -4,7 +4,7 @@
     background-color:darken($red, 20); 
     bottom:0; 
     right:0; 
-    padding:4px $pad0; 
+    padding:4px $gap0; 
     @include border-radius(5 top-left);
     @include ani(background-color color); 
     @extend %no-pointerevents, %no-wrap; 

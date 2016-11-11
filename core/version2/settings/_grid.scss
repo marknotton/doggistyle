@@ -1,0 +1,18 @@
+// Global
+$mobile-first:  false !default;
+$breakpoints:   () !default;
+
+$max:           1440  !default;
+$min:           320   !default;
+
+$max-width:     addUnit($max);
+$min-width:     addUnit($min);
+
+$maximum:       $max-width;
+$minimum:       $min-width;
+
+$small:         480  !default;
+$large:         1080 !default;
+$medium:        (($large - $small) / 2) + $small !default; // 780
+
+$show-breakpoints : false !default; 

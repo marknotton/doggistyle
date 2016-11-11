@@ -1,4 +1,4 @@
-@mixin smart-horizontal($width, $gutter:$pad, $break:null) {
+@mixin smart-horizontal($width, $gutter:$gap, $break:null) {
   $gutter      : if($gutter == 0, null, $gutter);
   $max-width   : $width;
   $width       : if(is-null($gutter), 100%, calc(100% - #{$gutter*2}));

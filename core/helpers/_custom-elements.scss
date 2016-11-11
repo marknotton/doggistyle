@@ -51,11 +51,11 @@
 
   nav-container, .nav-container {
     @include ani(padding-left padding-right);
-    padding-left:$pad;
-    padding-right:$pad;
+    padding-left:$gap;
+    padding-right:$gap;
     @include break($medium) {
-      padding-left:$pad0;
-      padding-right:$pad0;
+      padding-left:$gap0;
+      padding-right:$gap0;
     }
   }
 
@@ -64,11 +64,11 @@
   smart-container, .smart-container {
     @extend basic-container;
     @include ani(padding-left padding-right);
-    padding-left:$pad;
-    padding-right:$pad;
+    padding-left:$gap;
+    padding-right:$gap;
     @include break($medium) {
-      padding-left:$pad0;
-      padding-right:$pad0;
+      padding-left:$gap0;
+      padding-right:$gap0;
     }
   }
 
@@ -76,17 +76,17 @@
   // Useful for when you want to avoid additional markup just to position an element.
   %smart-container-faux {
     @extend basic-container;
-    width:calc(#{$max + px} - #{$pad2});
+    width:calc(#{$max + px} - #{$gap2});
     @include ani(padding-left padding-right margin-left margin-right width);
 
-    @include break($max + $padding) {
-      width:calc(100% - #{$pad2});
-      margin-left:$pad; margin-right:$pad;
+    @include break($max + $gaps) {
+      width:calc(100% - #{$gap2});
+      margin-left:$gap; margin-right:$gap;
     }
     @include break($medium) {
-      width:calc(100% - #{$pad});
-      margin-left:$pad0;
-      margin-right:$pad0;
+      width:calc(100% - #{$gap});
+      margin-left:$gap0;
+      margin-right:$gap0;
     }
   }
 
@@ -95,13 +95,13 @@
     @include ani(padding-left padding-right margin-left margin-right width left);
     position:absolute;
     left:50%;
-    margin-left:- $max/2 + $padding + px;
-    @include break($max + $padding) {
+    margin-left:- $max/2 + $gaps + px;
+    @include break($max + $gaps) {
       left:0;
-      margin-left:$pad;
+      margin-left:$gap;
     }
     @include break($medium) {
-      margin-left:$pad0;
+      margin-left:$gap0;
     }
   }
 
@@ -109,8 +109,8 @@
   %smart-container-faux-stretch {
     @extend basic-container;
     @include break($medium) {
-      width:calc(100% + #{$pad2});
-      left:-$pad;
+      width:calc(100% + #{$gap2});
+      left:-$gap;
     }
   }
 }

@@ -4,7 +4,7 @@
 ///
 /// @access public
 ///
-@mixin flex-grid($count, $gutter:$pad) {
+@mixin flex-grid($count, $gutter:$gap) {
   @if $count <= 1 {
     @include flex-basis(auto);
   }
@@ -28,9 +28,9 @@
   }
 }
 
-// 4 $pad $max, 2 0 $medium, $small
+// 4 $gap $max, 2 0 $medium, $small
 // 4, 2,
-// @include smart-flex-grid('section', 3 $pad, 2 $pad0 $max, 1 $pad0 bottom $large);
+// @include smart-flex-grid('section', 3 $gap, 2 $gap0 $max, 1 $gap0 bottom $large);
 
 @mixin smart-flex-grid($settings...) {
     $nth : 0;

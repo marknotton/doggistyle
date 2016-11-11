@@ -199,27 +199,27 @@
   @return to-lower-case(str-slice($string, 1, 1)) + str-slice($string, 2);
 }
 
-/// Pad `$string` from `$direction` with `$pad` to reach `$length` characters.
+/// Pad `$string` from `$direction` with `$gap` to reach `$length` characters.
 /// @since 1.2.0
 /// @param {String} $string           - string to pad
 /// @param {Number} $length           - number of characters to go for in returned string
-/// @param {String} $pad       (" ")  - string to use to pad `$string`
+/// @param {String} $gap       (" ")  - string to use to pad `$string`
 /// @param {String} $direction (left) - direction left or right for padding
 /// @return {String}
-@function _ss-str-pad($string, $length, $pad: " ", $direction: left) {
+@function _ss-str-pad($string, $length, $gap: " ", $direction: left) {
   $new-string: $string;
   $index: 1;
 
   @if $length > str-length($string) {
     @while str-length($new-string) < $length {
       $remains: $length - str-length($new-string);
-      $pad: if($remains < str-length($pad), str-slice($pad, 1, $remains), $pad);
+      $gap: if($remains < str-length($gap), str-slice($gap, 1, $remains), $gap);
 
       @if $direction == left {
-        $new-string: str-insert($new-string, $pad, $index);
-        $index: $index + str-length($pad);
+        $new-string: str-insert($new-string, $gap, $index);
+        $index: $index + str-length($gap);
       } @else {
-        $new-string: $new-string + $pad;
+        $new-string: $new-string + $gap;
       }
     }
   }
@@ -522,13 +522,13 @@
   @return _ss-str-lcfirst($string);
 }
 
-@function str-pad($string, $length, $pad: " ", $direction: left) {
+@function str-pad($string, $length, $gap: " ", $direction: left) {
   @if type-of($string) != "string" {
     @error "`str-pad` function expecting a string for $string; #{type-of($string)} given.";
   }
 
-  @if type-of($pad) != "string" {
-    @error "`str-pad` function expecting a string for $pad; #{type-of($pad)} given.";
+  @if type-of($gap) != "string" {
+    @error "`str-pad` function expecting a string for $gap; #{type-of($gap)} given.";
   }
 
   @if type-of($length) != "number" {
@@ -539,7 +539,7 @@
     @error "`str-pad` function expecting either `left` or `right` for $direction: #{$direction} given.";
   }
 
-  @return _ss-str-pad($string, $length, $pad, $direction);
+  @return _ss-str-pad($string, $length, $gap, $direction);
 }
 
 @function str-printf($string, $elements...) {

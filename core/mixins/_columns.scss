@@ -1,5 +1,5 @@
 // Columns for text
-@mixin cols($count:2, $spacing:$pad, $width:20em, $target:null) {
+@mixin cols($count:2, $spacing:$gap, $width:20em, $target:null) {
   @include column-count($count);
   @if $count == 1 {
     @include column-width(auto);
@@ -7,16 +7,16 @@
   } @else {
     @if $width != null { @include column-width($width); }
     @if $spacing != null { @include column-gap($spacing); }
-    @if $target == null { 
-      -webkit-column-break-inside:avoid; page-break-inside:avoid; break-inside:avoid; 
+    @if $target == null {
+      -webkit-column-break-inside:avoid; page-break-inside:avoid; break-inside:avoid;
     } @else {
-      #{$target} { -webkit-column-break-inside:avoid; page-break-inside:avoid; break-inside:avoid; 
+      #{$target} { -webkit-column-break-inside:avoid; page-break-inside:avoid; break-inside:avoid;
         @if $spacing != null { margin-bottom:$spacing; }
       }
     }
   }
 }
 
-@mixin columns($arg...) { 
+@mixin columns($arg...) {
   @include cols($args...);
 }

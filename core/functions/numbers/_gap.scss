@@ -4,13 +4,19 @@
 /// @param {Number} $size
 ///   Enter the amount of times you want to multiply the default padding variable
 ///
-/// @require {Variable} $padding
+/// @require {Variable} $gaps
 ///   Can be found in the yello/_settings.scss file. May be overwritten in the project _variables.scss file
 ///
 /// @example scss - Usage
 ///   margin:0 pad(3);
 ///
 /// @return {Number} with units
+@function gap($size:1) {
+  @return if($size == 0, to-number(addUnit($gaps/2, px)), to-number(addUnit($gaps*$size, px)));
+}
+
+
+// Soon to be depricated
 @function pad($size:1) {
-  @return if($size == 0, to-number(addUnit($padding/2, px)), to-number(addUnit($padding*$size, px)));
+  @return gap($size);
 }
