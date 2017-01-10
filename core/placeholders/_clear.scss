@@ -1,4 +1,4 @@
-%clearfix {
+%clear-fix, %clearfix {
   @include clearfix;
 }
 
@@ -17,11 +17,15 @@
   -webkit-box-shadow: none;
 }
 
-%clear-box-sizing { 
+%clear-box-sizing {
   -moz-box-sizing:initial;
   box-sizing:initial;
 }
 
-%clear-text-shadow {
-  // @include single-text-shadow(none); 
+%clear-flexbox {
+  @include flex-remove;
+}
+
+%clear-transition {
+  @include transition-remove;
 }

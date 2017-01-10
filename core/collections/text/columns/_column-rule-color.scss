@@ -1,0 +1,8 @@
+//
+@mixin column-rule-color($setting) {
+  @if is-colour($setting) or contains($column-global-rules, $setting) {
+    @include prefixer(column-rule-color, $setting);
+  } @else {
+    @include warning("The options used for column-rule-color do not match to allowed criteria.");
+  }
+}

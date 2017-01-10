@@ -1,0 +1,5 @@
+@mixin flip-vertically() {
+  @include scaleY(-1);
+  filter: FlipV;
+  -ms-filter: "FlipV";
+}

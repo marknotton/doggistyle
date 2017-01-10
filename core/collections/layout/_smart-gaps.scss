@@ -1,0 +1,57 @@
+
+@mixin smart-gaps($settings...) {
+
+  $propery : nth($settings, 1);
+
+  $settings-lists : remove-nth(_arglist-to-list($settings), 1);
+
+
+  // Loop through and check all arguments for any special options
+  @each $settings-list in $settings-lists {
+
+    $units   : null;
+    $break   : null;
+
+    @each $settings in $settings-list {
+
+      // Check and define the units first
+      @each $setting in $settings {
+        @if is-number($setting) {
+          @if length($units) < 4 and not is-breakpoint($setting) {
+            $units : add(add-unit($setting), $units);
+          } @elseif is-null($break) {
+            $break : $setting;
+          }
+        }
+      }
+
+      // Reformat the units list to a single number if there is only one value in it
+      @if is-list($units) and length($units) == 1 {
+        $units : nth($units, 1);
+      }
+
+      // Check for breakpoints
+      @each $setting in $settings {
+        @if (is-null($break) and is-breakpoint($setting)) {
+          $break : get-breakpoint($setting);
+        }
+      }
+
+
+    }
+
+    @if is-null($break) {
+      #{$propery}:$units;
+    } @else {
+      @include break($break) {
+        #{$propery}:$units;
+      }
+    }
+
+    // @debug $propery;
+    // @debug $units;
+    // @debug $break;
+
+  }
+
+}

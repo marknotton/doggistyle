@@ -1,0 +1,8 @@
+// Set breakpoints for use with custom properties
+@mixin set-breakpoints($breaks:$breakpoints) {
+  $new-breakpoints : ();
+  @each $break, $value in $breakpoints {
+    $new-breakpoints : map-set( $new-breakpoints, #{breakpoint-}#{$break}, $value);
+  }
+  @include custom-property($new-breakpoints, null);
+}

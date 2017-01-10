@@ -1,0 +1,6 @@
+@mixin hide-at($break) {
+  @include break($break) {
+    display:none;
+    & { @content; }
+  }
+}

@@ -1,0 +1,15 @@
+%nopointerevent, %nopointerevents {
+  pointer-events:none;
+}
+
+%pointerevent, %pointerevents {
+  pointer-events:auto;
+}
+
+%pointer {
+  cursor:pointer;
+}
+
+%cursor {
+  cursor:auto;
+}

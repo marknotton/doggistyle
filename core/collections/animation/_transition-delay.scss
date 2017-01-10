@@ -1,0 +1,15 @@
+@mixin transition-delay($time) {
+  @include prefixer(transition-delay, add-unit($time, s), webkit);
+}
+
+/// @alias transition-delay
+///
+/// @access public
+///
+/// @require {mixin} transition-delay
+///
+/// @return
+
+@mixin dalay($time) {
+  @include transition-delay($time);
+}

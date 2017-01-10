@@ -1,0 +1,15 @@
+// Check if a breakpoint exists by it's number or name.
+@function is-breakpoint($break) {
+  // If the number is a string and exists as a key in the breakpoints map, return true
+  @if is-string($break) and map-has-key($breakpoints, $break) {
+    @return true;
+  } @else {
+    // Or if the number exists as a value anywhere in the breakpoints map, also return true
+    $number : strip($break);
+    @if contains(map-values($breakpoints), $number) {
+      @return true;
+    } @else {
+      @return false;
+    }
+  }
+}

@@ -1,0 +1,766 @@
+@charset "UTF-8";
+
+// ∀ For All
+$for-all: "/2200";
+
+// ∁ Complement
+$complement: "/2201";
+
+// ∂ Partial Differential
+$partial-differential: "/2202";
+
+// ∃ There Exists
+$there-exists: "/2203";
+
+// ∄ There Does Not Exist
+$there-does-not-exist: "/2204";
+
+// ∅ Empty Set
+$empty-set: "/2205";
+
+// ∆ Increment
+$increment: "/2206";
+
+// ∇ Nabla
+$nabla: "/2207";
+
+// ∈ Element Of
+$element-of: "/2208";
+
+// ∉ Not An Element Of
+$not-an-element-of: "/2209";
+
+// ∊ Small Element Of
+$small-element-of: "/220A";
+
+// ∋ Contains As Member
+$contains-as-member: "/220B";
+
+// ∌ Does Not Contain As Member
+$does-not-contain-as-member: "/220C";
+
+// ∍ Small Contains As Member
+$small-contains-as-member: "/220D";
+
+// ∎ End Of Proof
+$end-of-proof: "/220E";
+
+// ∏ N-ary Product
+$n-ary-product: "/220F";
+
+// ∐ N-ary Coproduct
+$n-ary-coproduct: "/2210";
+
+// ∑ N-ary Summation
+$n-ary-summation: "/2211";
+
+// − Minus Sign
+$minus-sign: "/2212";
+
+// ∓ Minus-or-plus Sign
+$minus-or-plus-sign: "/2213";
+
+// ∔ Dot Plus
+$dot-plus: "/2214";
+
+// ∕ Division Slash
+$division-slash: "/2215";
+
+// ∖ Set Minus
+$set-minus: "/2216";
+
+// ∗ Asterisk Operator
+$asterisk-operator: "/2217";
+
+// ∘ Ring Operator
+$ring-operator: "/2218";
+
+// ∙ Bullet Operator
+$bullet-operator: "/2219";
+
+// √ Square Root
+$square-root: "/221A";
+
+// ∛ Cube Root
+$cube-root: "/221B";
+
+// ∜ Fourth Root
+$fourth-root: "/221C";
+
+// ∝ Proportional To
+$proportional-to: "/221D";
+
+// ∞ Infinity
+$infinity: "/221E";
+
+// ∟ Right Angle
+$right-angle: "/221F";
+
+// ∠ Angle
+$angle: "/2220";
+
+// ∡ Measured Angle
+$measured-angle: "/2221";
+
+// ∢ Spherical Angle
+$spherical-angle: "/2222";
+
+// ∣ Divides
+$divides: "/2223";
+
+// ∤ Does Not Divide
+$does-not-divide: "/2224";
+
+// ∥ Parallel To
+$parallel-to: "/2225";
+
+// ∦ Not Parallel To
+$not-parallel-to: "/2226";
+
+// ∧ Logical And
+$logical-and: "/2227";
+
+// ∨ Logical Or
+$logical-or: "/2228";
+
+// ∩ Intersection
+$intersection: "/2229";
+
+// ∪ Union
+$union: "/222A";
+
+// ∫ Integral
+$integral: "/222B";
+
+// ∬ Double Integral
+$double-integral: "/222C";
+
+// ∭ Triple Integral
+$triple-integral: "/222D";
+
+// ∮ Contour Integral
+$contour-integral: "/222E";
+
+// ∯ Surface Integral
+$surface-integral: "/222F";
+
+// ∰ Volume Integral
+$volume-integral: "/2230";
+
+// ∱ Clockwise Integral
+$clockwise-integral: "/2231";
+
+// ∲ Clockwise Contour Integral
+$clockwise-contour-integral: "/2232";
+
+// ∳ Anticlockwise Contour Integral
+$anticlockwise-contour-integral: "/2233";
+
+// ∴ Therefore
+$therefore: "/2234";
+
+// ∵ Because
+$because: "/2235";
+
+// ∶ Ratio
+$ratio: "/2236";
+
+// ∷ Proportion
+$proportion: "/2237";
+
+// ∸ Dot Minus
+$dot-minus: "/2238";
+
+// ∹ Excess
+$excess: "/2239";
+
+// ∺ Geometric Proportion
+$geometric-proportion: "/223A";
+
+// ∻ Homothetic
+$homothetic: "/223B";
+
+// ∼ Tilde Operator
+$tilde-operator: "/223C";
+
+// ∽ Reversed Tilde
+$reversed-tilde: "/223D";
+
+// ∾ Inverted Lazy S
+$inverted-lazy-s: "/223E";
+
+// ∿ Sine Wave
+$sine-wave: "/223F";
+
+// ≀ Wreath Product
+$wreath-product: "/2240";
+
+// ≁ Not Tilde
+$not-tilde: "/2241";
+
+// ≂ Minus Tilde
+$minus-tilde: "/2242";
+
+// ≃ Asymptotically Equal To
+$asymptotically-equal-to: "/2243";
+
+// ≄ Not Asymptotically Equal To
+$not-asymptotically-equal-to: "/2244";
+
+// ≅ Approximately Equal To
+$approximately-equal-to: "/2245";
+
+// ≆ Approximately But Not Actually Equal To
+$approximately-but-not-actually-equal-to: "/2246";
+
+// ≇ Neither Approximately Nor Actually Equal To
+$neither-approximately-nor-actually-equal-to: "/2247";
+
+// ≈ Almost Equal To
+$almost-equal-to: "/2248";
+
+// ≉ Not Almost Equal To
+$not-almost-equal-to: "/2249";
+
+// ≊ Almost Equal Or Equal To
+$almost-equal-or-equal-to: "/224A";
+
+// ≋ Triple Tilde
+$triple-tilde: "/224B";
+
+// ≌ All Equal To
+$all-equal-to: "/224C";
+
+// ≍ Equivalent To
+$equivalent-to: "/224D";
+
+// ≎ Geometrically Equivalent To
+$geometrically-equivalent-to: "/224E";
+
+// ≏ Difference Between
+$difference-between: "/224F";
+
+// ≐ Approaches The Limit
+$approaches-the-limit: "/2250";
+
+// ≑ Geometrically Equal To
+$geometrically-equal-to: "/2251";
+
+// ≒ Approximately Equal To Or The Image Of
+$approximately-equal-to-or-the-image-of: "/2252";
+
+// ≓ Image Of Or Approximately Equal To
+$image-of-or-approximately-equal-to: "/2253";
+
+// ≔ Colon Equals
+$colon-equals: "/2254";
+
+// ≕ Equals Colon
+$equals-colon: "/2255";
+
+// ≖ Ring In Equal To
+$ring-in-equal-to: "/2256";
+
+// ≗ Ring Equal To
+$ring-equal-to: "/2257";
+
+// ≘ Corresponds To
+$corresponds-to: "/2258";
+
+// ≙ Estimates
+$estimates: "/2259";
+
+// ≚ Equiangular To
+$equiangular-to: "/225A";
+
+// ≛ Star Equals
+$star-equals: "/225B";
+
+// ≜ Delta Equal To
+$delta-equal-to: "/225C";
+
+// ≝ Equal To By Definition
+$equal-to-by-definition: "/225D";
+
+// ≞ Measured By
+$measured-by: "/225E";
+
+// ≟ Questioned Equal To
+$questioned-equal-to: "/225F";
+
+// ≠ Not Equal To
+$not-equal-to: "/2260";
+
+// ≡ Identical To
+$identical-to: "/2261";
+
+// ≢ Not Identical To
+$not-identical-to: "/2262";
+
+// ≣ Strictly Equivalent To
+$strictly-equivalent-to: "/2263";
+
+// ≤ Less-than Or Equal To
+$less-than-or-equal-to: "/2264";
+
+// ≥ Greater-than Or Equal To
+$greater-than-or-equal-to: "/2265";
+
+// ≦ Less-than Over Equal To
+$less-than-over-equal-to: "/2266";
+
+// ≧ Greater-than Over Equal To
+$greater-than-over-equal-to: "/2267";
+
+// ≨ Less-than But Not Equal To
+$less-than-but-not-equal-to: "/2268";
+
+// ≩ Greater-than But Not Equal To
+$greater-than-but-not-equal-to: "/2269";
+
+// ≪ Much Less-than
+$much-less-than: "/226A";
+
+// ≫ Much Greater-than
+$much-greater-than: "/226B";
+
+// ≬ Between
+$between: "/226C";
+
+// ≭ Not Equivalent To
+$not-equivalent-to: "/226D";
+
+// ≮ Not Less-than
+$not-less-than: "/226E";
+
+// ≯ Not Greater-than
+$not-greater-than: "/226F";
+
+// ≰ Neither Less-than Nor Equal To
+$neither-less-than-nor-equal-to: "/2270";
+
+// ≱ Neither Greater-than Nor Equal To
+$neither-greater-than-nor-equal-to: "/2271";
+
+// ≲ Less-than Or Equivalent To
+$less-than-or-equivalent-to: "/2272";
+
+// ≳ Greater-than Or Equivalent To
+$greater-than-or-equivalent-to: "/2273";
+
+// ≴ Neither Less-than Nor Equivalent To
+$neither-less-than-nor-equivalent-to: "/2274";
+
+// ≵ Neither Greater-than Nor Equivalent To
+$neither-greater-than-nor-equivalent-to: "/2275";
+
+// ≶ Less-than Or Greater-than
+$less-than-or-greater-than: "/2276";
+
+// ≷ Greater-than Or Less-than
+$greater-than-or-less-than: "/2277";
+
+// ≸ Neither Less-than Nor Greater-than
+$neither-less-than-nor-greater-than: "/2278";
+
+// ≹ Neither Greater-than Nor Less-than
+$neither-greater-than-nor-less-than: "/2279";
+
+// ≺ Precedes
+$precedes: "/227A";
+
+// ≻ Succeeds
+$succeeds: "/227B";
+
+// ≼ Precedes Or Equal To
+$precedes-or-equal-to: "/227C";
+
+// ≽ Succeeds Or Equal To
+$succeeds-or-equal-to: "/227D";
+
+// ≾ Precedes Or Equivalent To
+$precedes-or-equivalent-to: "/227E";
+
+// ≿ Succeeds Or Equivalent To
+$succeeds-or-equivalent-to: "/227F";
+
+// ⊀ Does Not Precede
+$does-not-precede: "/2280";
+
+// ⊁ Does Not Succeed
+$does-not-succeed: "/2281";
+
+// ⊂ Subset Of
+$subset-of: "/2282";
+
+// ⊃ Superset Of
+$superset-of: "/2283";
+
+// ⊄ Not A Subset Of
+$not-a-subset-of: "/2284";
+
+// ⊅ Not A Superset Of
+$not-a-superset-of: "/2285";
+
+// ⊆ Subset Of Or Equal To
+$subset-of-or-equal-to: "/2286";
+
+// ⊇ Superset Of Or Equal To
+$superset-of-or-equal-to: "/2287";
+
+// ⊈ Neither A Subset Of Nor Equal To
+$neither-a-subset-of-nor-equal-to: "/2288";
+
+// ⊉ Neither A Superset Of Nor Equal To
+$neither-a-superset-of-nor-equal-to: "/2289";
+
+// ⊊ Subset Of With Not Equal To
+$subset-of-with-not-equal-to: "/228A";
+
+// ⊋ Superset Of With Not Equal To
+$superset-of-with-not-equal-to: "/228B";
+
+// ⊌ Multiset
+$multiset: "/228C";
+
+// ⊍ Multiset Multiplication
+$multiset-multiplication: "/228D";
+
+// ⊎ Multiset Union
+$multiset-union: "/228E";
+
+// ⊏ Square Image Of
+$square-image-of: "/228F";
+
+// ⊐ Square Original Of
+$square-original-of: "/2290";
+
+// ⊑ Square Image Of Or Equal To
+$square-image-of-or-equal-to: "/2291";
+
+// ⊒ Square Original Of Or Equal To
+$square-original-of-or-equal-to: "/2292";
+
+// ⊓ Square Cap
+$square-cap: "/2293";
+
+// ⊔ Square Cup
+$square-cup: "/2294";
+
+// ⊕ Circled Plus
+$circled-plus: "/2295";
+
+// ⊖ Circled Minus
+$circled-minus: "/2296";
+
+// ⊗ Circled Times
+$circled-times: "/2297";
+
+// ⊘ Circled Division Slash
+$circled-division-slash: "/2298";
+
+// ⊙ Circled Dot Operator
+$circled-dot-operator: "/2299";
+
+// ⊚ Circled Ring Operator
+$circled-ring-operator: "/229A";
+
+// ⊛ Circled Asterisk Operator
+$circled-asterisk-operator: "/229B";
+
+// ⊜ Circled Equals
+$circled-equals: "/229C";
+
+// ⊝ Circled Dash
+$circled-dash: "/229D";
+
+// ⊞ Squared Plus
+$squared-plus: "/229E";
+
+// ⊟ Squared Minus
+$squared-minus: "/229F";
+
+// ⊠ Squared Times
+$squared-times: "/22A0";
+
+// ⊡ Squared Dot Operator
+$squared-dot-operator: "/22A1";
+
+// ⊢ Right Tack
+$right-tack: "/22A2";
+
+// ⊣ Left Tack
+$left-tack: "/22A3";
+
+// ⊤ Down Tack
+$down-tack: "/22A4";
+
+// ⊥ Up Tack
+$up-tack: "/22A5";
+
+// ⊦ Assertion
+$assertion: "/22A6";
+
+// ⊧ Models
+$models: "/22A7";
+
+// ⊨ True
+$true: "/22A8";
+
+// ⊩ Forces
+$forces: "/22A9";
+
+// ⊪ Triple Vertical Bar Right Turnstile
+$triple-vertical-bar-right-turnstile: "/22AA";
+
+// ⊫ Double Vertical Bar Double Right Turnstile
+$double-vertical-bar-double-right-turnstile: "/22AB";
+
+// ⊬ Does Not Prove
+$does-not-prove: "/22AC";
+
+// ⊭ Not True
+$not-true: "/22AD";
+
+// ⊮ Does Not Force
+$does-not-force: "/22AE";
+
+// ⊯ Negated Double Vertical Bar Double Right Turnstile
+$negated-double-vertical-bar-double-right-turnstile: "/22AF";
+
+// ⊰ Precedes Under Relation
+$precedes-under-relation: "/22B0";
+
+// ⊱ Succeeds Under Relation
+$succeeds-under-relation: "/22B1";
+
+// ⊲ Normal Subgroup Of
+$normal-subgroup-of: "/22B2";
+
+// ⊳ Contains As Normal Subgroup
+$contains-as-normal-subgroup: "/22B3";
+
+// ⊴ Normal Subgroup Of Or Equal To
+$normal-subgroup-of-or-equal-to: "/22B4";
+
+// ⊵ Contains As Normal Subgroup Or Equal To
+$contains-as-normal-subgroup-or-equal-to: "/22B5";
+
+// ⊶ Original Of
+$original-of: "/22B6";
+
+// ⊷ Image Of
+$image-of: "/22B7";
+
+// ⊸ Multimap
+$multimap: "/22B8";
+
+// ⊹ Hermitian Conjugate Matrix
+$hermitian-conjugate-matrix: "/22B9";
+
+// ⊺ Intercalate
+$intercalate: "/22BA";
+
+// ⊻ Xor
+$xor: "/22BB";
+
+// ⊼ Nand
+$nand: "/22BC";
+
+// ⊽ Nor
+$nor: "/22BD";
+
+// ⊾ Right Angle With Arc
+$right-angle-with-arc: "/22BE";
+
+// ⊿ Right Triangle
+$right-triangle: "/22BF";
+
+// ⋀ N-ary Logical And
+$n-ary-logical-and: "/22C0";
+
+// ⋁ N-ary Logical Or
+$n-ary-logical-or: "/22C1";
+
+// ⋂ N-ary Intersection
+$n-ary-intersection: "/22C2";
+
+// ⋃ N-ary Union
+$n-ary-union: "/22C3";
+
+// ⋄ Diamond Operator
+$diamond-operator: "/22C4";
+
+// ⋅ Dot Operator
+$dot-operator: "/22C5";
+
+// ⋆ Star Operator
+$star-operator: "/22C6";
+
+// ⋇ Division Times
+$division-times: "/22C7";
+
+// ⋈ Bowtie
+$bowtie: "/22C8";
+
+// ⋉ Left Normal Factor Semidirect Product
+$left-normal-factor-semidirect-product: "/22C9";
+
+// ⋊ Right Normal Factor Semidirect Product
+$right-normal-factor-semidirect-product: "/22CA";
+
+// ⋋ Left Semidirect Product
+$left-semidirect-product: "/22CB";
+
+// ⋌ Right Semidirect Product
+$right-semidirect-product: "/22CC";
+
+// ⋍ Reversed Tilde Equals
+$reversed-tilde-equals: "/22CD";
+
+// ⋎ Curly Logical Or
+$curly-logical-or: "/22CE";
+
+// ⋏ Curly Logical And
+$curly-logical-and: "/22CF";
+
+// ⋐ Double Subset
+$double-subset: "/22D0";
+
+// ⋑ Double Superset
+$double-superset: "/22D1";
+
+// ⋒ Double Intersection
+$double-intersection: "/22D2";
+
+// ⋓ Double Union
+$double-union: "/22D3";
+
+// ⋔ Pitchfork
+$pitchfork: "/22D4";
+
+// ⋕ Equal And Parallel To
+$equal-and-parallel-to: "/22D5";
+
+// ⋖ Less-than With Dot
+$less-than-with-dot: "/22D6";
+
+// ⋗ Greater-than With Dot
+$greater-than-with-dot: "/22D7";
+
+// ⋘ Very Much Less-than
+$very-much-less-than: "/22D8";
+
+// ⋙ Very Much Greater-than
+$very-much-greater-than: "/22D9";
+
+// ⋚ Less-than Equal To Or Greater-than
+$less-than-equal-to-or-greater-than: "/22DA";
+
+// ⋛ Greater-than Equal To Or Less-than
+$greater-than-equal-to-or-less-than: "/22DB";
+
+// ⋜ Equal To Or Less-than
+$equal-to-or-less-than: "/22DC";
+
+// ⋝ Equal To Or Greater-than
+$equal-to-or-greater-than: "/22DD";
+
+// ⋞ Equal To Or Precedes
+$equal-to-or-precedes: "/22DE";
+
+// ⋟ Equal To Or Succeeds
+$equal-to-or-succeeds: "/22DF";
+
+// ⋠ Does Not Precede Or Equal
+$does-not-precede-or-equal: "/22E0";
+
+// ⋡ Does Not Succeed Or Equal
+$does-not-succeed-or-equal: "/22E1";
+
+// ⋢ Not Square Image Of Or Equal To
+$not-square-image-of-or-equal-to: "/22E2";
+
+// ⋣ Not Square Original Of Or Equal To
+$not-square-original-of-or-equal-to: "/22E3";
+
+// ⋤ Square Image Of Or Not Equal To
+$square-image-of-or-not-equal-to: "/22E4";
+
+// ⋥ Square Original Of Or Not Equal To
+$square-original-of-or-not-equal-to: "/22E5";
+
+// ⋦ Less-than But Not Equivalent To
+$less-than-but-not-equivalent-to: "/22E6";
+
+// ⋧ Greater-than But Not Equivalent To
+$greater-than-but-not-equivalent-to: "/22E7";
+
+// ⋨ Precedes But Not Equivalent To
+$precedes-but-not-equivalent-to: "/22E8";
+
+// ⋩ Succeeds But Not Equivalent To
+$succeeds-but-not-equivalent-to: "/22E9";
+
+// ⋪ Not Normal Subgroup Of
+$not-normal-subgroup-of: "/22EA";
+
+// ⋫ Does Not Contain As Normal Subgroup
+$does-not-contain-as-normal-subgroup: "/22EB";
+
+// ⋬ Not Normal Subgroup Of Or Equal To
+$not-normal-subgroup-of-or-equal-to: "/22EC";
+
+// ⋭ Does Not Contain As Normal Subgroup Or Equal
+$does-not-contain-as-normal-subgroup-or-equal: "/22ED";
+
+// ⋮ Vertical Ellipsis
+$vertical-ellipsis: "/22EE";
+
+// ⋯ Midline Horizontal Ellipsis
+$midline-horizontal-ellipsis: "/22EF";
+
+// ⋰ Up Right Diagonal Ellipsis
+$up-right-diagonal-ellipsis: "/22F0";
+
+// ⋱ Down Right Diagonal Ellipsis
+$down-right-diagonal-ellipsis: "/22F1";
+
+// ⋲ Element Of With Long Horizontal Stroke
+$element-of-with-long-horizontal-stroke: "/22F2";
+
+// ⋳ Element Of With Vertical Bar At End Of Horizontal Stroke
+$element-of-with-vertical-bar-at-end-of-horizontal-stroke: "/22F3";
+
+// ⋴ Small Element Of With Vertical Bar At End Of Horizontal Stroke
+$small-element-of-with-vertical-bar-at-end-of-horizontal-stroke: "/22F4";
+
+// ⋵ Element Of With Dot Above
+$element-of-with-dot-above: "/22F5";
+
+// ⋶ Element Of With Overbar
+$element-of-with-overbar: "/22F6";
+
+// ⋷ Small Element Of With Overbar
+$small-element-of-with-overbar: "/22F7";
+
+// ⋸ Element Of With Underbar
+$element-of-with-underbar: "/22F8";
+
+// ⋹ Element Of With Two Horizontal Strokes
+$element-of-with-two-horizontal-strokes: "/22F9";
+
+// ⋺ Contains With Long Horizontal Stroke
+$contains-with-long-horizontal-stroke: "/22FA";
+
+// ⋻ Contains With Vertical Bar At End Of Horizontal Stroke
+$contains-with-vertical-bar-at-end-of-horizontal-stroke: "/22FB";
+
+// ⋼ Small Contains With Vertical Bar At End Of Horizontal Stroke
+$small-contains-with-vertical-bar-at-end-of-horizontal-stroke: "/22FC";
+
+// ⋽ Contains With Overbar
+$contains-with-overbar: "/22FD";
+
+// ⋾ Small Contains With Overbar
+$small-contains-with-overbar: "/22FE";

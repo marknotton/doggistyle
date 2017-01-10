@@ -1,0 +1,32 @@
+@mixin breakpoint($args) {
+
+  @if (is-null($args)) {
+    @content;
+  } @else {
+    $width : null;
+    $condition : if($mobile-first, min-width, max-width);
+
+    @each $rule in $args {
+      @if is_number($rule) {
+        $width : add-unit($rule);
+      }
+      @if is_string($rule) {
+        $rule : if($rule == 'min', 'min-width', $rule);
+        $rule : if($rule == 'max', 'max-width', $rule);
+        $condition : $rule;
+      }
+    }
+
+    // @if not contains($breakpoints, $width) {
+    //   @include add-breakpoint($width);
+    // }
+
+    @media (#{$condition}:add-unit($width)) {
+      @content;
+    }
+  }
+}
+
+@mixin break($args...) {
+  @include breakpoint($args...) { @content };
+}

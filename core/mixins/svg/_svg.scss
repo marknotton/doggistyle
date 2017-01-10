@@ -1,9 +1,0 @@
-@mixin svg($class, $size:true) {
-  @if $size == true {
-    @include svg-size($class);
-  } @elseif $size != false {
-    @include size($size);
-  }
-  @extend .svg-#{$class};
-  @content;
-}

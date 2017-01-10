@@ -43,5 +43,10 @@ A collection of Sass resources found from an array of sources, forums, and tutor
 
 
 ## Thanks
+Custom Props
+Sassy Strings
+Sassy Cast
+SVG Sprites
 
-A special thank you to the talented people at [thoughtbot, inc.](https://thoughtbot.com/) for keeping their prodcts open source; and allowing me the opportunity to learn, adapt and publish my own gem.
+### AQUA's (Asked the Question, Used the Answer)
+A special thank you to the talented people at [thoughtbot, inc.](https://thoughtbot.com/) for keeping their prodcts open source; and allowing me the opportunity to learn, adapt and publish my own gem; as well as inspiring me to create my own library.

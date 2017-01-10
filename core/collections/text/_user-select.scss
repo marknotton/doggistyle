@@ -1,0 +1,7 @@
+@mixin user-select($setting) {
+  @if contains($setting, (none auto text contain all)) {
+    @include prefixer(user-select, $setting);
+  } @else {
+    @include warning('User Select setting: '#{$setting}', did not match any valid values');
+  }
+}

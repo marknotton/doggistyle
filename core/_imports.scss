@@ -1,229 +1,173 @@
-// D-Style 0.0.1-alpha
+// Doggy-Style 0.1.1-beta
 // http://goo.gl/RorsoL
 // Copyright 2013-2016 Mark Notton
 // MIT License
 
-@import "settings/global";
-@import "helpers/warnings";
-
-// Private Helpers
-@import "helpers/private/arglist-to-list",
-        "helpers/private/find-digits",
-        "helpers/private/list-items-to-strings",
-        "helpers/private/find-integer",
-        "helpers/private/from-hex",
-        "helpers/private/brightness",
-        "helpers/private/lightness",
-        "helpers/private/from-hsl",
-        "helpers/private/min-max-number",
-        "helpers/private/from-rgb",
-        "helpers/private/hash-fix",
-        "helpers/private/get-color-value",
-        "helpers/private/hex-to-dec",
-        "helpers/private/sudo",
-        "helpers/private/string-explode",
-        "helpers/private/string-compare",
-        "helpers/private/length",
-        "helpers/private/pow",
-        "helpers/strings";
-
-// Checks
-@import "helpers/checks/is-number",
-        "helpers/checks/is-arglist",
-        "helpers/checks/is-absolute-length",
-        "helpers/checks/is-relative-length",
-        "helpers/checks/is-angel",
-        "helpers/checks/is-bool",
-        "helpers/checks/is-calc",
-        "helpers/checks/is-colour",
-        "helpers/checks/is-duration",
-        "helpers/checks/is-false",
-        "helpers/checks/is-function",
-        "helpers/checks/is-frequency",
-        "helpers/checks/is-integer",
-        "helpers/checks/is-length",
-        "helpers/checks/is-list",
-        "helpers/checks/is-map",
-        "helpers/checks/is-null",
-        "helpers/checks/is-dark",
-        "helpers/checks/is-light",
-        "helpers/checks/is-first-character",
-        "helpers/checks/is-percentage",
-        "helpers/checks/is-position",
-        "helpers/checks/is-pseudo",
-        "helpers/checks/is-resolution",
-        "helpers/checks/is-unit",
-        "helpers/checks/is-selector",
-        "helpers/checks/is-string",
-        "helpers/checks/is-time",
-        "helpers/checks/check";
-
-// Casts
-@import "functions/casts/to-bool",
-        "functions/casts/to-color",
-        "functions/casts/to-list",
-        "functions/casts/to-map",
-        "functions/casts/to-null",
-        "functions/casts/to-number",
-        "functions/casts/to-string";
-
-// Lists
-@import "functions/lists/contains",
-        "functions/lists/first",
-        "functions/lists/second",
-        "functions/lists/insert-nth",
-        "functions/lists/last",
-        "functions/lists/merge",
-        "functions/lists/prepend",
-        "functions/lists/remove",
-        "functions/lists/remove-nth",
-        "functions/lists/replace",
-        "functions/lists/replace-nth",
-        "functions/lists/reverse",
-        "functions/lists/shift",
-        "functions/lists/slice",
-        "functions/lists/sort";
-
-// Maps
-@import "functions/maps/map-deep-get",
-        "functions/maps/map-deep-set",
-        "functions/maps/map-depth",
-        "functions/maps/map-set",
-        "functions/maps/map-extend",
-        "functions/maps/map-has-keys",
-        "functions/maps/map-has-nested-keys",
-        "functions/maps/map-zip";
-
-@import "helpers/symbols/common";
-//      "helpers/symbols/arrows",
-//      "helpers/symbols/block",
-//      "helpers/symbols/box",
-//      "helpers/symbols/currency",
-//      "helpers/symbols/dingbats",
-//      "helpers/symbols/geometric",
-//      "helpers/symbols/letterlike",
-//      "helpers/symbols/misc",
-//      "helpers/symbols/operators",
-//      "helpers/symbols/punctuation";
-
-// Numbers
-@import "functions/numbers/add-unit",
-        "functions/numbers/units",
-        "functions/numbers/pad",
-        "functions/numbers/spacer",
-        "functions/numbers/strip";
-
-// Flexbox
-@import "mixins/flexbox/flex-container",
-        "mixins/flexbox/flex-grid",
-        "mixins/flexbox/flex-items",
-        "mixins/flexbox/flex-remove";
-
-// Text
-@import "functions/text/smart-lineheight",
-        "functions/text/string-explode",
-        "functions/text/string-replace";
-
-// Colours
-@import "functions/colours/colour",
-        "functions/colours/colour-contrast",
-        "functions/colours/random-colour";
-
-// SVG
-@import "mixins/svg/svg",
-        "mixins/svg/svg-size",
-        "functions/svg/svg",
-        "functions/svg/dots",
-        "functions/svg/lines",
-        "functions/svg/fake-radius";
-
-// Functions
-@import "functions/opposite-direction",
-        "functions/mobile-first";
-
 // Settings
-@import "settings/colours",
-        "settings/directories",
-        "settings/grid",
-        "settings/padding",
-        "settings/spacing",
-        "settings/text";
+@import 'settings/global',
+        'settings/aspect-ratios',
+        'settings/colours',
+        'settings/directories';
 
-// Grid
-@import "mixins/grid/grid";
+// Essential Imports
+@import 'helpers/essential-imports';
 
-// Columns
-@import "mixins/columns/columns";
+// Experimentals
+@import 'experimentals/dropdown',
+        'experimentals/gallery';
 
-// Media Queries
-@import "mixins/grid/break-between";
+// Collections: Agent
+@import 'collections/agent/browsers',
+        'collections/agent/devices';
 
-// Mixins
-@import "mixins/align",
-        "mixins/animate",
-        "mixins/aspect-ratio",
-        "mixins/background-image",
-        "mixins/blend",
-        "mixins/blendmodes",
-        "mixins/border-radius",
-        "mixins/backface-visibility",
-        "mixins/bulletpoint",
-        "mixins/browsers",
-        "mixins/center",
-        "mixins/clearfix",
-        "mixins/columns",
-        "mixins/custom-property",
-        "mixins/devices",
-        "mixins/dropdown",
-        "mixins/filters",
-        "mixins/font-face",
-        "mixins/fontsize",
-        "mixins/flip",
-        "mixins/keyframes",
-        "mixins/gallery",
-        "mixins/gradient",
-        "mixins/image",
-        "mixins/image-size",
-        "mixins/inputs",
-        "mixins/last",
-        "mixins/nth",
-        "mixins/nth-last",
-        "mixins/placeholder",
-        "mixins/prefixer",
-        "mixins/selection",
-        "mixins/user-select",
-        "mixins/shadow",
-        "mixins/smart-horizontal",
-        "mixins/sudo-image",
-        "mixins/size",
-        "mixins/text-shadow",
-        "mixins/transforms",
-        "mixins/transition",
-        "mixins/triangle-classic",
-        "mixins/triangle",
-        "mixins/unwrap",
-        "mixins/vertical";
+// Collections: Animation
+@import 'collections/animation/animation',
+        'collections/animation/eases',
+        'collections/animation/keyframes',
+        'collections/animation/transition-delay',
+        'collections/animation/transition-remove',
+        'collections/animation/transition';
 
-// Animations
-@import "animations/jump",
-        "animations/wobble",
-        "animations/shake";
+// Collections: Animation: Animations
+@import 'collections/animation/animations/jump',
+        'collections/animation/animations/shake',
+        'collections/animation/animations/wobble';
+
+// Collections: Colours
+@import 'collections/colours/colour-contrast',
+        'collections/colours/colour',
+        'collections/colours/random-colour';
+
+// Collections: Colours: Gradients
+@import 'collections/colours/gradients/gradient';
+
+// Collections: Image
+@import 'collections/image/blend-background',
+        'collections/image/blend-mix',
+        'collections/image/image-rendering',
+        'collections/image/image-size',
+        'collections/image/image',
+        'collections/image/shadow',
+        'collections/image/sudo-image',
+        'collections/image/triangle-classic',
+        'collections/image/triangle';
+
+// Collections: Layout
+@import 'collections/layout/align',
+        'collections/layout/aspect-ratio',
+        'collections/layout/backface-visibility',
+        'collections/layout/border-radius',
+        'collections/layout/bulletpoint',
+        'collections/layout/center',
+        'collections/layout/clear-fix',
+        'collections/layout/fake-radius',
+        'collections/layout/filters',
+        'collections/layout/flip-horizontally',
+        'collections/layout/flip-vertically',
+        'collections/layout/margin',
+        'collections/layout/padding',
+        'collections/layout/show-breakpoints',
+        'collections/layout/size',
+        'collections/layout/smart-gaps',
+        'collections/layout/smart-horizontal',
+        'collections/layout/transforms',
+        'collections/layout/vertical';
+
+// Collections: Layout: Grid
+@import 'collections/layout/grid/add-breakpoint',
+        'collections/layout/grid/break-between',
+        'collections/layout/grid/breakpoint',
+        'collections/layout/grid/get-breakpoint',
+        'collections/layout/grid/grid',
+        'collections/layout/grid/hide-at',
+        'collections/layout/grid/is-breakpoint',
+        'collections/layout/grid/set-breakpoints',
+        'collections/layout/grid/show-at';
+
+// Collections: Layout: Flexbox
+@import 'collections/layout/flexbox/flex-container',
+        'collections/layout/flexbox/flex-grid',
+        'collections/layout/flexbox/flex-items',
+        'collections/layout/flexbox/flex-remove';
+
+// Collections: Miscellaneous
+@import 'collections/miscellaneous/custom-property',
+        'collections/miscellaneous/nth-last',
+        'collections/miscellaneous/nth';
+
+// Collections: Numbers
+@import 'collections/numbers/gap',
+        'collections/numbers/space',
+        'collections/numbers/strip',
+        'collections/numbers/units';
+
+// Collections: Svg
+@import 'collections/svg/fake-radius',
+        'collections/svg/svg-size',
+        'collections/svg/svg';
+
+// Collections: Svg: Patterns
+@import 'collections/svg/patterns/dots',
+        'collections/svg/patterns/lines';
+
+// Collections: Text
+@import 'collections/text/font-face',
+        'collections/text/font-size',
+        'collections/text/inputs',
+        'collections/text/placeholder',
+        'collections/text/selection',
+        'collections/text/smart-lineheight',
+        'collections/text/text-shadow',
+        'collections/text/user-select';
+
+// Collections: Text: Columns
+@import 'collections/text/columns/break-after',
+        'collections/text/columns/break-before',
+        'collections/text/columns/break-inside',
+        'collections/text/columns/column-count',
+        'collections/text/columns/column-fill',
+        'collections/text/columns/column-gap',
+        'collections/text/columns/column-rule-color',
+        'collections/text/columns/column-rule-style',
+        'collections/text/columns/column-rule-width',
+        'collections/text/columns/column-span',
+        'collections/text/columns/column-width',
+        'collections/text/columns/columns';
+
+// Collections: Text: Symbols
+@import 'collections/text/symbols/arrows',
+        'collections/text/symbols/block',
+        'collections/text/symbols/box',
+        'collections/text/symbols/common',
+        'collections/text/symbols/currency',
+        'collections/text/symbols/dingbats',
+        'collections/text/symbols/geometric',
+        'collections/text/symbols/letterlike',
+        'collections/text/symbols/misc',
+        'collections/text/symbols/operators',
+        'collections/text/symbols/punctuation';
 
 // Placeholders
-@import "placeholders/clear",
-        "placeholders/cursor",
-        "placeholders/rendering",
-        "placeholders/misc",
-        "placeholders/text";
+@import 'placeholders/appearance',
+        'placeholders/clear',
+        'placeholders/pointer',
+        'placeholders/pseudo',
+        'placeholders/text';
 
-// Helpers
-@import "helpers/eases",
-        "helpers/custom-elements",
-        "helpers/reset",
-        "helpers/show-breakpoints",
-        "helpers/warnings";
+@import 'settings/gaps',
+        'settings/grid',
+        'settings/spaces',
+        'settings/text';
 
-@if mixin-exists(settings) and $reset {
-  @include settings();
-}
+// Deprecated - These will be removed on the next major version release
+@import 'deprecated/last',
+        'deprecated/pad';
+
+// Collections: Styling
+@import 'collections/styling/custom-elements',
+        'collections/styling/normalize',
+        'collections/styling/reset';
+
+
+@if mixin-exists(update-settings) and $reset {  @include update-settings; }
 @if $show-breakpoints and $reset { @include show-breakpoints(); }

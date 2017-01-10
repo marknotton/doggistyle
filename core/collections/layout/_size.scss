@@ -1,0 +1,13 @@
+/// Sets the width and height to the same values
+/// If the second para "special" is defined as min or max, the dimenstions will be prefixed with that
+@mixin size($sizes, $special:null) {
+  $prefix : null;
+  $width: first($sizes);
+  @if contains($special, (min, max)) {
+    $prefix : $special + "-";
+  }
+
+  $height : check($special, check(second($sizes), first($sizes)));
+  #{$prefix}width: add-unit($width);
+  #{$prefix}height: add-unit($height);
+}

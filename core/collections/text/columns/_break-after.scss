@@ -1,0 +1,8 @@
+//
+@mixin break-after($setting) {
+  @if contains($break-before-after-rules, $setting) {
+    @include prefixer(break-after, $setting);
+  } @else {
+    @include warning("The options used for break-after do not match to allowed criteria.");
+  }
+}

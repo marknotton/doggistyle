@@ -1,0 +1,53 @@
+/// Prefix a values instead of the css property with a given vendor type
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @param {String} $properties - Property string that will get prefixed
+/// @param {String} $value - Value string
+/// @param {List | String} $prefixes - optional - Define the vendor prefixes you want to use
+///   Only vendors in the $vendors variable will be allowed.
+///   Add 'only' if you want to exclude a non-prefixed property
+///   Add 'all' if you want to use all the vendors in the $vendors variable
+/// @param {Bool} $important - If true, an important tag will be added to the end of each value;
+///
+/// @require {Mixin} contains
+/// @require {Mixin} list-remove
+/// @require {Variable} $vendors
+///
+/// @example scss - Usage
+/// .foo { @include prefixer(height, 100px); }
+/// .bar { @include prefixer(height, 200px, webkit only, true); }
+///
+/// @example css - CSS output
+/// .foo {
+///   -webkit-height: 100px;
+///   -moz-height: 100px;
+///   height: 100px;
+/// }
+///
+/// .bar { -webkit-height: 200px !important; }
+///
+@mixin prefix-values($property, $values, $prefixes:webkit moz, $important:false) {
+
+  $prefixes : if($prefixes == all, $vendors, $prefixes);
+  $strict : false;
+
+  @if contains($prefixes, only) {
+    $prefixes: remove($prefixes, only);
+    $strict : true;
+  }
+
+  @each $value in $values {
+    @each $prefix in $prefixes {
+
+      @if index($vendors, $prefix) {
+        #{$property}: #{"-" + $prefix + "-" + $value} if($important == true, $imp, null);
+      }
+    }
+    @if not $strict {
+      #{$property}: $values if($important == true, $imp, null);
+    }
+  }
+}

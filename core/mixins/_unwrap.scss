@@ -1,5 +1,0 @@
-@mixin unwrap($element:"p", $imageType:"img") {
-  &:after { content:''; clear:both; visibility:hidden; }
-  #{imageType} { float:left; }
-  #{element} { overflow: hidden }
-}

@@ -1,0 +1,13 @@
+// Add each argument into a single comma delimited list
+
+@function _gradient-properties($args...) {
+  $properties : ();
+
+  $args: if(length($args) > 0, $args, null);
+
+  @for $i from 1 through length($args) {
+    $properties : append($properties, nth($args, $i), comma);
+  }
+
+  @return $properties;
+}

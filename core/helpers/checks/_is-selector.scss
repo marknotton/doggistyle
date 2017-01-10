@@ -1,3 +1,11 @@
+/// Check to see if and ampersand refers to a particular string
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @return {bool}
+
 @function is-selector($value) {
-  @return #{&} == #{html};
+  @return #{&} == #{$value};
 }

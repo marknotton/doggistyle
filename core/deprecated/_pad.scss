@@ -1,0 +1,19 @@
+/// @alias gap
+///
+/// @access public
+///
+/// @require {function} gap
+///
+/// @return {number}
+@function pad($size:1) {
+  @return gap($size);
+}
+
+$gaps : $gaps !default;
+$gap     : $gap  !default;
+$gap0    : $gap0 !default;
+$gap1    : $gap1 !default;
+$gap2    : $gap2 !default;
+$gap3    : $gap3 !default;
+$gap4    : $gap4 !default;
+$gap5    : $gap5 !default;

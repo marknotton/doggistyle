@@ -1,0 +1,3 @@
+@mixin padding($settings...) {
+  @include smart-gaps(padding, $settings...);
+}

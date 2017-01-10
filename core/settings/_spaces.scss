@@ -1,0 +1,30 @@
+$spacing:            5 !default;
+$vertical-spacing:   $spacing !default;
+$horizontal-spacing: $spacing !default;
+
+// Horizontal Spacers
+$hspace:  space(1, vw, $horizontal-spacing) !default;
+$hspace1: $hspace  !default;
+$hspace0: space(0, vw, $horizontal-spacing) !default;
+$hspace2: space(2, vw, $horizontal-spacing) !default;
+$hspace3: space(3, vw, $horizontal-spacing) !default;
+$hspace4: space(4, vw, $horizontal-spacing) !default;
+$hspace5: space(5, vw, $horizontal-spacing) !default;
+
+// Vertical Spacers
+$vspace:  space(1, vh, $vertical-spacing) !default;
+$vspace1: $vspace  !default;
+$vspace0: space(0, vh, $vertical-spacing) !default;
+$vspace2: space(2, vh, $vertical-spacing) !default;
+$vspace3: space(3, vh, $vertical-spacing) !default;
+$vspace4: space(4, vh, $vertical-spacing) !default;
+$vspace5: space(5, vh, $vertical-spacing) !default;
+
+// As this is likely to be used more often, these are aliased to the vspace variables
+$space:  $vspace !default;
+$space1: $vspace1 !default;
+$space0: $vspace0 !default;
+$space2: $vspace2 !default;
+$space3: $vspace3 !default;
+$space4: $vspace4 !default;
+$space5: $vspace5 !default;

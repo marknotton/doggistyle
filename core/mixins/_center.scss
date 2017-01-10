@@ -1,3 +1,0 @@
-@mixin center($width:null) {
-  position:absolute; left:50%; margin-left:- addUnit($width/2); width:addUnit($width); 
-}

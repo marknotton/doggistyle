@@ -1,0 +1,21 @@
+@mixin smart-horizontal($width, $gutter:$gap, $break:null) {
+  $gutter      : if($gutter == 0, null, $gutter);
+  $max-width   : $width;
+  $width       : if(is-null($gutter), 100%, calc(100% - #{$gutter*2}));
+  $margin-left : if(is-null($gutter), #{- add-unit($max-width/2)}, calc(0% - #{add-unit($max-width/2)} - #{add-unit($gutter)}));
+  $left1       : if(is-null($gutter), 50%, calc(50% + #{add-unit($gutter)}));
+  $left2       : if(is-null($gutter), 0, add-unit($gutter));
+  $break       : if(is-null($break), if(is-null($gutter), $max-width, $max-width + $gutter*2), $break);
+
+  position:absolute;
+  width:$width; 
+  max-width:add-unit($max-width); 
+  left:$left1;
+  margin-left:$margin-left;
+  @include ani(left margin-left);
+  @include break($break) { 
+    left:$left2; 
+    margin-left:0;
+  }
+  @content;
+}

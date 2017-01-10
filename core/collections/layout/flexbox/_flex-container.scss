@@ -1,0 +1,195 @@
+// Documentation: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
+
+// Container properties
+$flex-container-aliases : direction wrap flow justify items content;
+$flex-container         : display flex-direction flex-wrap flex-flow justify-content align-items align-content;
+$flex-container         : merge($flex-container, $flex-container-aliases);
+
+// Container values
+$flex-display           : flex inline-flex;
+$flex-direction         : row row-reverse column column-reverse inherit; // default row
+$flex-wrap              : nowrap wrap wrap-reverse; // default no-wrap
+$flex-flow              : merge($flex-direction, $flex-wrap);
+$flex-justify-content   : flex-start flex-end center space-between space-around start end between around; // default flex-start
+$flex-align-items       : flex-start flex-end center baseline stretch start end; // default stretch
+$flex-align-content     : flex-start flex-end center space-between space-around stretch start end between around; // default stretch
+
+/// Flexbox container mixin validates and prefixes the most current Flexbox W3C working draft
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @warning Flexbox does not currently work on buttons, fieldsets or textareas
+///
+/// @warning box-orient, box-direction, box-ordinal-group, box-left, box-positive, box-pack, box-align
+///          ...and other unsupported/old flexbox values have been excluded
+///
+/// @todo Do special checks for 'flex-flow'
+///
+/// @param {Map} $settings - flexbox container property or alias : flexbox value.
+///
+///   Property         Alias        Default       Values
+///   -------------------------------------------------------------------------------------------------------------------
+///   display          (-)          (flex)        flex | inline-flex
+///   flex-direction   (direction)  (row)         row | row-reverse | column | column-reverse | inherit
+///   flex-wrap        (wrap)       (nowrap)      nowrap | no-wrap | wrap | wrap-reverse
+///   !flex-flow       (flow)       (-)           flex-direction & flex-wrap
+///   justify-content  (justify)    (flex-start)  flex-start | flex-end | center | space-between | space-around
+///   align-items      (items)      (stretch)     flex-start | flex-end | center | baseline | stretch
+///   align-content    (content)    (stretch)     flex-start | flex-end | center | space-between | space-around | stretch
+///
+/// @param {Bool} $display - If no display value is used, 'display:flex' will be defined automatically.
+///   Unless this paramater is set to 'false'
+///
+/// @require {mixin}    contains
+/// @require {mixin}    prefixer
+/// @require {function} merge
+/// @require {variable} flex-container-aliases
+/// @require {variable} flex-container
+/// @require {variable} flex-container
+/// @require {variable} flex-display
+/// @require {variable} flex-direction
+/// @require {variable} flex-wrap
+/// @require {variable} flex-flow
+/// @require {variable} flex-justify-content
+/// @require {variable} flex-align-items
+/// @require {variable} flex-align-content
+///
+/// @example scss - Usage
+/// .foo {
+///   @include flex-container((
+///     direction:row,
+///     justify-content:flex-end
+///   ));
+/// }
+///
+/// @example css - CSS Output
+/// .foo {
+///   -webkit-flex-direction: row;
+///   -moz-flex-direction: row;
+///   -ms-flex-direction: row;
+///   -o-flex-direction: row;
+///   flex-direction: row;
+///   -webkit-justify-content: flex-end;
+///   -moz-justify-content: flex-end;
+///   -ms-justify-content: flex-end;
+///   -o-justify-content: flex-end;
+///   justify-content: flex-end;
+///   -js-display: flex;
+///   display: -webkit-box;
+///   display: -moz-box;
+///   display: -webkit-flexbox;
+///   display: -ms-flexbox;
+///   display: -webkit-flex;
+///   display: flex;
+/// }
+///
+@mixin flex-container($settings:null, $important:false) {
+
+  // If nothing was passed, just set the display as flex
+  @if $settings == null { $settings : (display:flex)}
+
+  $settings : map-set($settings, display, flex);
+
+  // Validation checks for every value for every property
+  @each $property, $value in $settings {
+
+    $output : false;
+
+    @if contains($flex-container, $property) {
+      // Alias checks
+      @if contains($property, (content items)) {
+        $property : #{align-}$property;
+      }
+      @elseif contains($property, (direction wrap flow)) {
+        $property : #{flex-}$property;
+        // Special alias check for nowrap
+        $value : if($value == no-wrap, nowrap, $value);
+      }
+      @elseif $property == justify {
+        $property : justify-content;
+      }
+
+      @if contains($value, (start end)) {
+        $value : #{flex-}$value;
+      } @elseif contains($value, (around between)) {
+        $value : #{space-}$value;
+      }
+
+      @if $property == display and $value != null {
+        @if $value == inline-flex {
+          display: -webkit-inline-flex;
+          display: inline-flex;
+        } @else {
+          -js-display: flex; // This is for flexibility support
+          display: -webkit-box;
+          display: -moz-box;
+          display: -webkit-flexbox;
+          display: -ms-flexbox;
+          display: -webkit-flex;
+          display: flex;
+        }
+      }
+
+      // Check these properties against their list of valid values
+      $checks : (flex-direction: $flex-direction, flex-wrap: $flex-wrap, justify-content: $flex-justify-content, align-items: $flex-align-items, align-content: $flex-align-content);
+      @each $prop, $check in $checks {
+        @if $property == $prop and contains($check, $value){
+          $output : true;
+        }
+      }
+
+      // Only output and prefix everything when $output is true
+      @if $output {
+        @include prefixer($property, $value, all, $important);
+      }
+
+    }
+  }
+}
+
+// Quick Flex Container Mixins
+
+/// @alias flex-container -
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @warning Flexbox does not currently work on buttons, fieldsets or textareas
+///
+/// @warning box-orient, box-direction, box-ordinal-group, box-left, box-positive, box-pack, box-align
+///          ...and other unsupported/old flexbox values have been excluded
+///
+/// @todo Do special checks for 'flex-flow'
+///
+/// @param {Map} $settings - flexbox container property or alias : flexbox value.
+
+@mixin flex-display($value:flex, $important:false) {
+  @include flex-container((display:$value), $important);
+}
+
+@mixin flex-direction($value, $important:false) {
+  @include flex-container((direction:$value), $important);
+}
+
+@mixin flex-wrap($value, $important:false) {
+  @include flex-container((wrap:$value), $important);
+}
+
+@mixin flex-flow($value, $important:false) {
+  @include flex-container((flow:$value), $important);
+}
+
+@mixin flex-justify-content($value, $important:false) {
+  @include flex-container((justify:$value), $important);
+}
+
+@mixin flex-align-items($value, $important:false) {
+  @include flex-container((items:$value), $important);
+}
+
+@mixin flex-align-content($value, $important:false) {
+  @include flex-container((content:$value), $important);
+}

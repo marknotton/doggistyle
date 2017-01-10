@@ -1,0 +1,18 @@
+/// Generate space from a generic unit so help continuity of paddings, margins,
+/// gutters etc... throughout your design.
+///
+/// @param {Number} $size
+///   Enter the amount of times you want to multiply the default padding variable
+///
+/// @param {String} $direction
+///   The unit you want the spacing to be defined as. Default is bh
+///
+/// @require {Variable} $spacing global variable
+///
+/// @example scss - Usage
+///   margin-top:space(2);
+///
+/// @return {number} with units
+@function space($size:1, $direction:vh, $global-unit:$space) {
+  @return if($size == 0, to-number(add-unit($global-unit/2, $direction, true)), to-number(add-unit($global-unit*$size, $direction, true)));
+}

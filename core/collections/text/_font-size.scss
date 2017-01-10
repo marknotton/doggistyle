@@ -1,0 +1,130 @@
+// //This will add a lineheight in percentage that's just a little bit greater than the font
+// @mixin fontsize($size:$text, $lineheight:10%, $letterspacing:normal) {
+//  @if (str-index(#{$lineheight}, "%")) {
+//     // Make the lingheight a percentage of the font size
+//     $lineheight: strip($lineheight);
+//     $height: ($size/100*$lineheight)+$size;
+//     font-size:add-unit($size); line-height:add-unit($height);
+//   } @else {
+//     // Manually add a lineheight
+//     font-size:add-unit($size); line-height:add-unit($lineheight);
+//   }
+//   @if ($letterspacing != normal and isNumber($letterspacing)) {
+//     letter-spacing:add-unit($letterspacing);
+//   }
+// }
+
+//This will add a lineheight in percentage that's just a little bit greater than the font
+@mixin font-size($size:$font-size, $smart:true) {
+  @if type-of($size) == number {
+    font-size:add-unit($size);
+    line-height:smart-lineheight($size, $smart);
+  } @else {
+    @if (length($size) >= 2) {
+      font-size:add-unit(nth($size, 1));
+      line-height:smart-lineheight(nth($size, 2), $smart);
+    }
+    @if (length($size) == 3) {
+      letter-spacing:add-unit(nth($size, 3));
+    }
+  }
+}
+
+@mixin fontsize($size:$font-size, $smart:true) {
+  @include font-size($size, $smart);
+}
+
+@function _define-smart-fontsize-settings($args:null, $condition:null) {
+
+  $units : ();
+  $lineheight-bool : true;
+
+  // Default Settings
+  $settings : ( );
+
+  // Add a default lineheight based off the default size setting
+  @if $condition == max {
+    // Size
+    $settings : map-set($settings, size, ($font-size*2 - ($font-size/2)));
+    // Lineheight
+    $settings : map-set($settings, lineheight, smart-lineheight(map-get($settings, size)));
+    // Break
+    $settings : map-set($settings, break, $max);
+  } @else {
+    // Size
+    $settings : map-set($settings, size, $font-size);
+    // Lineheight
+    $settings : map-set($settings, lineheight, smart-lineheight(map-get($settings, size)));
+    // Break
+    $settings : map-set($settings, break, ceil((($large - $medium) / 2) + $medium));
+  }
+
+  // Check arguments
+  @each $rule in $args {
+    @if is-bool($rule) {
+      $lineheight-bool : $rule;
+    }
+    @if is-number($rule) {
+      $units : append($units, $rule);
+    }
+  }
+
+  // Set fontsize
+  @if length($units) >= 1 {
+    $settings : map-set($settings, size, nth($units, 1));
+  }
+
+  // Set lineheight
+  @if length($units) >= 2 {
+    $settings : map-set($settings, lineheight, smart-lineheight(nth($units, 2), $lineheight-bool));
+  }
+
+  // Set breakpoint
+  @if length($units) >= 3 {
+    $settings : map-set($settings, break, nth($units, 3));
+  }
+
+  // Return settings
+  @return $settings;
+}
+
+@mixin smart-fontsize($minArgs:null, $maxArgs:null, $defArgs:null) {
+
+  // Max
+  $max-settings : _define-smart-fontsize-settings($maxArgs, max);
+  $max-size : map-get($max-settings, size);
+  $max-lineheight : map-get($max-settings, lineheight);
+  $max-break : map-get($max-settings, break);
+
+  @include break($max-break min-width) {
+    font-size:add-unit($max-size);
+    line-height:$max-lineheight;
+  }
+
+  // Min
+  $min-settings : _define-smart-fontsize-settings($minArgs, min);
+  $min-size : map-get($min-settings, size);
+  $min-lineheight : map-get($min-settings, lineheight);
+  $min-break : map-get($min-settings, break);
+
+  @include break($min-break max-width) {
+    font-size:add-unit($min-size);
+    line-height:$min-lineheight;
+  }
+
+  // Inbetween
+  @if $defArgs == null {
+    font-size : add-unit($max-size/11, vw);
+    line-height: smart-lineheight(if($max-size > 30, $max-size/2.28, $max-size));
+  } @else {
+    $def-settings : _define-smart-fontsize-settings($defArgs);
+    $def-size : map-get($def-settings, size);
+    $def-lineheight : map-get($def-settings, lineheight);
+    $def-break : map-get($def-settings, break);
+
+    @include break-between($min-break, $max-break) {
+      font-size : if(unitless($def-size), add-unit($def-size/11, vw), add-unit($def-size));
+      line-height:$def-lineheight;
+    }
+  }
+}

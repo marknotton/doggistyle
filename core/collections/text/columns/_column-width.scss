@@ -1,0 +1,8 @@
+//
+@mixin column-width($setting) {
+  @if is-number($setting) or contains(join($column-global-rules, auto), $setting) {
+    @include prefixer(column-width, add-unit($setting));
+  } @else {
+    @include warning("The options used for column-width do not match to allowed criteria.");
+  }
+}

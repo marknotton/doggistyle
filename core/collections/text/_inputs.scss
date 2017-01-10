@@ -1,0 +1,18 @@
+// Style up all sorts of text input fields
+
+@mixin input-text($types:color date datetime datetime-local email month number password search tel text time url week textarea) {
+
+  $new-list:();
+
+  @each $type in $types {
+    @if $type == textarea {
+      $new-list: append($new-list, textarea, comma);
+    } @else {
+      $new-list: append($new-list, #{'input[type=' + $type + ']'}, comma);
+    }
+  }
+  #{$new-list} {
+    font-size:$font-size;
+    @content;
+  }
+}

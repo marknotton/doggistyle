@@ -1,0 +1,8 @@
+//
+@mixin column-count($setting) {
+  @if is-number($setting) or contains(join($column-global-rules, auto), $setting) {
+    @include prefixer(column-count, strip($setting));
+  } @else {
+    @include warning("The options used for column-count do not match to allowed criteria.");
+  }
+}
