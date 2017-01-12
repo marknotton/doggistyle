@@ -1,4 +1,4 @@
-/// Create a triangle/carrat/arrow 
+/// Create a triangle/carrat/arrow
 ///
 /// @param {list} $args
 ///   In any order and without comma delimination, add any of the follwing arrow settings
@@ -25,7 +25,7 @@
 /// @return {sudo}
 
 
-@mixin triangle-classic($args...) {  
+@mixin triangle-classic($args...) {
 
   // Deafult Triangle Settings
   $size      : ();
@@ -34,30 +34,30 @@
   $direction : right;
   $center    : false;
   $triangle  : map-fetch($triangle-settings, $direction, points);
-  
+
   // Deafult Position Settings
   $position  : true;
   $x-pos     : nth(map-fetch($triangle-settings, $direction, x), 1);
   $x-amount  : nth(map-fetch($triangle-settings, $direction, x), 2);
   $y-pos     : nth(map-fetch($triangle-settings, $direction, y), 1);
   $y-amount  : nth(map-fetch($triangle-settings, $direction, y), 2);
-  
-  $args: if(length($args) > 0, $args, null); 
+
+  $args: if(length($args) > 0, $args, null);
 
   // Loop through and check all arguments for any special options.
 
   @for $i from 1 through length($args) {
     @each $option in nth($args, $i) {
       // If there is an arugment, with just one value, and it's set to true or false.
-      // Assume this is the position condition. 
+      // Assume this is the position condition.
       @if type-of($option) == bool and length(nth($args, $i)) == 1 {
         $position : $option;
       }
     }
-  } 
+  }
 
   // Check Triangle Settings
-  @each $rule in nth($args, 1) {    
+  @each $rule in nth($args, 1) {
 
     @if type-of($rule) == number or is-calc($rule) and length($size) < 2 {
       $size : append($size, $rule);
@@ -76,11 +76,11 @@
         $direction: $rule;
 
         $x:map-fetch($triangle-settings, $direction, x);
-        $x-pos:nth($x, 1); 
+        $x-pos:nth($x, 1);
         $x-amount:nth($x, 2);
 
         $y:map-fetch($triangle-settings, $direction, y);
-        $y-pos:nth($y, 1); 
+        $y-pos:nth($y, 1);
         $y-amount:nth($y, 2);
       }
     }
@@ -88,19 +88,19 @@
 
   // Deafult size set if it remains empty
   $size : if(length($size) == 0, 50, $size);
-  
+
   // Define width and height
   $width : nth($size, 1);
   $height : if(length($size) == 1, $width, nth($size, 2));
-  
+
   // Define all settings with strings
-  
+
   &#{_sudo($sudo)} {
     content:"";
-    position:absolute;    
-    height:0; 
+    position:absolute;
+    height:0;
     width:0;
-    border-style:solid; 
+    border-style:solid;
     border-color:transparent;
     border-width:0;
     pointer-events:none;
@@ -126,6 +126,9 @@
       }
     }
 
+    $direction : if($direction == up, top, $direction);
+    $direction : if($direction == down, bottom, $direction);
+
     // Directions
     @if $direction == left {
       border-width:add-unit($height/2) add-unit($width) add-unit($height/2) 0;
@@ -133,17 +136,18 @@
     @elseif $direction == right {
       border-width:add-unit($height/2) 0 add-unit($height/2) add-unit($width);
     }
-    @elseif $direction == up {
+    @elseif $direction == top {
       border-width:0 add-unit($width/2) add-unit($height) add-unit($width/2);
     }
-    @elseif $direction == down {
+    @elseif $direction == bottom {
       border-width:add-unit($height) add-unit($width/2) 0 add-unit($width/2);
     }
-    
-    @if contains(left right up down, $direction) {
+
+    @if contains(left right top bottom, $direction) {
+
       border-#{opposite-direction($direction)}-color:$colour;
     }
-    
+
     @if $direction == top-left {
       border-width:add-unit($height) add-unit($width) 0 0;
       border-top-color:$colour;
@@ -161,8 +165,7 @@
       border-bottom-color:$colour;
     }
 
-     @if $direction == up { $direction : top; }
-     @if $direction == down { $direction : bottom; }
+
 
 
     @content;
