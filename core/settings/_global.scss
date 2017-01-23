@@ -24,3 +24,6 @@ $prioritise-neat : false !default;
 
 // Check to see if Neat is installed
 $neat-installed : if(mixin-exists(outer-container) and mixin-exists(shift-in-context) and mixin-exists(-neat-warn), true, false) !default;
+
+// Prfixer
+$enable-prefixer : true !default;

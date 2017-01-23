@@ -31,23 +31,28 @@
 ///
 @mixin prefixer($properties, $value, $prefixes:webkit moz, $important:false) {
 
-  $prefixes : if($prefixes == all, $vendors, $prefixes);
-  $strict : false;
+  @if $enable-prefixer {
 
-  @if contains($prefixes, only) {
-    $prefixes: remove($prefixes, only);
-    $strict : true;
-  }
+    $prefixes : if($prefixes == all, $vendors, $prefixes);
+    $strict : false;
 
-  @each $property in $properties {
-    @each $prefix in $prefixes {
+    @if contains($prefixes, only) {
+      $prefixes: remove($prefixes, only);
+      $strict : true;
+    }
 
-      @if index($vendors, $prefix) {
-        #{"-" + $prefix + "-" + $property}: $value if($important == true, $imp, null);
+    @each $property in $properties {
+      @each $prefix in $prefixes {
+
+        @if index($vendors, $prefix) {
+          #{"-" + $prefix + "-" + $property}: $value if($important == true, $imp, null);
+        }
+      }
+      @if not $strict {
+        #{$property}: $value if($important == true, $imp, null);
       }
     }
-    @if not $strict {
-      #{$property}: $value if($important == true, $imp, null);
-    }
+  } @else {
+    #{$property}: $value if($important == true, $imp, null);
   }
 }

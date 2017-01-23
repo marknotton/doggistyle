@@ -13,3 +13,7 @@ $transform-types : matrix translate translateX translateY scale scaleX scaleY ro
 
 // Transform values
 $transform-values : inherit initial unset none;
+
+// Filter values & types
+$filter-values : inherit initial unset;
+$filter-types : url blur brightness contrast drop-shadow shadow grayscale greyscale hue-rotate hue invert opacity saturate sepia;

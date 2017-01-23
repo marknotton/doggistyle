@@ -255,6 +255,7 @@
 	@include input-text() {
 		-webkit-appearance:none;
 		-webkit-border-radius:0;
+		-webkit-box-shadow: 0 0 0 1000px white inset !important;
 		border-radius:0;
 		border:0;
 		&:focus { outline:0; }

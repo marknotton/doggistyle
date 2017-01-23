@@ -142,10 +142,9 @@
 /// Translate
 @mixin translate($values) {
   $x : nth($values, 1);
-  $y : if( length($values) > 1, nth($values, 2), 0);
+  $y : if( length($values) > 1, nth($values, 2), $x);
   @include transform(translate(add-unit($x), add-unit($y)));
 }
-
 
 @mixin translateX($values) {
   @include transform(translateX(#{add-unit($values)}));

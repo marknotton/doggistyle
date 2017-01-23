@@ -99,6 +99,8 @@
 @import 'collections/numbers/gap',
         'collections/numbers/space',
         'collections/numbers/strip',
+        'collections/numbers/increase-by-percentage',
+        'collections/numbers/decrease-by-percentage',
         'collections/numbers/units';
 
 // Collections: Svg
@@ -118,6 +120,7 @@
         'collections/text/selection',
         'collections/text/smart-lineheight',
         'collections/text/text-shadow',
+        'collections/text/responsive-fontsize',
         'collections/text/user-select';
 
 // Collections: Text: Columns

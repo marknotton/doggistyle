@@ -23,5 +23,5 @@ $column-rule-style-rules : none, hidden, dotted, dashed, solid, double, groove, 
 }
 
 @mixin cols($args...) {
-  @include columns($args...);
+  @include columns($args);
 }

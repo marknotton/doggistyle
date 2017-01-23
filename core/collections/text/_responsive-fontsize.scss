@@ -1,0 +1,106 @@
+/// Use calc to apply a reponsive fontsize and lineheight
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @link https://github.com/seaneking/postcss-responsive-type/blob/master/test/fixtures/default.expected.css
+///
+/// @param {Arglist} $settings - The following parameters need to added in this order
+///
+///     @param {number} $max-size  - At the largest breakpoint, this size will be used to fallback on.
+///     @param {number} $min-size  - At the small breakpoint, this size will be used to fallback on. default $font-size;
+///     @param {number} $min-width - breakpoint to start the responsive font-size. Default $large breakpoint
+///     @param {number} $max-width - breakpoint to stop the responsive font-size. Default $max-width breakpoint
+///     @param {boolean} $line-height - If true (default), include a similar calculation for the line height.
+///     @param {list} $line-height & $line-height-percent - Including a list, with 'true' and a number will effect the
+///     line-height value relative to the max-size variable.
+///
+/// @require {function} increase-by-percentage
+/// @require {function} add-unit
+/// @require {function} is-null
+/// @require {function} is-number
+/// @require {function} is-bool
+///
+/// @example scss - Usage
+///   @include responsive-fontsize(28);
+///   @include responsive-fontsize(28, 20, 1200, 1920, false);
+///   @include responsive-fontsize(28, 20, 1200, 1920, true 20); // line-height will be 20% greater than the given max-size of 28.
+///
+/// @example css - CSS Output
+///  font-size: calc(20px + (28 - 20) * ((100vw - 1200px) / (1920 - 1200)));
+///  line-height: calc(28px + (28 - 20) * ((100vw - 1200px) / (1920 - 1200)));
+///
+/// @media screen and (min-width: 1920px) {
+///   .foo {
+///     font-size: 28px;
+///     line-height: initial;
+///   }
+/// }
+/// @media screen and (max-width: 1200px) {
+///   .foo {
+///     font-size: 20px;
+///   }
+/// }
+
+
+@mixin responsive-fontsize($settings...) {
+
+  $max-size  : null;
+  $min-size  : null;
+  $min-width : null;
+  $max-width : null;
+  $line-height : true;
+  $line-height-percent : null;
+
+  @each $setting in $settings {
+    @if is-number($setting) {
+      @if is-null($max-size) {
+        $max-size : $setting;
+      } @elseif is-null($min-size) {
+        $min-size : $setting;
+      } @elseif is-null($min-width) {
+        $min-width : $setting;
+      } @elseif is-null($max-width) {
+        $max-width : $setting;
+      }
+    } @elseif is-bool($setting) {
+      $line-height : $setting;
+    } @elseif is-list($setting) {
+      @each $set in $setting {
+        @if is-bool($set) {
+          $line-height : $set;
+        } @elseif is-number($set) and is-null($line-height-percent) {
+          $line-height-percent : $set;
+        }
+      }
+    }
+  }
+
+  $max-size  : if(is-null($max-size ), ($font-size * 2), $max-size);
+  $min-size  : if(is-null($min-size ), $font-size, $min-size);
+  $min-width : if(is-null($min-width), $large, $min-width);
+  $max-width : if(is-null($max-width), $max, $max-width);
+  $line-height-percent : if($line-height == true and is-null($line-height-percent), 40, $line-height-percent);
+
+  font-size: calc(#{add-unit($min-size)} + (#{$max-size} - #{$min-size}) * ((100vw - #{add-unit($min-width)}) / (#{$max-width} - #{$min-width})));
+
+  @if $line-height == true {
+      line-height: calc(#{add-unit(increase-by-percentage($min-size, $line-height-percent))} + (#{$max-size} - #{$min-size}) * ((100vw - #{add-unit($min-width)}) / (#{$max-width} - #{$min-width})));
+  }
+
+  @include break($min-width, max) {
+    font-size:add-unit($min-size);
+    @if $line-height == true { line-height:initial; }
+  }
+
+  @include break($max-width, min) {
+    font-size:add-unit($max-size);
+    @if $line-height == true { line-height:initial; }
+  }
+
+}
+
+@mixin responsive-font($settings...) {
+  @include responsive-fontsize($settings);
+}

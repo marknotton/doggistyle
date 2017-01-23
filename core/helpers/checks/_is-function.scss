@@ -32,7 +32,7 @@
       // If a number was passed, it would be returned back as a string. This converts it to a number.
       $value : _string-explode($value);
       @each $val in $value {
-        $values : append($values, if(to-number($val) != 0, to-number($val), $val), comma);
+        $values : append($values, if(to-number($val) != 0, $val, $val), comma);
       }
       @return ($function $values);
     } @else {

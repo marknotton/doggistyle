@@ -11,8 +11,8 @@
         $width : add-unit($rule);
       }
       @if is_string($rule) {
-        $rule : if($rule == 'min', 'min-width', $rule);
-        $rule : if($rule == 'max', 'max-width', $rule);
+        $rule : if($rule == 'min' or $rule == '>', 'min-width', $rule);
+        $rule : if($rule == 'max' or $rule == '<', 'max-width', $rule);
         $condition : $rule;
       }
     }
@@ -28,5 +28,5 @@
 }
 
 @mixin break($args...) {
-  @include breakpoint($args...) { @content };
+  @include breakpoint($args) { @content };
 }
