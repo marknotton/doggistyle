@@ -30,28 +30,17 @@
 @mixin transform($settings...) {
 
   $transforms : ();
-  $fallback-settings : ();
   $important : null;
 
   @if not contains($transform-values, $settings, true) and length($settings) >= 1 {
 
-    // This is an over-engineered section of code to to allow for all types of syntaxes.
-    // Essestially making it work with Bourbon and other frameworks.
-    @if length($settings) == 1  {
-      @for $i from 1 through length($settings) {
-        @each $setting in nth($settings, $i) {
-          @if is-function($setting) {
-            $fallback-settings : append($fallback-settings, $setting, comma);
-          }
-        }
-      }
-    }
-    $settings-lists : if(length($fallback-settings) > 1, $fallback-settings,  _arglist-to-list($settings));
+    $settings-lists : _arglist-to-list($settings);
 
     @each $settings in $settings-lists {
 
       @if is-function($settings) {
-        $settings : is-function($settings);
+        @debug 'this is a function';
+        $settings : _function-to-list($settings);
       }
 
       $transform : null;
@@ -64,6 +53,7 @@
           $transform : $setting;
         }
       }
+
 
       // Check and validate all transform types
       @each $setting in $settings {
@@ -98,7 +88,6 @@
    $transforms : nth($settings, 1);
   }
 
-
   @include prefixer(transform, $transforms, webkit moz, $important);
 
 }
@@ -131,11 +120,11 @@
 
 /// Matrix
 @mixin matrix($args...) {
-  @include transform(matrix($args));
+  @include transform(matrix $args);
 }
 
 @mixin matrix3d($args...) {
-  @include transform(matrix3d($args));
+  @include transform(matrix3d $args);
 }
 
 
@@ -143,16 +132,16 @@
 @mixin translate($values) {
   $x : nth($values, 1);
   $y : if( length($values) > 1, nth($values, 2), $x);
-  @include transform(translate(add-unit($x), add-unit($y)));
+  @include transform(translate $x $y);
 }
 
 @mixin translateX($values) {
-  @include transform(translateX(#{add-unit($values)}));
+  @include transform(translateX $values);
 }
 @mixin x($values) { @include translateX($values) };
 
 @mixin translateY($values) {
-  @include transform(translateY(#{add-unit($values)}));
+  @include transform(translateY $values);
 }
 @mixin y($values) { @include translateY($values) };
 
@@ -160,29 +149,29 @@
   $x : nth($values, 1);
   $y : if( length($values) > 1, nth($values, 2), 0);
   $z : if( length($values) > 2, nth($values, 3), 0);
-  @include transform(translate3d($x, $y, $z));
+  @include transform(translate3d $x $y $z);
 }
 
 @mixin translateZ($value) {
-  @include transform(translateZ(add-unit($value)));
+  @include transform(translateZ $value);
 }
 
 
 /// Scale
 @mixin scale($values) {
   $width: nth($values, 1);
-  $height : if(length($values) > 1, nth($values, 2), $width);
+  $height : if(length($values) > 1, nth($values, 2), null);
 
 
-  @include transform(scale($width, $height));
+  @include transform(scale $width $height);
 }
 
 @mixin scaleX($value) {
-  @include transform(scaleX(strip($value)));
+  @include transform(scaleX strip($value));
 }
 
 @mixin scaleY($value) {
-  @include transform(scaleY(strip($value)));
+  @include transform(scaleY strip($value));
 }
 
 @mixin scale3d($values) {
@@ -193,25 +182,25 @@
 }
 
 @mixin scaleZ($value) {
-  @include transform(scaleZ(strip($value)));
+  @include transform(scaleZ strip($value));
 }
 
 
 /// Rotate
 @mixin rotate($value) {
-  @include transform(rotate(add-unit($value, deg)));
+  @include transform(rotate add-unit($value, deg));
 }
 
 @mixin rotateX($value) {
-  @include transform(rotateX(add-unit($value, deg)));
+  @include transform(rotateX add-unit($value, deg));
 }
 
 @mixin rotateY($value) {
-  @include transform(rotateY(add-unit($value, deg)));
+  @include transform(rotateY add-unit($value, deg));
 }
 
 @mixin rotateZ($value) {
-  @include transform(rotateZ(add-unit($value, deg)));
+  @include transform(rotateZ add-unit($value, deg));
 }
 
 @mixin rotate3d($values) {
@@ -231,11 +220,11 @@
 }
 
 @mixin skewX($value) {
-  @include transform(skewX(add-unit($value, deg)));
+  @include transform(skewX add-unit($value, deg));
 }
 
 @mixin skewY($value) {
-  @include transform(skewY(add-unit($value, deg)));
+  @include transform(skewY add-unit($value, deg));
 }
 
 

@@ -83,6 +83,7 @@
         'private/from-hex',
         'private/from-hsl',
         'private/from-rgb',
+        'private/function-to-list',
         'private/get-color-value',
         'private/gradient-properties',
         'private/hash-fix',
@@ -100,4 +101,5 @@
 
 // Helpers: Strings
 @import 'strings/string-explode',
+        'strings/string-ends-with',
         'strings/string-replace';

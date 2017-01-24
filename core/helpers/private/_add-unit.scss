@@ -37,7 +37,7 @@
 // }
 
 @function add-unit($value, $unit:null, $replace:false) {
-  @if is-number($value) {
+  @if type-of($value) == 'number' {
     @if unitless($value) {
       @return $value + if($unit == null, $default-unit, $unit);
     }
