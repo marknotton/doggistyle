@@ -39,7 +39,6 @@
     @each $settings in $settings-lists {
 
       @if is-function($settings) {
-        @debug 'this is a function';
         $settings : _function-to-list($settings);
       }
 
@@ -178,7 +177,7 @@
   $x : strip(nth($values, 1));
   $y : if( length($values) > 1, strip(nth($values, 2)), 0);
   $z : if( length($values) > 2, strip(nth($values, 3)), 0);
-  @include transform(scale3d($x, $y, $z));
+  @include transform(scale3d $x $y $z);
 }
 
 @mixin scaleZ($value) {
@@ -188,19 +187,19 @@
 
 /// Rotate
 @mixin rotate($value) {
-  @include transform(rotate add-unit($value, deg));
+  @include transform(rotate $value);
 }
 
 @mixin rotateX($value) {
-  @include transform(rotateX add-unit($value, deg));
+  @include transform(rotateX $value);
 }
 
 @mixin rotateY($value) {
-  @include transform(rotateY add-unit($value, deg));
+  @include transform(rotateY $value);
 }
 
 @mixin rotateZ($value) {
-  @include transform(rotateZ add-unit($value, deg));
+  @include transform(rotateZ $value);
 }
 
 @mixin rotate3d($values) {
@@ -208,7 +207,7 @@
   $y : if( length($values) > 1, strip(nth($values, 2)), 0);
   $z : if( length($values) > 2, strip(nth($values, 3)), 0);
   $deg : if( length($values) > 3, add-unit(nth($values, 4), deg), 0);
-  @include transform(rotate3d($x, $y, $z, $deg));
+  @include transform(rotate3d $x $y $z $deg);
 }
 
 
@@ -216,7 +215,7 @@
 @mixin skew($values) {
   $x : add-unit(nth($values, 1), deg);
   $y : add-unit(if( length($values) > 1, nth($values, 2), 0), deg);
-  @include transform(skew($x, $y));
+  @include transform(skew $x $y);
 }
 
 @mixin skewX($value) {
