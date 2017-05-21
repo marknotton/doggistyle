@@ -19,6 +19,12 @@ A collection of Sass resources found from an array of sources, forums, and tutor
   gem install doggystyle
   ```
 
+  Of if you're having permission issues, you can try this **at your own risk**
+
+  ```bash
+  sudo gem install -n /usr/local/bin doggystyle
+  ```
+
   Alternatively, you can install Doggy Style with [Bower](http://bower.io).
 
 1. Install the Doggy Style library into the current directory:
