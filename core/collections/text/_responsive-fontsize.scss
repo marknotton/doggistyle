@@ -42,19 +42,22 @@
 ///     font-size: 20px;
 ///   }
 /// }
-
-
 @mixin responsive-fontsize($settings...) {
 
-  $max-size  : null;
-  $min-size  : null;
-  $min-width : null;
-  $max-width : null;
-  $line-height : true;
+  $max-size            : null;
+  $min-size            : null;
+  $max-lineheight      : null;
+  $min-lineheight      : null;
+  $min-width           : null;
+  $max-width           : null;
+  $line-height         : true;
   $line-height-percent : null;
 
   @each $setting in $settings {
+
+
     @if is-number($setting) {
+      // If each param is number, define a variable in this order
       @if is-null($max-size) {
         $max-size : $setting;
       } @elseif is-null($min-size) {
@@ -65,15 +68,44 @@
         $max-width : $setting;
       }
     } @elseif is-bool($setting) {
+      // true or false booleans are passed to the line-height variable
       $line-height : $setting;
     } @elseif is-list($setting) {
-      @each $set in $setting {
-        @if is-bool($set) {
-          $line-height : $set;
-        } @elseif is-number($set) and is-null($line-height-percent) {
-          $line-height-percent : $set;
+      // List items
+      @if is-number(nth($setting, 1)) {
+        // If the first item in a list is a number assume this is size
+        $size : nth($setting, 1);
+        @if is-null($max-size) {
+          $max-size : $size;
+        } @elseif is-null($min-size) {
+          $min-size : $size;
+        }
+        // If the secon item in a list is a number assume this is line-height
+        $lineheight : nth($setting, 2);
+        @if is-null($max-lineheight) {
+          $max-lineheight : $lineheight;
+        } @elseif is-null($min-lineheight) {
+          $min-lineheight : $lineheight;
+        }
+
+      } @else {
+        @each $set in $setting {
+          @if is-bool($set) {
+            $line-height : $set;
+          } @elseif is-number($set) and is-null($line-height-percent) {
+            $line-height-percent : $set;
+
+          }
         }
       }
+
+      // @each $set in $setting {
+      //   @if is-bool($set) {
+      //     $line-height : $set;
+      //   } @elseif is-number($set) and is-null($line-height-percent) {
+      //     $line-height-percent : $set;
+      //   }
+      // }
     }
   }
 
@@ -81,25 +113,34 @@
   $min-size  : if(is-null($min-size ), $font-size, $min-size);
   $min-width : if(is-null($min-width), $large, $min-width);
   $max-width : if(is-null($max-width), $max, $max-width);
-  $line-height-percent : if($line-height == true and is-null($line-height-percent), 40, $line-height-percent);
+  $line-height-percent : if($line-height == true and is-null($line-height-percent), 30, $line-height-percent);
 
-  font-size: calc(#{add-unit($min-size)} + (#{$max-size} - #{$min-size}) * ((100vw - #{add-unit($min-width)}) / (#{$max-width} - #{$min-width})));
+  font-size: calc(#{add-unit($min-size)} + #{$max-size - $min-size} * (100vw - #{add-unit($min-width)}) / #{$max-width - $min-width});
 
   @if $line-height == true {
-      line-height: calc(#{add-unit(increase-by-percentage($min-size, $line-height-percent))} + (#{$max-size} - #{$min-size}) * ((100vw - #{add-unit($min-width)}) / (#{$max-width} - #{$min-width})));
+      line-height: calc(#{add-unit(increase-by-percentage($min-size, $line-height-percent))} + #{$max-size - $min-size} * (100vw - #{add-unit($min-width)}) / #{$max-width - $min-width});
   }
 
   @include break($min-width, max) {
     font-size:add-unit($min-size);
-    @if $line-height == true { line-height:initial; }
+    @if not is-null($min-lineheight) {
+      line-height:add-unit($min-lineheight);
+    } @elseif $line-height == true {
+      line-height:initial;
+    }
   }
 
   @include break($max-width, min) {
     font-size:add-unit($max-size);
-    @if $line-height == true { line-height:initial; }
+    @if not is-null($max-lineheight) {
+      line-height:add-unit($max-lineheight);
+    } @elseif $line-height == true {
+      line-height:initial;
+    }
   }
 
 }
+
 
 @mixin responsive-font($settings...) {
   @include responsive-fontsize($settings);

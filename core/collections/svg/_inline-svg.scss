@@ -1,0 +1,24 @@
+/// @reuired postcss-inline-svg
+
+@mixin inline-svg($svg, $fill:null, $stroke:null) {
+
+  $explode : string-explode($svg, '.');
+
+  $name : nth($explode, 1);
+  $filename : _add-extension($svg, 'svg');
+
+  @at-root (without: media) {
+    @svg-load #{$name} url(#{$filename}) {
+      @if not is-null($fill) {
+        * { fill: $fill; }
+      }
+      @if not is-null($stroke) {
+        * { stroke: $stroke }
+      }
+      @content;
+    }
+  }
+
+  & { background-image: svg-inline(unquote($name)); }
+
+}

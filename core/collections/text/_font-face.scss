@@ -3,7 +3,7 @@
     $source : ();
     font-family:$family;
     @each $format in $formats {
-      $source : append($source, url($fonts + str-replace($file, $fonts) + '.' + $format), comma);
+      $source : append($source, url($fonts + str-replace($file, $fonts) + '.' + $format) format(quote($format)), comma);
     }
     src: $source;
     @content;

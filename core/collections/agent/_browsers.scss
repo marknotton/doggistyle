@@ -95,8 +95,8 @@ $browsers : ie edge firefox chrome opera;
   }
 }
 
-// Usage : @include ie(9 10) { ... }
-// Usage : @include ie { ... }
+// Usage : @include ie(9 10) { ...; }
+// Usage : @include ie { ...; }
 @mixin ie($version:null) {
   @include browsers(ie $version) { @content };
 }

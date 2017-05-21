@@ -10,7 +10,7 @@
   }
   @elseif $count > 1 {
     @if is-number($gutter) and $gutter != null and strip(to-number($gutter)) > 0 {
-      @include flex-basis(calc(100% / #{$count} - #{add-unit($gutter/$count)}), $important);
+      @include flex-basis(calc(100% / #{$count} - #{add-unit($gutter/$count)} - 2px), $important);
 
         @for $i from 1 through $count {
           @include nth($i, true) {
@@ -20,7 +20,7 @@
         @include nth($count, true) { margin-right:0; }
 
     } @else {
-      @include flex-basis(calc(100% / #{$count}), $important);
+      @include flex-basis(calc(100% / #{$count} - 2px), $important);
     }
   }
 }
@@ -31,9 +31,9 @@
   }
   @elseif $count > 1 {
     @if is-number($gutter) and $gutter != null and strip(to-number($gutter)) > 0 {
-      @include flex-basis(calc(100% / #{$count} - #{add-unit($gutter)}), $important);
+      @include flex-basis(calc(100% / #{$count} - #{add-unit($gutter)} - 2px), $important);
     } @else {
-      @include flex-basis(calc(100% / #{$count}), $important);
+      @include flex-basis(calc(100% / #{$count} - 2px), $important);
     }
   }
 }

@@ -48,24 +48,33 @@
 
       // Check for transforms
       @each $setting in $settings {
-        @if is-string($setting) and contains($transform-types, $setting) {
+        @if is-string($setting) and contains(merge($transform-types, x y X Y), $setting) {
           $transform : $setting;
         }
       }
 
-
       // Check and validate all transform types
       @each $setting in $settings {
         @if not is-string($setting) {
-          @if contains($transform, (translate translateY translateX translateZ translate3d perspective)) {
+          @if contains($transform, (translate translateY translateX translateZ translate3d y x Y X perspective)) {
             // Values that require a unit
             @each $val in $setting {
+              @if ($transform == 'x' or $transform == 'X') {
+                $transform : translateX;
+              } @elseif ($transform == 'y' or $transform == 'Y') {
+                $transform : translateY;
+              }
               $value : append($value, add-unit($val), comma);
             }
           } @elseif contains($transform, (rotate rotateX rotateY rotateZ skew skewX skewY)) {
             // Values that require an angle
             @each $val in $setting {
               $value : append($value, add-unit($val, deg), comma);
+            }
+          } @elseif contains($transform, (scale)) and length($settings) > 1 {
+            // Values that require an comma is there are more than two settings
+            @each $val in $setting {
+              $value : append($value, $val, comma);
             }
           } @else {
             // All other values

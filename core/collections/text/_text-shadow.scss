@@ -4,7 +4,7 @@
 /// @param {Size} $blur [2px] - Blur
 /// @param {Color} $color [rgba(0,0,0,.4)] - Color
 
-@mixin text-shadow($x: 0px, $y: 0px, $blur: 5px, $color: rgba(0,0,0,0.4)) {
+@mixin text-shadow($x: 0px, $y: 0px, $blur: 10px, $color: rgba(0,0,0,0.4)) {
     @include prefixer(text-shadow, add-unit($x) add-unit($y) add-unit($blur) $color);
 }
 

@@ -7,6 +7,7 @@
     @extend %clearfix; @include flex-container((direction:column));
     position:relative;
     min-height:100vh;
+    min-width:$min + px;
     width:100%;
     overflow: hidden;
   }
@@ -28,6 +29,13 @@
 
   gallery-container, .gallery-container { position:relative; overflow:hidden; width:100%;
     gallery-image:not(:first-of-type), .gallery-image:not(:first-of-type) { opacity:0; }
+  }
+
+  // Wrapped iframes and canvases (typically for videos) will be styled up to be responsive.
+  video-container { padding-bottom:$ratio-16-9; display:block; position:relative; width:100%; height:auto; margin-top:$gap; margin-bottom:$gap;
+    iframe, canvas { position:absolute; display:block; top:0; left:0;
+      height:100%; width:100%;
+    }
   }
 
   // main-container {optional}

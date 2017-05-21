@@ -10,6 +10,6 @@
 ///
 /// @return
 
-@mixin dalay($time) {
+@mixin delay($time) {
   @include transition-delay($time);
 }

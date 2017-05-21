@@ -1,0 +1,13 @@
+// Style an element into a responsive square 
+
+@mixin square($size:50, $sudo:after) {
+  display:block;
+  overflow:hidden;
+  max-width:add-unit($size);
+  width:100%;
+  &#{_sudo($sudo)} {
+    content: "";
+    display: block;
+    padding-bottom: 100%;
+  }
+}

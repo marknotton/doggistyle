@@ -13,7 +13,7 @@ $minimum:       $min-width;
 
 $small:         480  !default;
 $large:         1080 !default;
-$small-medium:  820;
+$small-medium:  820 !default;
 $medium:        (($large - $small) / 2) + $small !default; // 780
 
 $show-breakpoints : false !default;

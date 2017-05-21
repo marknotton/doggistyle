@@ -1,3 +1,6 @@
 @mixin padding($settings...) {
+  @if (length($settings) == 0) {
+    $settings : ($gap $gap2, $gap $large, $gap $gap0 $medium);
+  }
   @include smart-gaps(padding, $settings...);
 }

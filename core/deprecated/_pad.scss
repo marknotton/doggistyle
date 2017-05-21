@@ -9,11 +9,11 @@
   @return gap($size);
 }
 
-$gaps : $gaps !default;
-$gap     : $gap  !default;
-$gap0    : $gap0 !default;
-$gap1    : $gap1 !default;
-$gap2    : $gap2 !default;
-$gap3    : $gap3 !default;
-$gap4    : $gap4 !default;
-$gap5    : $gap5 !default;
+$padding : $gaps !default;
+$pad     : $gap  !default;
+$pad0    : $gap0 !default;
+$pad1    : $gap1 !default;
+$pad2    : $gap2 !default;
+$pad3    : $gap3 !default;
+$pad4    : $gap4 !default;
+$pad5    : $gap5 !default;

@@ -25,6 +25,7 @@
         'checks/is-dark',
         'checks/is-duration',
         'checks/is-ease',
+        'checks/is-extension',
         'checks/is-false',
         'checks/is-first-character',
         'checks/is-frequency',
@@ -76,6 +77,7 @@
 
 // Helpers: Private
 @import 'private/add-unit',
+        'private/add-extension',
         'private/arglist-to-list',
         'private/brightness',
         'private/find-digits',
