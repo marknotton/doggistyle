@@ -1,4 +1,65 @@
-@mixin svg-size($class) {
-  @extend .svg-#{$class}-size;
-}
+// @mixin svg-size($class) {
+//   @extend .svg-#{$class}-size;
+// }
 
+
+/// Resize an SVg element using it's original dimensions to retain it's aspect ratio
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @param {Number} $original-width - Define the SVG's original width
+/// @param {Number} $original-height - Define the SVG's original height
+/// @param {Number} $new-width - Define a unitless number to adjust the scale of an SVG.
+///                              0.5 is half the original size where 2 is double it's original size.
+///                              Using a unit will force the resize of the the element to a specific width,
+///                              the height will retain it's existing aspect ratio.
+/// @param {Number} $new-height - Define a speicfic height. This will ignore the aspect ratio and force the desired width.
+/// @param {Bool|Number|List} $transform-origin - If true, the transform-origin will be placed at the center of the div using px
+///                                               You can pass in 2 numbers to define your own Y and X co-ordinates
+///                                               Padding in just one number, will apply to both Y and X.
+/// @require {Mixin} transform-origin
+/// @require {Function} strip
+/// @require {Function} is-unit
+/// @require {Function} is-null
+/// @require {Function} add-unit
+///
+/// @example scss - Usage
+/// svg { @include svg-size(100, 240, 1.5); }
+/// svg { @include svg-size(100, 240, 250px); }
+///
+
+@mixin svg-size($original-width, $original-height, $new-width:1, $new-height:null, $transform-origin:true) {
+
+  $original-width : strip($original-width);
+  $original-height : strip($original-height);
+
+  @if ( not is-unit($new-width) ) {
+    $scale : $new-width;
+    $new-width : $original-width * $scale;
+    $new-height : $original-height * $scale;
+
+    width:$new-width + px;
+    height:$new-height + px;
+
+  } @else {
+
+    @if (is-null($new-height)) {
+      $ratio : if($original-height >= $original-width, $original-height / $original-width, $original-width / $original-height);
+      $new-height : strip($new-width) * $ratio;
+    }
+
+    width:add-unit($new-width, px);
+    height:add-unit($new-height, px);
+
+  }
+
+  @if ( $transform-origin ) {
+    @if (is-bool($transform-origin) and $transform-origin == true) {
+      @include transform-origin($new-width/2 $new-height/2);
+    } @else {
+      @include transform-origin($transform-origin);
+    }
+  }
+};
