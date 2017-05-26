@@ -71,11 +71,6 @@
             @each $val in $setting {
               $value : append($value, add-unit($val, deg), comma);
             }
-          } @elseif contains($transform, (scale)) and length($settings) > 1 {
-            // Values that require an comma is there are more than two settings
-            @each $val in $setting {
-              $value : append($value, $val, comma);
-            }
           } @else {
             // All other values
             $value : append($value, $setting);

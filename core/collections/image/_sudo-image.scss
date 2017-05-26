@@ -1,12 +1,17 @@
-@mixin sudo-image($image, $size, $sudo:before) {
+@mixin sudo-image($image, $size:auto, $sudo:before) {
   &#{_sudo($sudo)} {
-    content:""; 
+    content:"";
     position:absolute;
-    top:0; left:0; 
-    background:url($images + $image) center center / 100% 100% no-repeat; 
-    @include aspect-ratio($size, null); 
-    @include size(100%);
-    @include size($size, max);
+    top:0; left:0;
+    background:url($images + $image) center center / 100% 100% no-repeat;
+    @if ( $size != auto) {
+      @include aspect-ratio($size, null);
+      @include size(100%);
+      @include size($size, max);
+    } @else {
+      width:width($image);
+      height:height($image);
+    }
     @content;
   }
 }
