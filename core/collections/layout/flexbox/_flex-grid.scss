@@ -4,28 +4,36 @@
 ///
 /// @access public
 ///
-@mixin flex-grid-with-margin($count, $gutter:$gap, $important:false) {
+@mixin flex-grid($count, $gutter:$gap, $bottom:true, $important:false) {
   @if $count <= 1 {
     @include flex-basis(auto, $important);
+    width:100%;
+    @if is-number($gutter) and $gutter != null and strip(to-number($gutter)) > 0 {
+      margin-right:0 $imp;
+      @if $bottom { margin-bottom:add-unit($gutter); }
+    }
   }
   @elseif $count > 1 {
     @if is-number($gutter) and $gutter != null and strip(to-number($gutter)) > 0 {
-      @include flex-basis(calc(100% / #{$count} - #{add-unit($gutter/$count)} - 2px), $important);
+      @include flex-basis(calc(100% / #{$count} - #{add-unit(($gutter * ($count - 1) / $count))}), $important);
 
-        @for $i from 1 through $count {
-          @include nth($i, true) {
-            clear:none; margin-right:add-unit($gutter);
-          }
+      @for $i from 1 through $count {
+        margin-right:add-unit($gutter);
+        &:nth-of-type(#{$count + n}) {
+          margin-right:0;
         }
-        @include nth($count, true) { margin-right:0; }
+      }
+      @if $bottom {
+        margin-bottom:add-unit($gutter);
+      }
 
     } @else {
-      @include flex-basis(calc(100% / #{$count} - 2px), $important);
+      @include flex-basis(calc(100% / #{$count}), $important);
     }
   }
 }
 
-@mixin flex-grid($count, $gutter:$gap, $important:false) {
+@mixin flex-grid-old($count, $gutter:$gap, $important:false) {
   @if $count <= 1 {
     @include flex-basis(auto, $important);
   }
