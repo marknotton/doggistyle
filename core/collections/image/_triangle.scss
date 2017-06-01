@@ -243,7 +243,7 @@ $triangle-settings: (
 /// @return {*}
 
 @mixin arrow($args...) {
-  @include triangle($args) { 
+  @include triangle($args...) {
     @content
   }
 }
