@@ -42,18 +42,20 @@
 
 @mixin animation($args...) {
 
-  // Default Settings
-  $name: null;
-  $duration: null; // seconds
-  $ease: ease-in-out;
-  $delay: null;
-  $iterations: null;
-  $direction: normal;
-  $fill: forwards;
-  $state : null;
+  $animations : null;
 
   // Loop through and check all arguments for any special options
   @each $settings in $args {
+
+    // Default Settings
+    $name: null;
+    $duration: null; // seconds
+    $ease: ease-in-out;
+    $delay: null;
+    $iterations: null;
+    $direction: normal;
+    $fill: forwards;
+    $state : null;
 
     $firstSetting: nth($settings, 1);
 
@@ -108,7 +110,11 @@
     // @debug #{'fill:'} $fill;
     // @debug #{'state:'} $state;
 
-    @include prefixer(animation, $name $duration $ease $delay $iterations $direction $fill $state);
+    $animations : append($animations, $name $duration $ease $delay $iterations $direction $fill $state, comma);
+  }
+  
+  @if ( not is-null($animations)) {
+    @include prefixer(animation, $animations);
   }
 }
 
