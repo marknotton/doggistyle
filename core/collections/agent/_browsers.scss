@@ -11,15 +11,26 @@ $browsers : ie edge firefox chrome opera;
 
   // This checks to see if the current selector is html.
   // This can not be converted into a shorthanded if statement.
-  $selector : null;
-  @if not is-selector(html) { $selector : &; }
-  $selector : string-replace(#{$selector}, 'html', '');
+  // $selector : null;
+  // @if not is-selector(html) { $selector : &; }
+
+	$selector : to-string(#{&});
+	$space : ' ';
+
+	@if (str-index($selector, 'html')) {
+		$selector : string-replace(#{$selector}, 'html', '');
+		@if ($selector != 'html') {
+			$space : '';
+		}
+	}
+
+	$not-all : if(is-bool(nth(nth($args, 1),1)), nth(nth($args, 1),1), false);
 
   @each $settings in _arglist-to-list($args...) {
 
     $browsers-list : ();
     $versions-list : ();
-    $not : true;
+    $not : $not-all;
 
     @each $setting in $settings {
       @if is-string($setting) and contains($browsers, $setting) {
@@ -41,17 +52,17 @@ $browsers : ie edge firefox chrome opera;
       @if length($browsers-list) > 0 {
         @if length($versions-list) > 0 {
           @each $version in $versions-list {
-            @if $not {
-              @at-root html[data-browser^=#{$browsers-list}][data-browser$='#{$version}'] #{$selector} { @content }
+            @if not $not {
+              @at-root html[data-browser^="#{$browsers-list}"][data-browser$='#{$version}'] #{$selector} { @content; }
             } @else {
-              @at-root html:not([data-browser^=#{$browsers-list}][data-browser$='#{$version}']) #{$selector} { @content }
+              @at-root html:not([data-browser^="#{$browsers-list}"][data-browser$='#{$version}']) #{$selector} { @content; }
             }
           }
         } @else {
           @each $browser in $browsers-list {
-            @if $not {
-              @at-root html[data-browser^=#{$browser}] #{$selector} { @content }
-              // Fallback hacks should the Browser not be installed
+            @if not $not {
+              @at-root html[data-browser^="#{$browser}"]#{$space}#{$selector} { @content; }
+              // Fallback hacks should the data-browser attribute not be in the html tag
               @if $browser == edge {
                 @supports (-ms-accelerator:true) {
                   #{$selector} {
@@ -60,10 +71,8 @@ $browsers : ie edge firefox chrome opera;
                 }
               }
               @elseif $browser == ie {
-                @media all and (-ms-high-contrast:none){
-                  *::-ms-backdrop, #{$selector} {
-                    @content;
-                  }
+								@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+                  @content;
                 }
               }
               @elseif $browser == firefox {
@@ -73,7 +82,7 @@ $browsers : ie edge firefox chrome opera;
               }
               @elseif $browser == chrome {
                 @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
-                  //@content;
+                  @content;
                 }
               }
               @elseif $browser == safari {
@@ -84,15 +93,17 @@ $browsers : ie edge firefox chrome opera;
                 }
               }
             } @else {
-              @at-root html:not([data-browser^=#{$browser}]) {
-                #{$selector} { @content }
-              }
+              @at-root html:not([data-browser^="#{$browser}"])#{$space}#{$selector} { @content; }
             }
           }
         }
       }
     }
   }
+}
+
+@mixin not-browsers($args...) {
+	@include browsers(join(true, $args, comma)) { @content };
 }
 
 // Usage : @include ie(9 10) { ...; }
@@ -127,7 +138,7 @@ $browsers : ie edge firefox chrome opera;
 
 //////
 @mixin not-ie($version:null) {
-  @include browsers(ie $version false) { @content };
+  @include browsers(ie $version true) { @content };
 }
 
 @mixin not-edge($version:null) {
@@ -135,21 +146,21 @@ $browsers : ie edge firefox chrome opera;
   @include warning('As of March 2016: The plugin used to detect browser versions can not currently output the Edge browser version.
     This mixin will exclude all version numbers for now.')
   $version : null;
-  @include browsers(edge $version false) { @content };
+  @include browsers(edge $version true) { @content };
 }
 
 @mixin not-safari($version:null) {
-  @include browsers(safari $version false) { @content };
+  @include browsers(safari $version true) { @content };
 }
 
 @mixin not-firefox($version:null) {
-  @include browsers(firefox $version false) { @content };
+  @include browsers(firefox $version true) { @content };
 }
 
 @mixin not-chrome($version:null) {
-  @include browsers(chrome $version false) { @content };
+  @include browsers(chrome $version true) { @content };
 }
 
 @mixin not-opera($version:null) {
-  @include browsers(opera $version false) { @content };
+  @include browsers(opera $version true) { @content };
 }

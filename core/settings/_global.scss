@@ -2,7 +2,7 @@
 $imp : !important;
 
 // Allow wanring messages to be displayed (For Developers)
-$warnings: true !default;
+$disable-warnings: false !default;
 
 // Include a variety of 'normaliser' settings
 $reset : true !default;
@@ -24,6 +24,8 @@ $prioritise-neat : false !default;
 
 // Check to see if Neat is installed
 $neat-installed : if(mixin-exists(outer-container) and mixin-exists(shift-in-context) and mixin-exists(-neat-warn), true, false) !default;
+
+// TODO: Create csecks to see if neat 1 or neat 2 or neat 1 & 2 are installed
 
 // Prfixer
 $enable-prefixer : true !default;

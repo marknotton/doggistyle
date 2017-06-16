@@ -46,7 +46,7 @@
   } @else {
 
     @if (is-null($new-height)) {
-      $ratio : if($original-height >= $original-width, $original-height / $original-width, $original-width / $original-height);
+      $ratio : if($original-height <= $original-width, $original-height / $original-width, $original-width / $original-height);
       $new-height : strip($new-width) * $ratio;
     }
 

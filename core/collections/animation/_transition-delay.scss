@@ -1,5 +1,9 @@
-@mixin transition-delay($time) {
-  @include prefixer(transition-delay, add-unit($time, s), webkit);
+@mixin transition-delay($times...) {
+	$times-list : ();
+	@each $time in $times {
+		$times-list: append( $times-list, add-unit($time, s), comma);
+	}
+  @include prefixer(transition-delay, $times-list, webkit);
 }
 
 /// @alias transition-delay
@@ -10,6 +14,6 @@
 ///
 /// @return
 
-@mixin delay($time) {
+@mixin delay($time...) {
   @include transition-delay($time);
 }
