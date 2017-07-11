@@ -50,7 +50,7 @@
   $min-lineheight      : null;
   $min-width           : null;
   $max-width           : null;
-  $line-height         : true;
+  $line-height         : false;
   $line-height-percent : null;
 
   @each $setting in $settings {
@@ -143,5 +143,5 @@
 
 
 @mixin responsive-font($settings...) {
-  @include responsive-fontsize($settings);
+  @include responsive-fontsize($settings...);
 }

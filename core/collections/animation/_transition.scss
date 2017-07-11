@@ -154,3 +154,11 @@
 
 /// @alias transition
 @mixin ani($settings...) { @include transition($settings...); }
+
+@mixin transition-timing-function($ease:ease-in-out) {
+  @include prefixer(transition-timing-function, $ease, webkit);
+}
+
+@mixin transition-easing($ease:ease-in-out) {
+  @include transition-timing-function($ease);
+}

@@ -32,13 +32,16 @@
 
 @mixin svg-size($original-width, $original-height, $new-width:1, $new-height:null, $transform-origin:true) {
 
-  $original-width : strip($original-width);
-  $original-height : strip($original-height);
+  $width : strip($original-width);
+  $height : strip($original-height);
+  $new-width : to-number($new-width);
+	$width-unit : unquote(unit($new-width));
+	$height-unit : unquote(if(not is-null($new-height), unit($new-height), $width-unit));
 
   @if ( not is-unit($new-width) ) {
     $scale : $new-width;
-    $new-width : $original-width * $scale;
-    $new-height : $original-height * $scale;
+    $new-width : $width * $scale;
+    $new-height : $height * $scale;
 
     width:$new-width + px;
     height:$new-height + px;
@@ -46,18 +49,19 @@
   } @else {
 
     @if (is-null($new-height)) {
-      $ratio : if($original-height <= $original-width, $original-height / $original-width, $original-width / $original-height);
+      $ratio : if($height <= $width, $height / $width, $width / $height);
       $new-height : strip($new-width) * $ratio;
     }
 
-    width:add-unit($new-width, px);
-    height:add-unit($new-height, px);
+    width:add-unit($new-width, $width-unit);
+    height:add-unit($new-height, $height-unit);
 
   }
 
   @if ( $transform-origin ) {
     @if (is-bool($transform-origin) and $transform-origin == true) {
-      @include transform-origin($new-width/2 $new-height/2);
+			// TODO: Make this respect other units besides just px
+      @include transform-origin(add-unit($new-width/2, px) add-unit($new-height/2, px));
     } @else {
       @include transform-origin($transform-origin);
     }

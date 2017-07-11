@@ -52,15 +52,15 @@
 ///
 //@include keyframes(testing) { to { @include rotate(360deg);}}
 
-@mixin animation2($args...) {
+@mixin animation($args...) {
 
   $animations : null;
 	$unique-name : unique-id();
 	$count : 0;
 
-	// @if length($args) == 0 {
-	// 	$args : join($unique-name, $args);
-	// }
+	@if length($args) == 0 {
+		$args : join($unique-name, $args);
+	}
 
   // Loop through and check all arguments for any special options
   @each $settings in $args {
@@ -118,6 +118,7 @@
 		}
 
     $duration: if(is-null($duration), 1s, $duration);
+    $delay: if(is-null($delay), 0s, $delay);
     $iterations: if(is-null($iterations), 1, $iterations);
 
 
@@ -136,97 +137,9 @@
 
 }
 
-//
-//
-//
-//
-//
-//
-//
-//
-//
-@mixin animation($args...) {
-
-  $animations : null;
-	$unique-name : unique-id();
-
-	// @if length($args) == 0 {
-	// 	$args : join($unique-name, $args);
-	// }
-
-
-
-  // Loop through and check all arguments for any special options
-  @each $settings in $args {
-
-    // Default Settings
-    $name: null;
-    $duration: null; // seconds
-    $ease: ease-in-out;
-    $delay: null;
-    $iterations: null;
-    $direction: normal;
-    $fill: forwards;
-    $state : null;
-
-    @each $setting in $settings {
-
-      @if contains($setting, forwards backwards both none) {
-        $fill : $setting;
-      } @elseif contains($setting, normal alternate) {
-        $direction : $setting;
-      } @elseif contains($setting, paused running) {
-        $state : $setting;
-      } @elseif is-string($setting) {
-        @if contains($setting, infinite loop) {
-          $iterations : infinite;
-        } @elseif is-ease($setting) {
-          $ease : $setting;
-        } @else {
-					$name : $setting;
-					$unique-name : $setting;
-				}
-      } @elseif is-number($setting) or is-time($setting) {
-        @if is-null($duration) {
-          @if is-time($setting) {
-            $duration : $setting;
-          } @else {
-            $duration : add-unit($setting, s, true);
-          }
-        } @elseif is-null($delay) {
-          @if is-time($setting) {
-            $delay : $setting;
-          } @else {
-            $delay : add-unit($setting, s, true);
-          }
-        } @elseif is-null($iterations) {
-          $iterations : $setting;
-        }
-      }
-
-    }
-
-    $duration: if(is-null($duration), 1s, $duration);
-    $iterations: if(is-null($iterations), 1, $iterations);
-
-
-		@if not is-null($name) {
-  	  $animations : append($animations, $name $duration $ease $delay $iterations $direction $fill $state, comma);
-		}
-
-  }
-	// TODO: When a later version of Sass allows you to check @content exists,
-	// apply a queiry before using this keyframes mixin;
-	@include keyframes($unique-name) { @content; }
-
-  @if ( not is-null($animations)) {
-    @include prefixer(animation, $animations);
-  }
-
-}
 
 /// @alias animation
-@mixin animate($settings...) { @include animation($settings...); }
+@mixin animate($settings...) { @include animation($settings...) { @content; }; }
 
 @mixin animation-delay($times...) {
 	$times-list : ();
@@ -234,4 +147,12 @@
 		$times-list: append( $times-list, add-unit($time, s), comma);
 	}
   @include prefixer(animation-delay, $times-list, webkit);
+}
+
+@mixin animation-timing-function($ease) {
+	@include prefixer(animation-timing-function, $ease, webkit);
+}
+
+@mixin animation-ease($ease) {
+  @include animation-timing-function($ease);
 }

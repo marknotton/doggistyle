@@ -1,3 +1,30 @@
+// See http://html5doctor.com/ for more information on how these have been grouped
+$reset-section-elements  : true !default;
+$reset-header-elements   : true !default;
+$reset-grouping-elements : true !default;
+$reset-table-elements    : true !default;
+$reset-form-elements     : true !default;
+$reset-embedded-elements : true !default;
+$reset-text-elements     : true !default;
+
+$section-elements      : body article nav aside section header footer main address;
+$header-elements       : h1 h2 h3 h4 h5 h6;
+$grouping-elements     : p hr pre blockquote ol ul li dl, dt, dd figure figcaption div;
+$table-elements        : table caption thead tbody tfoot tr th td col colgroup;
+$form-elements         : form fieldset legend label input button select datalist optgroup option textarea keygen output progress meter;
+$embedded-elements     : img iframe embed object param video audio source canvas track map area;
+$text-elements 		     : a em strong i b u s small abbr q cite dfn sub sup time code kbd samp var mark bdi bdo ruby rt rp span br wbr;
+$custom-reset-elements : null;
+
+// Add a list of any elements you explictly don't want to be reset.
+@mixin dont-reset($args...) {
+	@each $val in $args {
+		$custom-reset-elements : add($val, $custom-reset-elements);
+	}
+}
+
+//TODO: Apply the above settings
+
 @if $reset {
 
 	html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {

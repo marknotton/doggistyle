@@ -39,13 +39,13 @@
 @function add-unit($value, $unit:null, $replace:false) {
   @if type-of($value) == 'number' {
     @if unitless($value) {
-      @return $value + if($unit == null, $default-unit, $unit);
+      @return to-number($value + if($unit == null, $default-unit, $unit));
     }
     @elseif is-unit($value) {
       @if $replace and $unit != null {
-        @return strip($value) + $unit;
+        @return to-number(strip($value) + $unit);
       } @else {
-        @return $value;
+        @return to-number($value);
       }
     }
   } @else {

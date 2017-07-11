@@ -17,40 +17,44 @@
 ///
 /// @return {String}
 
-@function cm($num:null) {
-  @return if(is-null($num) or not is-number($num), #{cm}, add-unit($num, cm, true));
-}
-
 @function em($num:null) {
   @return if(is-null($num) or not is-number($num), #{em}, add-unit($num, em, true));
-}
-
-@function rem($num:null) {
-  @return if(is-null($num) or not is-number($num), #{rem}, add-unit($num, rem, true));
 }
 
 @function ex($num:null) {
   @return if(is-null($num) or not is-number($num), #{ex}, add-unit($num, ex, true));
 }
 
-@function in($num:null) {
-  @return if(is-null($num) or not is-number($num), #{in}, add-unit($num, in, true));
+@function px($num:null) {
+  @return if(is-null($num) or not is-number($num), #{px}, add-unit($num, px, true));
+}
+
+@function cm($num:null) {
+  @return if(is-null($num) or not is-number($num), #{cm}, add-unit($num, cm, true));
 }
 
 @function mm($num:null) {
   @return if(is-null($num) or not is-number($num), #{mm}, add-unit($num, mm, true));
 }
 
-@function pc($num:null) {
-  @return if(is-null($num) or not is-number($num), #{pc}, add-unit($num, pc, true));
+@function in($num:null) {
+  @return if(is-null($num) or not is-number($num), #{in}, add-unit($num, in, true));
 }
 
 @function pt($num:null) {
   @return if(is-null($num) or not is-number($num), #{pt}, add-unit($num, pt, true));
 }
 
-@function px($num:null) {
-  @return if(is-null($num) or not is-number($num), #{px}, add-unit($num, px, true));
+@function pc($num:null) {
+  @return if(is-null($num) or not is-number($num), #{pc}, add-unit($num, pc, true));
+}
+
+@function ch($num:null) {
+  @return if(is-null($num) or not is-number($num), #{ch}, add-unit($num, ch, true));
+}
+
+@function rem($num:null) {
+  @return if(is-null($num) or not is-number($num), #{rem}, add-unit($num, rem, true));
 }
 
 @function vh($num:null) {
@@ -63,4 +67,32 @@
 
 @function vmin($num:null) {
   @return if(is-null($num) or not is-number($num), #{vmin}, add-unit($num, vmin, true));
+}
+
+@function vmax($num:null) {
+  @return if(is-null($num) or not is-number($num), #{vmax}, add-unit($num, vmax, true));
+}
+
+@function cm($num:null) {
+  @return if(is-null($num) or not is-number($num), #{cm}, add-unit($num, cm, true));
+}
+
+@function mm($num:null) {
+  @return if(is-null($num) or not is-number($num), #{mm}, add-unit($num, mm, true));
+}
+
+@function in($num:null) {
+  @return if(is-null($num) or not is-number($num), #{in}, add-unit($num, in, true));
+}
+
+@function px($num:null) {
+  @return if(is-null($num) or not is-number($num), #{px}, add-unit($num, px, true));
+}
+
+@function pt($num:null) {
+  @return if(is-null($num) or not is-number($num), #{pt}, add-unit($num, pt, true));
+}
+
+@function pc($num:null) {
+  @return if(is-null($num) or not is-number($num), #{pc}, add-unit($num, pc, true));
 }

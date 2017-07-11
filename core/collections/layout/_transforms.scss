@@ -55,6 +55,7 @@
 
       // Check and validate all transform types
       @each $setting in $settings {
+
         @if not is-string($setting) {
           @if contains($transform, (translate translateY translateX translateZ translate3d y x Y X perspective)) {
             // Values that require a unit
@@ -66,10 +67,19 @@
               }
               $value : append($value, add-unit($val), comma);
             }
-          } @elseif contains($transform, (rotate rotateX rotateY rotateZ skew skewX skewY)) {
+          } @elseif contains($transform, (rotate rotateX rotateY rotateZ rotate3d skew skewX skewY)) {
             // Values that require an angle
             @each $val in $setting {
-              $value : append($value, add-unit($val, deg), comma);
+              @if $transform != rotate3d {
+                $value : append($value, add-unit($val, deg), comma);
+              } @else {
+                $value : append($value, $val, comma);
+              }
+            }
+          } @elseif contains($transform, (scale)) {
+            // Values that require an angle
+            @each $val in $setting {
+                $value : append($value, $val, comma);
             }
           } @else {
             // All other values
@@ -77,7 +87,7 @@
           }
         } @elseif contains($transform-values, $setting) {
           // Values that are strings and are global values
-           $value : append($value, $setting);
+          $value : append($value, $setting);
         }
       }
 
@@ -97,7 +107,7 @@
 
 
 /// Transform origin
-@mixin transform-origin($value) {
+@mixin transform-origin($value: 50% 50%) {
 
   $values : ();
 
@@ -207,10 +217,10 @@
 }
 
 @mixin rotate3d($values) {
-  $x : strip(nth($values, 1));
-  $y : if( length($values) > 1, strip(nth($values, 2)), 0);
-  $z : if( length($values) > 2, strip(nth($values, 3)), 0);
-  $deg : if( length($values) > 3, add-unit(nth($values, 4), deg), 0);
+  $x :   if( length($values) == 1, strip(nth($values, 1)), 0);
+  $y :   if( length($values) > 1,  strip(nth($values, 2)), 1);
+  $z :   if( length($values) > 2,  strip(nth($values, 3)), 0);
+  $deg : if( length($values) > 3,  to-number(add-unit(nth($values, 4), deg)), 0);
   @include transform(rotate3d $x $y $z $deg);
 }
 
