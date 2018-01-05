@@ -1,0 +1,7 @@
+@mixin add-variables($map, $value:null) {
+  @if (not is-map($map) and not is-map($value) and not is-null($value)) {
+    $variables : map-merge($variables, ($map:$value)) !global;
+  } @else {
+    $variables : map-merge($variables, $map) !global;
+  }
+}

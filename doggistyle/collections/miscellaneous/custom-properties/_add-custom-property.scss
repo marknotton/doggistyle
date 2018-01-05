@@ -1,0 +1,3 @@
+@mixin add-custom-property($variable, $value, $scope:':root') {
+  @at-root #{$scope} { --#{$variable}:$value; }
+}

@@ -1,0 +1,186 @@
+// Doggy-Style 0.1.1-beta
+// http://goo.gl/RorsoL
+// Copyright 2013-2016 Mark Notton
+// MIT License
+
+// Settings
+@import 'settings/global',
+        'settings/aspect-ratios',
+        'settings/colours',
+        'settings/directories';
+
+// Essential Imports
+@import 'helpers/essential-imports';
+
+// Experimentals
+@import 'experimentals/dropdown',
+        'experimentals/gallery';
+
+// Collections: Agent
+@import 'collections/agent/browsers',
+        'collections/agent/devices';
+
+// Collections: Animation
+@import 'collections/animation/animation',
+        'collections/animation/eases',
+        'collections/animation/keyframes',
+        'collections/animation/transition-delay',
+        'collections/animation/transition-remove',
+        'collections/animation/transition-duration',
+        'collections/animation/transition-timing-function',
+        'collections/animation/transition';
+
+// Collections: Animation: Animations
+@import 'collections/animation/animations/jump',
+        'collections/animation/animations/shake',
+        'collections/animation/animations/wobble';
+
+// Collections: Colours
+@import 'collections/colours/colour-contrast',
+        'collections/colours/colour',
+        'collections/colours/random-colour';
+
+// Collections: Colours: Gradients
+@import 'collections/colours/gradients/gradient';
+
+// Collections: Image
+@import 'collections/image/blend-background',
+        'collections/image/blend-mix',
+        'collections/image/image-rendering',
+        'collections/image/image-size',
+        'collections/image/image',
+        'collections/image/shadow',
+        'collections/image/sudo-image',
+        'collections/image/triangle-classic',
+        'collections/image/triangle';
+
+// Collections: Layout
+@import 'collections/layout/align',
+        'collections/layout/aspect-ratio',
+        'collections/layout/backface-visibility',
+        'collections/layout/border-radius',
+        'collections/layout/bulletpoint',
+        'collections/layout/center',
+        'collections/layout/clear-fix',
+        'collections/layout/fake-radius',
+        'collections/layout/filters',
+        'collections/layout/flip-horizontally',
+        'collections/layout/square',
+        'collections/layout/flip-vertically',
+        'collections/layout/margin',
+        'collections/layout/padding',
+        'collections/layout/show-breakpoints',
+        'collections/layout/size',
+        'collections/layout/smart-gaps',
+        'collections/layout/smart-horizontal',
+        'collections/layout/transforms',
+        'collections/layout/vertical';
+
+// Collections: Layout: Grid
+@import 'collections/layout/grid/add-breakpoint',
+        'collections/layout/grid/break-between',
+        'collections/layout/grid/breakpoint',
+        'collections/layout/grid/get-breakpoint',
+        'collections/layout/grid/grid',
+        'collections/layout/grid/hide-at',
+        'collections/layout/grid/is-breakpoint',
+        'collections/layout/grid/set-breakpoints',
+        'collections/layout/grid/show-at';
+
+// Collections: Layout: Flexbox
+@import 'collections/layout/flexbox/flex-container',
+        'collections/layout/flexbox/flex-grid',
+        'collections/layout/flexbox/flex-items',
+        'collections/layout/flexbox/flex-remove';
+
+// Collections: Miscellaneous
+@import 'collections/miscellaneous/custom-properties/custom-property',
+        'collections/miscellaneous/custom-properties/add-custom-property',
+        'collections/miscellaneous/custom-properties/set-variables',
+        'collections/miscellaneous/custom-properties/add-variables',
+        'collections/miscellaneous/custom-properties/var',
+        'collections/miscellaneous/nth-last',
+        'collections/miscellaneous/nth';
+
+// Collections: Numbers
+@import 'collections/numbers/gap',
+        'collections/numbers/space',
+        'collections/numbers/strip',
+        'collections/numbers/increase-by-percentage',
+        'collections/numbers/decrease-by-percentage',
+        'collections/numbers/units';
+
+// Collections: Svg
+@import 'collections/svg/fake-radius',
+        'collections/svg/svg-size',
+        'collections/svg/inline-svg',
+        'collections/svg/svg';
+
+// Collections: Svg: Patterns
+@import 'collections/svg/patterns/dots',
+        'collections/svg/patterns/lines';
+
+// Collections: Text
+@import 'collections/text/font-face',
+        'collections/text/font-size',
+        'collections/text/inputs',
+        'collections/text/placeholder',
+        'collections/text/selection',
+        'collections/text/smart-lineheight',
+        'collections/text/text-shadow',
+        'collections/text/responsive-fontsize',
+        'collections/text/user-select';
+
+// Collections: Text: Columns
+@import 'collections/text/columns/break-after',
+        'collections/text/columns/break-before',
+        'collections/text/columns/break-inside',
+        'collections/text/columns/column-count',
+        'collections/text/columns/column-fill',
+        'collections/text/columns/column-gap',
+        'collections/text/columns/column-rule-color',
+        'collections/text/columns/column-rule-style',
+        'collections/text/columns/column-rule-width',
+        'collections/text/columns/column-span',
+        'collections/text/columns/column-width',
+        'collections/text/columns/columns';
+
+// Collections: Text: Symbols
+@import 'collections/text/symbols/arrows',
+        'collections/text/symbols/block',
+        'collections/text/symbols/box',
+        'collections/text/symbols/common',
+        'collections/text/symbols/currency',
+        'collections/text/symbols/dingbats',
+        'collections/text/symbols/geometric',
+        'collections/text/symbols/letterlike',
+        'collections/text/symbols/misc',
+        'collections/text/symbols/operators',
+        'collections/text/symbols/punctuation';
+
+// Placeholders
+@import 'placeholders/appearance',
+        'placeholders/clear',
+        'placeholders/pointer',
+        'placeholders/pseudo',
+        'placeholders/text';
+
+@import 'settings/gaps',
+        'settings/grid',
+        'settings/spaces',
+        'settings/text';
+
+// Deprecated - These will be removed on the next major version release
+@import 'deprecated/last',
+        'deprecated/smart-fontsize',
+        'deprecated/pad';
+
+// Collections: Styling
+@import 'collections/styling/normalize',
+        'collections/styling/reset-emailers',
+        'collections/styling/reset',
+        'collections/styling/custom-elements';
+
+
+@if mixin-exists(update-settings) and $reset {  @include update-settings; }
+@if $show-breakpoints and $reset { @include show-breakpoints(); }

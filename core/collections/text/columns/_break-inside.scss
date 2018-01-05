@@ -1,8 +1,0 @@
-//
-@mixin break-inside($setting) {
-  @if contains($break-inside, $setting) {
-    @include prefixer(break-inside, $setting);
-  } @else {
-    @include warning("The options used for break-inside do not match to allowed criteria.");
-  }
-}

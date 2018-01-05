@@ -1,0 +1,5 @@
+@mixin var($property, $variable:primary) {
+  $value : map-get($variables, $variable);
+  #{$property} : $value;
+  #{$property} : unquote('var(--' + $variable + ')');
+}

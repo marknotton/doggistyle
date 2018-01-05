@@ -1,0 +1,3 @@
+@mixin transition-timing-function($ease) {
+  @include prefixer(transition-timing-function, $ease, webkit);
+}

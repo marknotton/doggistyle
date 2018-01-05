@@ -1,0 +1,9 @@
+@mixin set-variables() {
+  @if variable-exists(variables) and not is-null($variables) {
+    @at-root :root {
+      @each $variable, $value in $variables {
+        #{'--' + string-replace($variable, '--')}: $value;
+      }
+    }
+  }
+}

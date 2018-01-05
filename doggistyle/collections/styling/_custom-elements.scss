@@ -1,0 +1,132 @@
+@if $reset {
+
+  // main-wrapper {essential}
+  // This could be compared to as a 'body' within the 'body'. It should contain all markup and not hidden content (svg's) or javascript
+  // This is usful if you need to hide all the content of a page or you want to blur the background for modals
+  body > #wrapper, body > main-wrapper {
+    @extend %clearfix; @include flex-container((direction:column));
+    position:relative;
+    min-height:100vh;
+    min-width:$min + px;
+    width:100%;
+    overflow: hidden;
+  }
+
+  // image-elemnt {essential}
+  // It's a common occurance to have a background image set inside a div element so there is more control over the image
+  // TODO: Find a way of making this custom element a singleton
+  image-element, gallery-image {
+    @extend %full; max-width:100vw; display:block;
+    &[style*='background-image'] {
+      background-size:cover;
+      background-repeat:none;
+      background-position:center 33.33%;
+      background-repeat:no-repeat;
+    }
+  }
+
+  featured-image { @extend %full; background-position:center 33%; background-size:cover;
+    > img { display:block; position:absolute; object-fit:cover; object-position: 50% 50%; width:100%; height:100%; max-width:100%; max-height:100%;
+      @include browsers(ie, edge) { display:none; }
+    }
+  }
+
+  gallery-container, .gallery-container { position:relative; overflow:hidden; width:100%;
+    gallery-image:not(:first-of-type), .gallery-image:not(:first-of-type) { opacity:0; }
+  }
+
+  // Wrapped iframes and canvases (typically for videos) will be styled up to be responsive.
+  video-container { padding-bottom:$ratio-16-9; display:block; position:relative; width:100%; height:auto; margin-top:$gap; margin-bottom:$gap;
+    background-position:center center;
+    background-size: cover;
+    background-repeat:no-repeat;
+    iframe, canvas { position:absolute; display:block; top:0; left:0;
+      height:100%; width:100%;
+    }
+  }
+
+  // main-container {optional}
+  // This is designed to be used to wrap the main content of the page without interfering with the html5's 'main' element.
+  // This is useful when you have a footer that you want to stick to the bottom of the page.
+  main-wrapper > main-container, .main-wrapper > .main-container {
+    @include flex-container((direction:column)); @include flex-grow(1);
+  }
+
+  // basic-container {essential}
+  // This sets a few basic settings for a container element. The content will be cetnered, will have no padding.
+  basic-container, .basic-container, .container {
+    @extend %clearfix;
+    width:100%;
+    max-width:$max-width;
+    margin-left:auto;
+    margin-right:auto;
+    position:relative;
+    display:block;
+  }
+
+  nav-container, .nav-container {
+    @include ani(padding-left padding-right);
+    padding-left:$gap;
+    padding-right:$gap;
+    @include break($medium, '<') {
+      padding-left:$gap0;
+      padding-right:$gap0;
+    }
+  }
+
+  // smart-container {essential}
+  // This is essentially the same as basic-container, only has a small media query check to reduce the padding at a certain point
+  smart-container, .smart-container {
+    @extend basic-container;
+    @include ani(padding-left padding-right);
+    padding-left:$gap;
+    padding-right:$gap;
+
+    @include break($medium, '<') {
+      padding-left:$gap0;
+      padding-right:$gap0;
+    }
+  }
+
+  // This fakes the results of the smart-container without having to use a smart-container custom element.
+  // Useful for when you want to avoid additional markup just to position an element.
+  %smart-container-faux {
+    @extend basic-container;
+    width:calc(#{$max + px} - #{$gap2});
+    @include ani(padding-left padding-right margin-left margin-right width);
+
+    @include break($max + $gaps, '<') {
+      width:calc(100% - #{$gap2});
+      margin-left:$gap; margin-right:$gap;
+    }
+    @include break($medium, '<') {
+      width:calc(100% - #{$gap});
+      margin-left:$gap0;
+      margin-right:$gap0;
+    }
+  }
+
+  %smart-container-faux-absolute {
+    @extend %smart-container-faux;
+    @include ani(padding-left padding-right margin-left margin-right width left);
+    position:absolute;
+    left:50%;
+    margin-left:- $max/2 + $gaps + px;
+    @include break($max + $gaps, '<') {
+      left:0;
+      margin-left:$gap;
+    }
+    @include break($medium, '<') {
+      margin-left:$gap0;
+    }
+  }
+
+  // This also fakes the output of the smart container, only forces the fake padding to extend to the edges of the page
+  %smart-container-faux-stretch {
+    @extend basic-container;
+    @include break($medium, '<') {
+      width:calc(100% + #{$gap2});
+      left:-$gap;
+    }
+  }
+}
