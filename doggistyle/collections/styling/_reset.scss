@@ -218,8 +218,7 @@ $custom-reset-elements : null;
 		color:$text;
 	}
 
-	p {
-		&:not(:last-of-type) { margin-bottom:$gap; }
+	p {		
 		&:empty { display:none; }
 	}
 

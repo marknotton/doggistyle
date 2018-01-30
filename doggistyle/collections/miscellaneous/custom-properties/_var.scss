@@ -1,5 +1,15 @@
-@mixin var($property, $variable:primary) {
+@mixin var($property, $variable:primary, $important:false) {
+
   $value : map-get($variables, $variable);
-  #{$property} : $value;
-  #{$property} : unquote('var(--' + $variable + ')');
+
+  // @if (is-color($value) and $opacity < 1) {
+  //   @debug is-color($value);
+  //   #{$property} : col($value, $opacity);
+  //   #{$property} : rgba(unquote('var(--' + $variable + ')'), $opacity);
+  // } @else {
+    #{$property} : $value if($important, !important, null);
+    #{$property} : unquote('var(--' + $variable + ')') if($important, !important, null);
+  // }
+
+
 }

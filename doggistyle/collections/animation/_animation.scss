@@ -153,6 +153,10 @@
 	@include prefixer(animation-timing-function, $ease, webkit);
 }
 
+@mixin animation-state($state:pause) {
+  @include prefixer(animation-play-state, $state, webkit);
+}
+
 @mixin animation-ease($ease) {
   @include animation-timing-function($ease);
 }

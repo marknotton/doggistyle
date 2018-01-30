@@ -12,7 +12,7 @@
     }
   }
   #{$new-list} {
-    font-size:$font-size;
+    font-size:add-unit($font-size);
     @content;
   }
 }
