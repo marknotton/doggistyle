@@ -1,0 +1,35 @@
+{
+    "name": "marknotton/doggistyle",
+    "description": "Sass library",
+    "type": "sass",
+    "version": "1.0.0",
+    "keywords": [
+        "sass",
+        "scss"
+    ],
+    "support": {
+        "docs": "https://github.com/marknotton/doggistyle/blob/master/README.md",
+        "issues": "https://github.com/marknotton/doggistyle/issues"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mark Notton",
+            "homepage": "https://www.doggi.style"
+        }
+    ],
+    "require": {
+
+    },
+    "autoload": {
+
+    },
+    "extra": {
+        "name": "Doggistyle",
+        "handle": "doggistyle",
+        "schemaVersion": "1.0.0",
+        "hasCpSettings": false,
+        "hasCpSection": false,
+        "changelogUrl": "https://github.com/marknotton/doggistyle/blob/master/CHANGELOG.md",
+    }
+}

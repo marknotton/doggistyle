@@ -2,7 +2,7 @@
 
 # Doggi Style [![GitHub release](https://img.shields.io/github/release/marknotton/doggistyle.svg)](https://github.com/marknotton/doggistyle/releases)
 
-A collection of Sass resources found from an array of sources, forums, and tutorials.
+A collection of Sass resources organised into a single library
 
 - **[Changelog](https://github.com/marknotton/doggistyle/releases)**
 - **[Issues & Bugs](https://github.com/marknotton/doggistyle/issues)**

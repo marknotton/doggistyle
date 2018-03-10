@@ -2,28 +2,10 @@
   "authors": [
     "marknotton (http://marknotton.uk)"
   ],
-  "description": "A collection of Sass resources found from an array of sources, forums, and tutorials.",
-  "homepage": "https://github.com/marknotton/doggystyle",
-  "ignore": [
-    "**/.*",
-    "_site",
-    "bin",
-    "doggystyle.gemspec",
-    "eyeglass-exports.js",
-    "features",
-    "Gemfile",
-    "Gemfile.lock",
-    "index.js",
-    "lib",
-    "package.json",
-    "Rakefile",
-    "RELEASING.md",
-    "sache.json",
-    "spec"
-  ],
+  "description": "A collection of Sass resources organised into a single library",
+  "homepage": "http://doggi.style",
+  "ignore": [ ],
   "keywords": [
-    "css",
-    "mixins",
     "sass",
     "scss"
   ],
@@ -32,7 +14,7 @@
   "name": "doggystyle",
   "repository": {
     "type": "git",
-    "url": "https://github.com/marknotton/doggystyle.git"
+    "url": "https://github.com/marknotton/doggistyle.git"
   },
-  "version": "0.2.0"
+  "version": "1.0.0"
 }
