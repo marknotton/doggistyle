@@ -31,6 +31,8 @@
 ///
 @mixin prefixer($properties, $value, $prefixes:webkit moz, $important:false) {
 
+  $_imp : is-important($important);
+
   @if $enable-prefixer {
 
     $prefixes : if($prefixes == all, $vendors, $prefixes);
@@ -45,14 +47,14 @@
       @each $prefix in $prefixes {
 
         @if index($vendors, $prefix) {
-          #{"-" + $prefix + "-" + $property}: $value if($important == true, $imp, null);
+          #{"-" + $prefix + "-" + $property}: $value $_imp;
         }
       }
       @if not $strict {
-        #{$property}: $value if($important == true, $imp, null);
+        #{$property}: $value $_imp;
       }
     }
   } @else {
-    #{$property}: $value if($important == true, $imp, null);
+    #{$property}: $value $_imp;
   }
 }

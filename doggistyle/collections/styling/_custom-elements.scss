@@ -26,7 +26,7 @@
   }
 
   featured-image { @extend %full; background-position:center 33%; background-size:cover;
-    > img { display:block; position:absolute; object-fit:cover; object-position: 50% 50%; width:100%; height:100%; max-width:100%; max-height:100%;
+    > img { display:block; position:absolute; object-fit:cover; object-position: 50% 50%; width:100%; top:0; left:0; height:100%; max-width:100%; max-height:100%;
       @include browsers(ie, edge) { display:none; }
     }
   }
@@ -36,12 +36,12 @@
   }
 
   // Wrapped iframes and canvases (typically for videos) will be styled up to be responsive.
-  video-container { padding-bottom:$ratio-16-9; display:block; position:relative; width:100%; height:auto; margin-top:$gap; margin-bottom:$gap;
+  video-container, .video-container { padding-bottom:$ratio-16-9; display:block; position:relative; width:100%; height:auto; margin-top:$gap; margin-bottom:$gap;
     background-position:center center;
     background-size: cover;
     background-repeat:no-repeat;
     iframe, canvas { position:absolute; display:block; top:0; left:0;
-      height:100%; width:100%;
+      height:100% $imp; width:100% $imp;
     }
   }
 

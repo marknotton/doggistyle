@@ -5,16 +5,20 @@
 /// @access public
 ///
 @mixin flex-grid($count, $gutter:$gap, $bottom:true, $important:false) {
+
+  $gutter : strip(to-number($gutter));
+
   @if $count <= 1 {
     @include flex-basis(auto, $important);
     width:100%;
-    @if is-number($gutter) and $gutter != null and strip(to-number($gutter)) > 0 {
+    @if is-number($gutter) and $gutter != null $gutter > 0 {
       margin-right:0 $imp;
       @if $bottom { margin-bottom:add-unit(if(is-bool($bottom), $gutter, $bottom)); }
     }
   }
   @elseif $count > 1 {
-    @if is-number($gutter) and $gutter != null and strip(to-number($gutter)) > 0 {
+    @if is-number($gutter) and $gutter != null {
+
       @include flex-basis(calc(100% / #{$count} - #{add-unit(($gutter * ($count - 1) / $count))}), $important);
 
       margin-right:add-unit($gutter);
@@ -39,7 +43,7 @@
     @include flex-basis(auto, $important);
   }
   @elseif $count > 1 {
-    @if is-number($gutter) and $gutter != null and strip(to-number($gutter)) > 0 {
+    @if is-number($gutter) and $gutter != null and $gutter > 0 {
       @include flex-basis(calc(100% / #{$count} - #{add-unit($gutter)} - 2px), $important);
     } @else {
       @include flex-basis(calc(100% / #{$count} - 2px), $important);

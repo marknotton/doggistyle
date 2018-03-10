@@ -1,0 +1,8 @@
+// Turn non comma delimited list into comma delimited list
+@function _list-undelimited-to-comma-delimited($list) {
+  @if ( length($list) == 1 and is-list($list) ) {
+    @return _list-items-to-strings(nth($list, 1), comma);
+  } @else {
+    @return $list;
+  }
+}

@@ -1,0 +1,9 @@
+@function is-important($value) {
+  $_imp : null;
+
+  @if ( contains((important, !important), $value) or (is-bool($value) and $value == true) ) {
+    $_imp : $imp;
+  }
+
+  @return $_imp;
+}
