@@ -1,0 +1,9 @@
+{
+  "name": "doggistyle",
+  "version": "1.0.1",
+  "description": "A collection of Sass resources organised into a single library",
+  "main": "library/_import.scss",
+  "repository": "https://www.npmjs.com/package/doggistyle",
+  "author": "Mark Notton <mark@marknotton.uk>",
+  "license": "MIT"
+}
