@@ -1,0 +1,9 @@
+@mixin viewport-width($break:$min) {
+  position:absolute;
+  width:100%;
+  @include break($break, '>') {
+    width:100vw;
+    left:50%;
+    @include x(-50%);
+  }
+}

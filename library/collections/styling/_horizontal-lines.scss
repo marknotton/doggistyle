@@ -1,0 +1,17 @@
+// Add horizontal lines eitherside some text
+@mixin horizontal-lines($weight:2, $colour:$grey, $line-spacing:$gap, $wrap:true) {
+  text-align:center; text-transform:uppercase;
+  @if $wrap { white-space: nowrap; }
+  @include flex-container(between center);
+  &:before, &:after {
+    content:"";
+    height:add-unit($weight);
+    width:100%;
+    background-color:$colour;
+    position:relative;
+    display:block;
+    @include flex-grow(1);
+  }
+  &:before { margin-right:$line-spacing; }
+  &:after { margin-left:$line-spacing; }
+}

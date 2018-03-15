@@ -193,6 +193,8 @@ $custom-reset-elements : null;
 	  -webkit-appearance: none;
 	}
 
+	small { font-size:smaller; }
+
 	///
 
 	html { height:100%; font-size: 62.5%; }
@@ -218,7 +220,7 @@ $custom-reset-elements : null;
 		color:$text;
 	}
 
-	p {		
+	p {
 		&:empty { display:none; }
 	}
 
