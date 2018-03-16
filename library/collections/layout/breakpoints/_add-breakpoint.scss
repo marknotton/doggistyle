@@ -23,5 +23,5 @@
       $breakpoints : map-set($breakpoints, $name, $size) !global;
     }
   }
-  @at-root :root { @include set-breakpoints(); }
+  @at-root body { @include set-breakpoints(); }
 }

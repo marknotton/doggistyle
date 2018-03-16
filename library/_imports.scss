@@ -78,15 +78,22 @@
         'collections/layout/vertical';
 
 // Collections: Layout: Grid
-@import 'collections/layout/grid/add-breakpoint',
-        'collections/layout/grid/break-between',
-        'collections/layout/grid/breakpoint',
-        'collections/layout/grid/get-breakpoint',
-        'collections/layout/grid/grid',
-        'collections/layout/grid/hide-at',
-        'collections/layout/grid/is-breakpoint',
-        'collections/layout/grid/set-breakpoints',
-        'collections/layout/grid/show-at';
+@import 'collections/layout/grid/grid-repeat',
+        'collections/layout/grid/grid-areas';
+
+// Collections: Layout: Float Grid (Classic)
+@import 'collections/layout/float-grid/grid';
+
+// Collections: Layout: Breakpoints
+@import 'collections/layout/breakpoints/add-breakpoint',
+        'collections/layout/breakpoints/break-between',
+        'collections/layout/breakpoints/breakpoint',
+        'collections/layout/breakpoints/get-breakpoint',
+        'collections/layout/breakpoints/show-breakpoints',
+        'collections/layout/breakpoints/hide-at',
+        'collections/layout/breakpoints/is-breakpoint',
+        'collections/layout/breakpoints/set-breakpoints',
+        'collections/layout/breakpoints/show-at';
 
 // Collections: Layout: Flexbox
 @import 'collections/layout/flexbox/flex-container',
