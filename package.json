@@ -5,5 +5,7 @@
   "main": "library/_import.scss",
   "repository": "https://www.npmjs.com/package/doggistyle",
   "author": "Mark Notton <mark@marknotton.uk>",
-  "license": "MIT"
+  "license": "MIT",
+  "_location": "marknotton/doggistyle",
+  "location": "marknotton/doggistyle"
 }
