@@ -31,7 +31,7 @@
     $temp : $list1;
     $list1 : $list2;
     $list2 : $temp;
-    @include warning(($list2-size - $list1-size)+' value'+ if($list2-size - $list1-size != 1, 's', '') +' has not been added to the map because the list sizes did not match.');
+    // @include warning(($list2-size - $list1-size)+' value'+ if($list2-size - $list1-size != 1, 's', '') +' has not been added to the map because the list sizes did not match.');
   }
 
   @if not $disable-warnings {

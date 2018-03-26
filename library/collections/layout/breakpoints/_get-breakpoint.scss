@@ -21,7 +21,7 @@
         @return $list;
       }
     } @else {
-      @include warning($number + ' is not a breakpoint');
+      // @include warning($number + ' is not a breakpoint');
       @return false;
     }
   }

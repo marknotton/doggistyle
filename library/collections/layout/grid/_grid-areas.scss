@@ -34,9 +34,9 @@
     }
   }
 
-  @if content-exists() {
-    #{$elements} {
-      @content;
-    }
-  }
+  // @if content-exists() {
+  //   #{$elements} {
+  //     @content;
+  //   }
+  // }
 }
