@@ -207,7 +207,7 @@ $custom-reset-elements : null;
 	body {
 	  @extend %font-default, .font1 !optional;
 	  @include size(100%);
-	  @include font-size;
+		@include font-size($font-size, $font-size*2);
 	  @include selection;
 		@if $show-breakpoints {
 			&:not(.dev-mode):after { display:none; }
@@ -284,6 +284,7 @@ $custom-reset-elements : null;
 		border:0;
 		text-rendering: optimizeLegibility;
 		-webkit-font-smoothing: antialiased;
+
 		&:focus { outline:0; }
 
 		@include placeholder();

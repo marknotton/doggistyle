@@ -1,3 +1,23 @@
+@mixin basic-container() {
+  width:100%;
+  max-width:$max-width;
+  margin-left:auto;
+  margin-right:auto;
+  position:relative;
+  display:block;
+}
+
+@mixin smart-container($gutter1:$gap2, $gutter2:$gap) {
+  @include basic-container;
+  @include transition(padding-left padding-right);
+  padding-left:$gutter1;
+  padding-right:$gutter1;
+  @include break($medium, '<') {
+    padding-left:$gutter2;
+    padding-right:$gutter2;
+  }
+}
+
 @if $reset {
 
   // main-wrapper {essential}
@@ -55,13 +75,7 @@
   // basic-container {essential}
   // This sets a few basic settings for a container element. The content will be cetnered, will have no padding.
   basic-container, .basic-container, .container {
-    @extend %clearfix;
-    width:100%;
-    max-width:$max-width;
-    margin-left:auto;
-    margin-right:auto;
-    position:relative;
-    display:block;
+    @include basic-container()
   }
 
   nav-container, .nav-container {
@@ -77,15 +91,7 @@
   // smart-container {essential}
   // This is essentially the same as basic-container, only has a small media query check to reduce the padding at a certain point
   smart-container, .smart-container {
-    @extend basic-container;
-    @include ani(padding-left padding-right);
-    padding-left:$gap;
-    padding-right:$gap;
-
-    @include break($medium, '<') {
-      padding-left:$gap0;
-      padding-right:$gap0;
-    }
+    @include smart-container();
   }
 
   // This fakes the results of the smart-container without having to use a smart-container custom element.
