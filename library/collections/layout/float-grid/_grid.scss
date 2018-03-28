@@ -1,5 +1,5 @@
 // The original grid mixin
-@mixin grid($args, $gutter:null) {
+@mixin grid($args, $gutter:null, $bottom:true, $important:false) {
 
   $count: nth($args, 1);
   $gutter: if($gutter == null, if(length($args) == 2, nth($args, 2), 0), $gutter);
@@ -20,6 +20,8 @@
       margin-right:0;
     }
   }
+
+  @if $bottom { margin-bottom:add-unit(if(is-bool($bottom), $gutter, $bottom)); }
 
   // Checks
   $width:     if($count  >  1, 100%/$count, 100%);
