@@ -51,8 +51,8 @@
     }
   }
 
-  gallery-container, .gallery-container { position:relative; overflow:hidden; width:100%;
-    gallery-image:not(:first-of-type), .gallery-image:not(:first-of-type) { opacity:0; }
+  gallery-container, .gallery-container { display:block; position:relative; overflow:hidden; width:100%;
+    // gallery-image:not(:first-of-type), .gallery-image:not(:first-of-type) { opacity:0; }
   }
 
   // Wrapped iframes and canvases (typically for videos) will be styled up to be responsive.
