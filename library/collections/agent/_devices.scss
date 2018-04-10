@@ -29,9 +29,9 @@ $devices : mobile tablet desktop;
       }
     }
 
-    @if length($devices-list) > 1 and length($types-list) > 0 {
-      @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
-    } @else {
+    // @if length($devices-list) > 1 and length($types-list) > 0 {
+    //   @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
+    // } @else {
       @if length($devices-list) > 0 {
         @each $device in $devices-list {
           @if $not {
@@ -41,7 +41,7 @@ $devices : mobile tablet desktop;
           }
         }
       }
-    }
+    // }
   }
 }
 
