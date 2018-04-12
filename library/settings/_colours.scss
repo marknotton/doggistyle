@@ -29,6 +29,26 @@ $thumbler:   #36465C !default;
 $reddit :    #FC4501 !default;
 $ello :      #221F1F !default;
 
+$social-media-colours : (
+  facebook:   $facebook,
+  twitter:    $twitter,
+  google:     $google,
+  googleplus: $google,
+  youtube:    $youtube,
+  linkedin:   $linkedin,
+  instagram:  $instagram,
+  pinterest:  $pinterest,
+  vine:       $vine,
+  snapchat:   $snapchat,
+  flickr:     $flickr,
+  vimeo:      $vimeo,
+  wordpress:  $wordpress,
+  blogger:    $blogger,
+  thumbler:   $thumbler,
+  reddit :    $reddit ,
+  ello :      $ello
+) !default;
+
 // Specials
 $yello:      #FFCB08 !default;
 $selection:  #B2D3FA !default;

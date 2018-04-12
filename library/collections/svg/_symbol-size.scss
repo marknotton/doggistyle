@@ -1,0 +1,44 @@
+/// Resize an SVG element using it's original dimensions to retain it's aspect ratio using a predefined symbols map
+/// This has been designed to fix the aspect ratio issues with older browsers (IE11)
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @param {String} $symbol - Define the symbol name. You can ommit the prefix 'icon-'
+/// @param {Number} $new-width - Define a unitless number to adjust the scale of an SVG.
+///                              0.5 is half the original size where 2 is double it's original size.
+///                              Using a unit will force the resize of the the element to a specific width,
+///                              the height will retain it's existing aspect ratio.
+/// @param {Number} $new-height - Define a speicfic height. This will ignore the aspect ratio and force the desired width.
+/// @param {Bool|Number|List} $transform-origin - If true, the transform-origin will be placed at the center of the div using px
+///                                               You can pass in 2 numbers to define your own Y and X co-ordinates
+///                                               Padding in just one number, will apply to both Y and X.
+/// @require {Mixin} svg-size
+/// @require {Mixin} transform-origin
+/// @require {Function} strip
+/// @require {Function} is-unit
+/// @require {Function} is-null
+/// @require {Function} add-unit
+/// @require {Map} symbols
+///
+/// $symbols: (
+///   logo : (
+///     width: 500,
+///     height: 59,
+///   ),
+/// );
+///
+/// @example scss - Usage
+/// svg { @include symbol-size(logo, 240, 1.5); }
+/// svg { @include symbol-size(logo, 240, 250px); }
+///
+
+@mixin symbol-size($symbol, $new-width:1, $new-height:null, $transform-origin:true) {
+  @if (map-has-key($symbols, $symbol)) {
+    $svg : map-get($symbols, $symbol);
+    @if (map-has-key($svg, width) and map-has-key($svg, height)) {
+      @include svg-size(map-get($svg, width), map-get($svg, height), $new-width, $new-height, $transform-origin);
+    }
+  }
+}

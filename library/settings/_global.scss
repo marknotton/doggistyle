@@ -37,6 +37,6 @@ $neat-installed : if(mixin-exists(outer-container) and mixin-exists(shift-in-con
 $enable-prefixer : true !default;
 
 // supports
-$support-iphoneX : false !default;
+$support-notches : false !default;
 
 $iphoneX-notch : 30pt !default;
