@@ -306,6 +306,6 @@ $custom-reset-elements : null;
 	h3{ @include font-size($h4 $h3); }
 	h4{ @include font-size($h5 $h4); }
 	h5{ @include font-size($h6 $h5); }
-	h6{ @include font-size($h6/2 $h6); }
+	h6{ @include font-size($h6/1.1 $h6); }
 
 }

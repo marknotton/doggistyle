@@ -1,0 +1,71 @@
+@mixin button($args...) {
+
+  $static   : ();
+  $hover    : ();
+  $inverted : false;
+  $size     : normal;
+
+  $static-text       : white;
+  $static-background : $blue;
+  $hover-text        : $blue;
+  $hover-background  : white;
+
+  @each $settings in $args {
+
+    @if is-list($settings) {
+      @if length($static) == 0 {
+        $static : $settings;
+      } @else if length($hover) == 0 {
+        $hover : $settings;
+      }
+    } @else if is-bool($settings) {
+      $inverted : $settings;
+    } @else if is-string($settings) {
+      $size : $settings;
+    }
+  }
+
+  @if length($static) == 2 {
+    $static-text       : first($static);
+    $static-background : last($static);
+  } @else {
+    @warn "You must define two static colours. The first first the text. The second for the background colour";
+  }
+
+  @if length($hover) == 2 {
+    $hover-text       : first($hover);
+    $hover-background : last($hover);
+  } @else {
+    @warn "You must define two hover state colours. The first first the text. The second for the background colour";
+  }
+
+  @if $inverted == true {
+
+    background-color:col($static-background, 0);
+    color:$static-text;
+    border:1px solid $static-text;
+
+    &:hover {
+      color:$hover-text;
+      background-color:$hover-background;
+      border-color:col($hover-text, 0);
+    }
+
+  } @else {
+
+    background-color:$static-background;
+    color:$static-text;
+
+    &:hover {
+      color:$hover-text;
+      background-color:$hover-background;
+    }
+
+  }
+
+  @if ($size == big) {
+    @extend .button-large;
+  } @else if ($size == small) {
+    @extend .button-small;
+  }
+}

@@ -34,6 +34,7 @@
 	$height-unit : unquote(if(not is-null($new-height), unit($new-height), $width-unit));
 
   @if ( not is-unit($new-width) ) {
+
     $scale : $new-width;
     $new-width : $width * $scale;
     $new-height : $height * $scale;

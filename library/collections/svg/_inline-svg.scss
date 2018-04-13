@@ -1,6 +1,6 @@
 /// @reuired postcss-inline-svg
 
-@mixin inline-svg($svg, $fill:null, $stroke:null) {
+@mixin inline-svg($svg, $fill:null, $stroke:null, $stroke-width:null) {
 
   $explode : string-explode($svg, '.');
 
@@ -13,7 +13,7 @@
         * { fill: $fill; }
       }
       @if not is-null($stroke) {
-        * { stroke: $stroke }
+        * { stroke: $stroke; stroke-width:add-unit($stroke-width); }
       }
       @content;
     }
