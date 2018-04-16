@@ -118,7 +118,7 @@
   font-size: calc(#{add-unit($min-size)} + #{$max-size - $min-size} * (100vw - #{add-unit($min-width)}) / #{$max-width - $min-width});
 
   @if $line-height == true {
-      line-height: calc(#{add-unit(increase-by-percentage($min-size, $line-height-percent))} + #{$max-size - $min-size} * (100vw - #{add-unit($min-width)}) / #{$max-width - $min-width});
+    line-height: calc(#{add-unit(increase-by-percentage($min-size, $line-height-percent))} + #{$max-size - $min-size} * (100vw - #{add-unit($min-width)}) / #{$max-width - $min-width});
   }
 
   @include break($min-width, max) {

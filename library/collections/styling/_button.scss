@@ -1,9 +1,39 @@
+/// Define a buttons default and hover styling. Includes a support for css variables and inverting
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @param {list | colour | css variable} $static-colours :
+///         Pass in the 2 colours (without a comma). First colour is for text,
+///         the second is for the background. You can define a css variable if
+///         you have a $variables sass map defined. You may pass in one colour if
+///         you later define this button to be inverted (as backgrounds aren't necessary)
+/// @param {list | colour | css variable} $hover-colours : Same as the previous param.
+///         However this param is optional. Ommiting this option will just reverse
+///         the colours from the first param. Inverted options can support static
+///         and background colours on hover.
+/// @param {bool | string} $inverted - 'inverted' or 'true' will trigger an inverted styling.
+///         This isn't a simple reverse of the first $static-colours and $hover-colours options.
+///         This assumes you want the static state to have no background colour at all.
+/// @param {string} $size - Pass in a class you'd like to extend (ommit the full-stop .).
+///         By default, this will fallback to .button
+///
+/// @example 1 scss - Usage
+/// .button1 {
+///   @include button(red white, blue white);
+/// }
+/// .button2 {
+///   @include button(red, blue white, invert);
+/// }
+///
+
 @mixin button($args...) {
 
   $static   : ();
   $hover    : ();
   $inverted : false;
-  $size     : normal;
+  $size     : false;
 
   $static-text       : white;
   $static-background : $blue;
@@ -12,7 +42,7 @@
 
   @each $settings in $args {
 
-    @if is-list($settings) {
+    @if is-list($settings) or is-color($settings) or variable-exists(variables) and map-has-key($variables, $settings){
       @if length($static) == 0 {
         $static : $settings;
       } @else if length($hover) == 0 {
@@ -21,51 +51,109 @@
     } @else if is-bool($settings) {
       $inverted : $settings;
     } @else if is-string($settings) {
-      $size : $settings;
+        @if $settings == invert {
+          $inverted : true;
+        } @else {
+          $size : $settings;
+        }
     }
   }
 
   @if length($static) == 2 {
-    $static-text       : first($static);
-    $static-background : last($static);
+    $static-text : first($static);
+    @if $inverted != true {
+      $static-background : last($static);
+    }
+    @if $inverted == true {
+      @warn "You must defined two static colours for an inverted button. The second ("+$static-background+") colour will be ignored";
+    }
+  } @else if $inverted == true {
+    $static-text : first($static);
   } @else {
-    @warn "You must define two static colours. The first first the text. The second for the background colour";
+    @error "You must define two static colours in button(col1 col2). The first is for the text colour. The second for the background colour";
   }
 
   @if length($hover) == 2 {
     $hover-text       : first($hover);
     $hover-background : last($hover);
+  } @else if length($hover) == 1 {
+    $hover-text       : $hover;
+    $hover-background : col($hover, 0);
   } @else {
-    @warn "You must define two hover state colours. The first first the text. The second for the background colour";
+    $hover-text       : $static-background;
+    $hover-background : $static-text;
   }
 
+  // IVERTED COLOURS
   @if $inverted == true {
 
-    background-color:col($static-background, 0);
-    color:$static-text;
-    border:1px solid $static-text;
+    @if variable-exists(variables) and map-has-key($variables, $static-text) {
+      @include var(color, $static-text);
+      @include var(border-color, $static-text);
+    } @else {
+      color:$static-text;
+      border-color:$static-text;
+    }
 
     &:hover {
-      color:$hover-text;
-      background-color:$hover-background;
-      border-color:col($hover-text, 0);
+
+      @if variable-exists(variables) and map-has-key($variables, $hover-background) {
+        @include var(background-color, $hover-background);
+      } @else {
+        background-color:$hover-background;
+      }
+
+      @if variable-exists(variables) and map-has-key($variables, $hover-text) {
+        @include var(color, $hover-text);
+        @include var(border-color, $hover-text);
+      } @else {
+        color:$hover-text;
+        border-color:$hover-text;
+      }
+
     }
 
   } @else {
+    // STANDARD COLOURS
+    @if variable-exists(variables) and map-has-key($variables, $static-background) {
+      @include var(background-color, $static-background);
+    } @else {
+      background-color:$static-background;
+    }
 
-    background-color:$static-background;
-    color:$static-text;
+    @if variable-exists(variables) and map-has-key($variables, $static-text) {
+      @include var(color, $static-text);
+    } @else {
+      color:$static-text;
+    }
 
     &:hover {
-      color:$hover-text;
-      background-color:$hover-background;
+
+      @if variable-exists(variables) and map-has-key($variables, $hover-background) {
+        @include var(background-color, $hover-background);
+      } @else {
+        background-color:$hover-background;
+      }
+
+      @if variable-exists(variables) and map-has-key($variables, $hover-text) {
+        @include var(color, $hover-text);
+        @include var(border-color, $hover-text);
+      } @else {
+        color:$hover-text;
+        border-color:$hover-text;
+      }
+
     }
 
   }
 
-  @if ($size == big) {
-    @extend .button-large;
-  } @else if ($size == small) {
-    @extend .button-small;
+  // Extend a custom class, or fallback to a .button class
+  @if ($size) {
+    @extend .#{$size} !optional;
+  } @else {
+    @extend .button !optional;
   }
+
+  @content;
+
 }

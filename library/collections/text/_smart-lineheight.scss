@@ -1,5 +1,3 @@
-
-
 @function smart-lineheight($size, $smart:true) {
   @if $smart and not is-unit($size) {
     @if is-percentage($size) {

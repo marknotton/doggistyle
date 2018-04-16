@@ -208,7 +208,7 @@ $custom-reset-elements : null;
 	}
 
 	body {
-	  @extend %font-default, .font1 !optional;
+	  @extend %font-default, .default !optional;
 	  @include size(100%);
 		@include font-size($font-size $font-size*2);
 	  @include selection;
@@ -298,14 +298,14 @@ $custom-reset-elements : null;
 		-webkit-margin-start:0px;
 		-webkit-margin-end:0px;
 		font-weight: normal;
-		@extend .font1 !optional;
+		@extend .default !optional;
 	}
 
-	h1{ @include font-size($h2 $h1); }
-	h2{ @include font-size($h3 $h2); }
-	h3{ @include font-size($h4 $h3); }
-	h4{ @include font-size($h5 $h4); }
-	h5{ @include font-size($h6 $h5); }
-	h6{ @include font-size($h6/1.1 $h6); }
+	h1{ @include font-size($h1 $h2); }
+	h2{ @include font-size($h2 $h2*1.2); }
+	h3{ @include font-size($h3 $h3*2); }
+	h4{ @include font-size($h4 $h4*2); }
+	h5{ @include font-size($h5 $h5*2); }
+	h6{ @include font-size($h6 $h6*2); }
 
 }

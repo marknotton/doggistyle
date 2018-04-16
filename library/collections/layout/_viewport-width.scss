@@ -8,9 +8,9 @@
   }
   @if ( $refactor != false ) {
     $refactor-gap : if(is-number($refactor), add-unit($refactor), $gap);
-    @include break($break + 1, '<') {
+    @include break($break - 1, '<') {
       left:-$refactor-gap;
-      width:calc(100% + #{$refactor-gap});
+      width:calc(100% + #{$refactor-gap*2});
       @content;
     }
   }
