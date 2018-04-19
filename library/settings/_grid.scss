@@ -17,3 +17,4 @@ $medium:        (($large - $small) / 2) + $small !default; // 780
 $small-medium:  (($medium - $small) / 2) + $small !default; // 630
 
 $show-breakpoints : false !default;
+$show-breakpoints-selector : 'body.dev-environment' !default;
