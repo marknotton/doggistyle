@@ -32,6 +32,7 @@
         'checks/is-important',
         'checks/is-function',
         'checks/is-integer',
+        'checks/is-hex',
         'checks/is-length',
         'checks/is-light',
         'checks/is-list',
@@ -46,6 +47,7 @@
         'checks/is-selector',
         'checks/is-string',
         'checks/is-time',
+        'checks/is-var',
         'checks/is-unit';
 
 // Helpers: Lists
@@ -86,6 +88,9 @@
         'private/from-hex',
         'private/from-hsl',
         'private/from-rgb',
+        'private/from-hsl',
+        'private/hex-to-rgba',
+        'private/get-variable-colour-value',
         'private/function-to-list',
         'private/get-color-value',
         'private/gradient-properties',
@@ -106,4 +111,5 @@
 // Helpers: Strings
 @import 'strings/string-explode',
         'strings/string-ends-with',
+        'strings/string-starts-with',
         'strings/string-replace';

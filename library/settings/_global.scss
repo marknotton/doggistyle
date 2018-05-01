@@ -40,3 +40,6 @@ $enable-prefixer : true !default;
 $support-notches : false !default;
 
 $iphoneX-notch : 30pt !default;
+
+// This only works when css variable colours are defined as an RGB list, NOT Hex colours.
+$support-css-variable-alpha-colours : false !default;

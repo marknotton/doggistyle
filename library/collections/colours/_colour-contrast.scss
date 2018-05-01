@@ -31,6 +31,8 @@
   $dark-text : black;
   $light-text : white;
 
+  $colour : get-variable-colour-value($colour);
+
   @each $setting in $text-colours {
     @if is-colour($setting) {
       @if $dark-text == black {
@@ -44,14 +46,14 @@
 
   $dark-text : if(is-dark($dark-text), $dark-text, black);
   $light-text : if(is-light($light-text), $light-text, white);
-  
+
   @return if(_brightness($colour) <  _lightness(), $light-text, $dark-text);
 }
 
 /// @alias contrasting-colour
 ///
 /// @access public
-/// 
+///
 /// @require {function} contrasting-colour
 ///
 /// @return {color}

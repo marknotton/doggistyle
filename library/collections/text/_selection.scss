@@ -1,16 +1,16 @@
-@mixin selection($background-color:$selection, $text-colour:$background-color) {
+@mixin selection($background-color:$selection, $text-colour:$background-color, $opacity:0.8) {
 
   @if ($text-colour == null or $text-colour == $background-color) {
     $text-colour:colour-contrast($background-color);
   }
   ::-moz-selection {
     color: $text-colour;
-    background-color: col($background-color, 0.8);
+    @include var(background-color, $background-color, $opacity);
     @content;
   }
   ::selection {
     color: $text-colour;
-    background-color: col($background-color, 0.8);
+    @include var(background-color, $background-color, $opacity);
     @content;
   }
 }

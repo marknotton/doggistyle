@@ -1,5 +1,18 @@
 @mixin set-variables() {
   @if variable-exists(variables) and not is-null($variables) {
+
+    $temp : $variables;
+
+    @if ($support-css-variable-alpha-colours == true) {
+      @each $variable, $value in $variables {
+        @if is-colour($value) {
+          $temp : map-set($temp, $variable, _hex-to-rgba($value));
+        }
+      }
+    }
+
+    $variables : $temp !global;
+
     @at-root :root {
       @each $variable, $value in $variables {
         #{'--' + string-replace($variable, '--')}: $value;
