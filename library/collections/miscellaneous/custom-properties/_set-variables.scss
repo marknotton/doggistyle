@@ -6,7 +6,11 @@
     @if ($support-css-variable-alpha-colours == true) {
       @each $variable, $value in $variables {
         @if is-colour($value) {
-          $temp : map-set($temp, $variable, _hex-to-rgba($value));
+          @if is-hex($value) {
+            $temp : map-set($temp, $variable, (red($value), green($value), blue($value)));
+          } @else {
+            $temp : map-set($temp, $variable, _hex-to-rgba($value));
+          }
         }
       }
     }

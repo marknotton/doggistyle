@@ -67,6 +67,9 @@
     #{$property} : $fallback-value if($important, !important, null);
   }
 
-  #{$property} : $variable-value if($important, !important, null);
+  @supports(--css: variables) {
+    #{$property} : $variable-value if($important, !important, null);
+  }
+
 
 }

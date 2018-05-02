@@ -1,7 +1,8 @@
 @mixin selection($background-color:$selection, $text-colour:$background-color, $opacity:0.8) {
 
   @if ($text-colour == null or $text-colour == $background-color) {
-    $text-colour:colour-contrast($background-color);
+    $fallback-value : get-variable-colour-value($background-color);
+    $text-colour:colour-contrast($fallback-value);
   }
   ::-moz-selection {
     color: $text-colour;

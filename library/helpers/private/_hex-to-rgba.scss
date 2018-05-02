@@ -1,14 +1,19 @@
 // Convert hex value to RGB or RGBA
 
-@function _hex-to-rgba($hex, $opacity : null) {
+@function _hex-to-rgba($colour, $opacity:1) {
 
-  $red:   red($hex);
-  $green: green($hex);
-  $blue:  blue($hex);
+  @if is-hex($colour) {
 
-  @if is-number($opacity) {
-    @return $red, $green, $blue, $opacity;
+    $red:   red($colour);
+    $green: green($colour);
+    $blue:  blue($colour);
+
+    @return unquote("rgba(#{$red}, #{$green}, #{$blue}, #{$opacity})");
+
   } @else {
-    @return $red, $green, $blue;
+    
+    @return $colour;
+
   }
+
 }

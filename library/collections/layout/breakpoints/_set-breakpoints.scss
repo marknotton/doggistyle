@@ -4,5 +4,5 @@
   @each $break, $value in $breakpoints {
     $new-breakpoints : map-set( $new-breakpoints, #{breakpoint-}#{$break}, $value);
   }
-  @include custom-property($new-breakpoints, null);
+  @include custom-property($new-breakpoints);
 }
