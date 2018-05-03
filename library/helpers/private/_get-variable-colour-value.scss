@@ -1,6 +1,6 @@
 @function get-variable-colour-value($variable, $opacity:1) {
 
-  @if variable-exists(variables) {
+  @if not is-colour($variable) and variable-exists(variables) {
 
     $value : map-get($variables, get-var-variable($variable));
 

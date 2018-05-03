@@ -33,21 +33,28 @@
 
   $colour : get-variable-colour-value($colour);
 
-  @each $setting in $text-colours {
-    @if is-colour($setting) {
-      @if $dark-text == black {
-        $dark-text: $setting;
-      }
-      @elseif $light-text == white {
-        $light-text: $setting;
+  @if is-colour($colour) {
+
+    @each $setting in $text-colours {
+      @if is-colour($setting) {
+        @if $dark-text == black {
+          $dark-text: $setting;
+        }
+        @elseif $light-text == white {
+          $light-text: $setting;
+        }
       }
     }
+
+    $dark-text : if(is-dark($dark-text), $dark-text, black);
+    $light-text : if(is-light($light-text), $light-text, white);
+
+    @return if(_brightness($colour) <  _lightness(), $light-text, $dark-text);
+
+  } @else {
+
+    @return $dark-text;
   }
-
-  $dark-text : if(is-dark($dark-text), $dark-text, black);
-  $light-text : if(is-light($light-text), $light-text, white);
-
-  @return if(_brightness($colour) <  _lightness(), $light-text, $dark-text);
 }
 
 /// @alias contrasting-colour
