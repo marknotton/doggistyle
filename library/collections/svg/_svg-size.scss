@@ -29,30 +29,49 @@
 
   $width : strip($original-width);
   $height : strip($original-height);
-  $new-width : to-number($new-width);
-	$width-unit : unquote(unit($new-width));
-	$height-unit : unquote(if(not is-null($new-height), unit($new-height), $width-unit));
 
-  @if ( not is-unit($new-width) ) {
+  $width-unit : null;
+  $height-unit : null;
 
-    $scale : $new-width;
-    $new-width : $width * $scale;
-    $new-height : $height * $scale;
+  @if not is-null($new-width) {
+    $new-width : to-number($new-width);
+    $width-unit : unquote(unit($new-width));
+  }
 
-    width:$new-width + px;
-    height:$new-height + px;
+  @if not is-null($new-height) {
+    $new-height : to-number($new-height);
+    $height-unit : unquote(unit($new-height));
+  }
 
-  } @else {
+  // @debug $new-width;
+  // @debug $new-height;
+  // @debug '---------';
+
+  // @if ( not is-unit($new-width) ) {
+  //
+  //   $scale : $new-width;
+  //   $new-width : $width * $scale;
+  //   $new-height : $height * $scale;
+  //
+  //   width:$new-width + px;
+  //   height:$new-height + px;
+  //
+  // } @else {
 
     @if (is-null($new-height)) {
       $ratio : if($height <= $width, $height / $width, $width / $height);
       $new-height : strip($new-width) * $ratio;
     }
 
+    @if (is-null($new-width)) {
+      $ratio : if($height >= $width, $height / $width, $width / $height);
+      $new-width : strip($new-height) * $ratio;
+    }
+
     width:add-unit($new-width, $width-unit);
     height:add-unit($new-height, $height-unit);
 
-  }
+  // }
 
   @if ( $transform-origin ) {
     @if (is-bool($transform-origin) and $transform-origin == true) {

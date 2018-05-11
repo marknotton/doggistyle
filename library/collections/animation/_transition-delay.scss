@@ -15,5 +15,5 @@
 /// @return
 
 @mixin delay($time...) {
-  @include transition-delay($time);
+  @include transition-delay($time...);
 }

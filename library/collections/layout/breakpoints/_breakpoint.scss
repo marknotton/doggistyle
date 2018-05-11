@@ -11,8 +11,12 @@
         $width : add-unit($rule);
       }
       @if is_string($rule) {
-        $rule : if($rule == 'min' or $rule == '>', 'min-width', $rule);
-        $rule : if($rule == 'max' or $rule == '<', 'max-width', $rule);
+        @if $rule == 'min' or $rule == '>' {
+          $rule : 'min-width';
+        } @else if $rule == 'max' or $rule == '<' {
+          $rule : 'max-width';
+          $width : $width - 1;
+        }
         $condition : $rule;
       }
     }
