@@ -1,4 +1,10 @@
-
+/// Define gap sizes for a specific property at various breakpoints
+/// @param {string} property you want to apply the gaps to
+/// @param {list} Upto 4 units for each gap. They are applied in the usual order
+///               top, right, bottom, left. You can also define a optional breakpoint for
+///               these gaps to be defined to. Omiting a breakpoint will return the
+///               property and value without a media query.
+/// @example @include smart-gaps(padding, $gap2, $gap large);
 @mixin smart-gaps($settings...) {
 
   $propery : nth($settings, 1);
@@ -47,10 +53,6 @@
         #{$propery}:$units;
       }
     }
-
-    // @debug $propery;
-    // @debug $units;
-    // @debug $break;
 
   }
 
