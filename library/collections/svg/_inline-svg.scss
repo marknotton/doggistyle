@@ -1,14 +1,13 @@
 /// @reuired postcss-inline-svg
 
-@mixin inline-svg($svg, $fill:null, $stroke:null, $stroke-width:null) {
+@mixin inline-svg($svg, $fill:null, $stroke:null, $stroke-width:null, $path:'sprites') {
 
   $explode : string-explode($svg, '.');
 
   $name : nth($explode, 1);
   $filename : _add-extension($svg, 'svg');
-
   @at-root (without: media) {
-    @svg-load #{$name} url(#{$filename}) {
+    @svg-load #{$name} url(#{if(is-null($path), '', $path+'/')+$filename}) {
       @if not is-null($fill) {
         * { fill: $fill; }
       }
