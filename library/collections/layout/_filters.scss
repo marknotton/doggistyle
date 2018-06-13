@@ -31,6 +31,7 @@
 
   $filters : ();
   $fallback-settings : ();
+  $important : false;
 
   @if not contains($filter-values, $settings, true) and length($settings) >= 1 {
 
@@ -69,13 +70,14 @@
           } @else {
             $filter : $setting;
           }
+        } @elseif is-bool($setting){
+          $important : $setting;
         }
       }
-      // @debug $filter;
 
       // Check and validate all transform types
       @each $setting in $settings {
-        @if not is-string($setting) {
+        @if not is-string($setting) and not is-bool($setting) {
           @if contains($filter, (blur)) {
             // Values that require a unit
             $value : append($value, add-unit($setting));
@@ -94,6 +96,7 @@
                 $value : append($value, $val);
               }
             }
+
           } @else {
             // All other values
             $value : append($value, $setting);
@@ -113,54 +116,55 @@
   } @else {
    $filters : nth($settings, 1);
   }
-
-  @include prefixer(filter, $filters);
+  // @debug $filters;
+  // @debug $important;
+  @include prefixer(filter, $filters, webkit moz, $important);
 
 }
 
-@mixin url($value:null) {
-  @include filter(url $value);
+@mixin url($value:null, $important:false) {
+  @include filter(url $value $important);
 }
 
-@mixin blur($value:5px) {
-  @include filter(blur $value);
+@mixin blur($value:5px, $important:false) {
+  @include filter(blur $value $important);
 }
 
-@mixin brightness($value:0.4) {
-  @include filter(brightness $value);
+@mixin brightness($value:0.4, $important:false) {
+  @include filter(brightness $value $important);
 }
 
-@mixin contrast($value:200%) {
-  @include filter(contrast $value);
+@mixin contrast($value:200%, $important:false) {
+  @include filter(contrast $value $important);
 }
 
-@mixin drop-shadow($value:16px 16px 20px blue) {
-  @include filter(drop-shadow $value);
+@mixin drop-shadow($value:16px 16px 20px blue, $important:false) {
+  @include filter(drop-shadow $value $important);
 }
-@mixin dropshadow($value) { @include drop-shadow($value); }
+@mixin dropshadow($value, $important:false) { @include drop-shadow($value, $important); }
 
-@mixin greyscale($value:50%) {
-  @include filter(grayscale $value);
+@mixin greyscale($value:50%, $important:false) {
+  @include filter(grayscale $value $important);
 }
-@mixin grayscale($value) { @include greyscale($value); }
+@mixin grayscale($value, $important:false) { @include greyscale($value, $important); }
 
-@mixin hue-rotate($value:90deg) {
-  @include filter(hue-rotate $value);
+@mixin hue-rotate($value:90deg, $important:false) {
+  @include filter(hue-rotate $value $important);
 }
-@mixin hue($value) { @include hue($value); }
+@mixin hue($value, $important:false) { @include hue($value, $important); }
 
-@mixin invert($value:75%) {
-  @include filter(invert $value);
-}
-
-@mixin opacity($value:25%) {
-  @include filter(opacity $value);
+@mixin invert($value:75%, $important:false) {
+  @include filter(invert $value $important);
 }
 
-@mixin saturate($value:30%) {
-  @include filter(saturate $value);
+@mixin opacity($value:25%, $important:false) {
+  @include filter(opacity $value $important);
 }
 
-@mixin sepia($value:60%) {
-  @include filter(sepia $value);
+@mixin saturate($value:30%, $important:false) {
+  @include filter(saturate $value $important);
+}
+
+@mixin sepia($value:60%, $important:false) {
+  @include filter(sepia $value $important);
 }
