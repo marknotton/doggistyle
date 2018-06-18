@@ -77,13 +77,15 @@
 
     @each $setting in $settings {
 
+
+
       @if contains($setting, forwards backwards both none) {
         $fill : $setting;
       } @elseif contains($setting, normal alternate) {
         $direction : $setting;
       } @elseif contains($setting, paused running) {
         $state : $setting;
-      } @elseif is-string($setting) {
+      } @elseif is-string($setting) and not is-var($setting) {
         @if contains($setting, infinite loop) {
           $iterations : infinite;
         } @elseif is-ease($setting) {
@@ -92,7 +94,7 @@
 					$name : $setting;
 					$unique-name : $setting;
 				}
-      } @elseif is-number($setting) or is-time($setting) {
+      } @elseif is-number($setting) or is-time($setting) or is-var($setting) {
         @if is-null($duration) {
           @if is-time($setting) {
             $duration : $setting;
