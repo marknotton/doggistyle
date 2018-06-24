@@ -55,7 +55,6 @@
 
       // Check and validate all transform types
       @each $setting in $settings {
-        @debug $setting;
 
         @if not is-string($setting) {
           @if contains($transform, (translate translateY translateX translateZ translate3d y x Y X perspective)) {
