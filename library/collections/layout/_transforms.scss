@@ -55,6 +55,7 @@
 
       // Check and validate all transform types
       @each $setting in $settings {
+        @debug $setting;
 
         @if not is-string($setting) {
           @if contains($transform, (translate translateY translateX translateZ translate3d y x Y X perspective)) {
@@ -82,8 +83,12 @@
                 $value : append($value, $val, comma);
             }
           } @else {
-            // All other values
-            $value : append($value, $setting);
+            @if is-bool($setting) {
+              $important : $setting;
+            } @else {
+              // All other values
+              $value : append($value, $setting);
+            }
           }
         } @elseif contains($transform-values, $setting) {
           // Values that are strings and are global values
