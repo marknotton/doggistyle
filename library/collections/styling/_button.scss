@@ -151,7 +151,7 @@
   @if ($size) {
     @extend .#{$size} !optional;
   } @else {
-    @extend .button !optional;
+    @extend %button !optional;
   }
 
   @content;
