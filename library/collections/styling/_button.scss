@@ -13,11 +13,10 @@
 ///         However this param is optional. Ommiting this option will just reverse
 ///         the colours from the first param. Inverted options can support static
 ///         and background colours on hover.
-/// @param {bool | string} $inverted - 'inverted' or 'true' will trigger an inverted styling.
+/// @param {bool|string} $borderless - 'borderless' or 'false' will exclude any border colour
+/// @param {string} $inverted - 'inverted' or 'true' will trigger an inverted styling.
 ///         This isn't a simple reverse of the first $static-colours and $hover-colours options.
 ///         This assumes you want the static state to have no background colour at all.
-/// @param {string} $size - Pass in a class you'd like to extend (ommit the full-stop .).
-///         By default, this will fallback to .button
 ///
 /// @example 1 scss - Usage
 /// .button1 {
@@ -30,10 +29,10 @@
 
 @mixin button($args...) {
 
-  $static   : ();
-  $hover    : ();
-  $inverted : false;
-  $size     : false;
+  $static     : ();
+  $hover      : ();
+  $inverted   : false;
+  $borderless : false;
 
   $static-text       : white;
   $static-background : $blue;
@@ -49,13 +48,13 @@
         $hover : $settings;
       }
     } @else if is-bool($settings) {
-      $inverted : $settings;
+      $borderless : not $settings;
     } @else if is-string($settings) {
-        @if $settings == invert {
-          $inverted : true;
-        } @else {
-          $size : $settings;
-        }
+      @if $settings == invert {
+        $inverted : true;
+      } @elseif $settings == 'borderless' {
+        $borderless : true;
+      }
     }
   }
 
@@ -89,10 +88,10 @@
 
     @if variable-exists(variables) and map-has-key($variables, $static-text) {
       @include var(color, $static-text);
-      @include var(border-color, $static-text);
+      // @if not $borderless { @include var(border-color, $static-text); }
     } @else {
       color:$static-text;
-      border-color:$static-text;
+      // @if not $borderless { border-color:$static-text; }
     }
 
     &:hover {
@@ -105,10 +104,10 @@
 
       @if variable-exists(variables) and map-has-key($variables, $hover-text) {
         @include var(color, $hover-text);
-        @include var(border-color, $hover-text);
+        // @if not $borderless { @include var(border-color, $hover-text); }
       } @else {
         color:$hover-text;
-        border-color:$hover-text;
+        // @if not $borderless { border-color:$hover-text; }
       }
 
     }
@@ -137,21 +136,14 @@
 
       @if variable-exists(variables) and map-has-key($variables, $hover-text) {
         @include var(color, $hover-text);
-        @include var(border-color, $hover-text);
+        // @if not $borderless { @include var(border-color, $hover-text); }
       } @else {
         color:$hover-text;
-        border-color:$hover-text;
+        // @if not $borderless { border-color:$hover-text; }
       }
 
     }
 
-  }
-
-  // Extend a custom class, or fallback to a .button class
-  @if ($size) {
-    @extend .#{$size} !optional;
-  } @else {
-    @extend .button !optional;
   }
 
   @content;
