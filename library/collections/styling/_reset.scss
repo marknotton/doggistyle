@@ -279,7 +279,7 @@ $custom-reset-elements : null;
 
 	svg, symbol { overflow:visible; }
 
-	@include input-text() {
+	@include input-fields() {
 		-webkit-appearance:none;
 		-webkit-border-radius:0;
 		border-radius:0;

@@ -1,0 +1,244 @@
+@mixin input-style($settings : ()) {
+
+  $form-grey : if(variable-exists(form-grey), $form-grey, #a9a9a9) !global;
+
+  $default-settings : (
+    input-height    : 50px,
+    supported-types : email password select search text textarea tel url,
+    input-font-size : $font-size,
+    note-font-size  : $font-size - 2px,
+    padding         : $gap0 $gap,
+    label-padding   : $gap0,
+    label-reduction : 0.1,
+    radius          : 5,
+    error           : $red,
+    success         : $green,
+    bar-height      : 3px,
+    active : (
+      background    : $white,
+      placeholder   : $form-grey ,
+      asterisk      : primary,
+      text          : $black,
+      note          : $form-grey,
+      border-width  : 1px,
+      border-style  : solid,
+      border-colour : $form-grey,
+    ),
+    inactive : (
+      background    : col($white, 0.5),
+      placeholder   : $form-grey,
+      asterisk      : primary,
+      text          : $black,
+      note          : $form-grey,
+      border-width  : 1px,
+      border-style  : solid,
+      border-colour : $form-grey,
+    )
+  );
+
+  $settings : map-merge($default-settings, $settings);
+
+  $input-height           : map-get($settings,   input-height);
+  $supported-types        : map-get($settings,   supported-types);
+  $input-font-size        : map-get($settings,   input-font-size);
+  $note-font-size         : map-get($settings,   note-font-size);
+  $padding                : map-get($settings,   padding);
+  $label-padding          : map-get($settings,   label-padding);
+  $label-reduction        : map-get($settings,   label-reduction);
+  $radius                 : map-get($settings,   radius);
+  $error                  : map-get($settings,   error);
+  $success                : map-get($settings,   success);
+  $bar-height             : map-get($settings,   bar-height);
+  $active-background      : map-fetch($settings, active, background);
+  $active-placeholder     : map-fetch($settings, active, placeholder);
+  $active-asterisk        : map-fetch($settings, active, asterisk);
+  $active-text            : map-fetch($settings, active, text);
+  $active-border-width    : map-fetch($settings, active, border-width);
+  $active-border-style    : map-fetch($settings, active, border-style);
+  $active-border-colour   : map-fetch($settings, active, border-colour);
+  $inactive-background    : map-fetch($settings, inactive, background);
+  $inactive-placeholder   : map-fetch($settings, inactive, placeholder);
+  $inactive-asterisk      : map-fetch($settings, inactive, asterisk);
+  $inactive-text          : map-fetch($settings, inactive, text);
+  $inactive-border-width  : map-fetch($settings, inactive, border-width);
+  $inactive-border-style  : map-fetch($settings, inactive, border-style);
+  $inactive-border-colour : map-fetch($settings, inactive, border-colour);
+
+  $padding : if(length($padding) == 1, nth($padding, 1) nth($padding, 1), $padding);
+  $side-padding : nth($padding, 2);
+
+  display:block;
+  position:relative;
+
+  @include input-fields(($supported-types), false) {
+    width:100%; height:100%;
+    margin-bottom:0 $imp;
+    font-size:$input-font-size;
+    border:$active-border-width $active-border-style $active-border-colour;
+    height:$input-height; padding:$padding;
+    @include var(background-color, $active-background);
+    @include var(color, $active-text);
+    @include radius($radius);
+    @include transition(background-color);
+    &:not([value=""]):not(:focus):invalid ~ field-status-bar:before { @include var(background-color,$error); width:100%; }
+    &:not(:required) ~ field-status-bar { display:none; }
+    &:placeholder-shown {
+      @include var(background-color,$inactive-background);
+      & + label {
+        top:$input-height/2;
+        @include transform(y -50%, scale 1);
+      }
+      & ~ label, & ~ sup {
+        &:before {
+          opacity:0;
+        }
+      }
+    }
+    &:focus {
+      @include var(background-color,$active-background);
+      & + label {
+        top:0; @include transform(y -50%, scale (1 - $label-reduction));
+      }
+      & ~ label, & ~ sup {
+        &:before {
+          opacity:1;
+        }
+      }
+    }
+    // This forces the hover state of the autofill styling to respect the label position and scale
+    &:-webkit-autofill, &:-webkit-autofill:hover, &:-webkit-autofill:focus {
+      @include var(-webkit-text-fill-color, $active-text);
+      @if is-var($active-background) {
+        -webkit-box-shadow: 0 0 0px 1000px var($active-background) inset;
+      } @else {
+        -webkit-box-shadow: 0 0 0px 1000px $active-background inset;
+      }
+      & ~ label { opacity:1; }
+    }
+
+    // Style changes when individual field is valid
+    &:valid {
+      & ~ field-status-bar:before { width:100%; }
+      & ~ sup {
+        pointer-events:none;
+        opacity:0;
+        @include var(color, $active-placeholder);
+      }
+    }
+  }
+
+  &[data-type="select"] {
+    select {
+      &:invalid {
+        & ~ field-status-bar:before { width:0 $imp; }
+        & ~ sup:after {
+        }
+      }
+    }
+  }
+
+
+  // Change the font colour if the input-field element has an 'error' class
+  &.error field-status-text { color:$error; }
+
+  // This serves both as a holder for special notice text (like error messages)
+  // But also handles the the status bar that animates beneath the input field.
+  field-status-text {
+    position:relative;
+    display:block;
+    width:100%;
+    @include var(color, $active-text);
+    padding:5px $side-padding 0 $side-padding;
+    @include font-size($note-font-size);
+    a {
+      @include var(color);
+      &:hover { text-decoration: underline;}
+    }
+  }
+
+  field-status-bar {
+    position: absolute;
+    width:100%; height:$input-height;
+    top:0; left:0; display:block;
+    pointer-events: none;
+    overflow:hidden;
+    @include radius($radius);
+    &:before {
+      content:"";
+      height:if(strip($bar-height) == 1, add-unit(2), $bar-height);
+      width:0%;
+      position:absolute;
+      bottom:0; left:0;
+      display:block;
+      @include var(background-color, $success);
+      @include transition(width);
+    }
+  }
+
+  // This is the line that covers up the input border so the label appears to have padding.
+  label, sup {
+    position:absolute;
+    display:block;
+
+    @include transition(transform background-color color opacity left top);
+
+    &:before {
+      content:"";
+      display:block;
+      position:absolute;
+      z-index:-1;
+      opacity:1;
+      height:$active-border-width;
+      top:50%;
+      @include var(background-color, $active-background);
+      @include transition(opacity);
+    }
+  }
+
+  label {
+    left:$side-padding;
+    pointer-events: none;
+    font-size:$input-font-size;
+    top:0;
+    @include var(color, $active-placeholder);
+    @include transform-origin(0 50%);
+    @include transform(y -50%, scale (1-$label-reduction));
+    &:before {
+      // Because we're reducing the label by 20% via scale, we have to increase
+      // the background line width by the same amount.
+      width:calc(100% + #{($label-padding/10*$label-reduction + $label-padding)*2});
+      left:- ($label-padding/10*$label-reduction + $label-padding);
+      // And line height if it's set to 1px, otherwise increase by 20% aswell
+      height:if($active-border-width == 1px, 2px, (($active-border-width/10 * $label-reduction) + $active-border-width));
+    }
+  }
+
+  // Required Asterisk
+  // The small asterisk message that tells users this field is required.
+  sup {
+    position:absolute;
+    top:0; right:$side-padding; bottom:100%;
+    font-size:26px;
+    line-height:12px;
+    @include y(50%);
+    @include var(color, $active-asterisk);
+    &:hover:after { opacity:1; }
+    &:before {
+      width:calc(100% + #{$label-padding*2});
+      left:- $label-padding;
+    }
+    &:after {
+      position:absolute;
+      opacity:0;
+      font-size:12px;
+      @include var(background-color, $active-background);
+      padding-left:$label-padding; padding-right:$label-padding;
+      right:100%; top:50%;
+      @include transition(opacity);
+      @include y(-50%);
+      text-align:right;
+      white-space:nowrap;
+      content:attr(data-notice);
+    }
+  }
+}

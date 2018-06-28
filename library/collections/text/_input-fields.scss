@@ -1,6 +1,6 @@
 // Style up all sorts of text input fields
 
-@mixin input-text($types:color date datetime datetime-local email month number password search tel text time url week textarea) {
+@mixin input-fields($types:color date datetime datetime-local email month number password search tel text time url week textarea, $set-font : true) {
 
   $new-list:();
 
@@ -12,7 +12,13 @@
     }
   }
   #{$new-list} {
-    font-size:add-unit($font-size);
+    @if $set-font {
+      font-size:add-unit($font-size);
+    }
     @content;
   }
+}
+
+@mixin input-text($args...) {
+  @include input-fields($args...) { @content; }
 }
