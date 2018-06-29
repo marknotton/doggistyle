@@ -1,0 +1,54 @@
+/// Get a specific padding list value based on it's direction.
+/// Designed so that you could get the 'left' padding of a defined list.
+/// This will figure out the fallbacks should the defined list not have the correct amount of items;
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @return {number}
+
+@function _get-padding($padding, $direction) {
+
+  $length : length($padding);
+  $result : $padding;
+
+  @if $length != 1 {
+
+    // Top
+    @if $direction == top {
+      $result : nth($padding, 1);
+    }
+    // Right
+    @if $direction == right {
+      @if $length >= 2 {
+        $result : nth($padding, 2);
+      } @else {
+        $result : nth($padding, 1);
+      }
+    }
+
+    // Bottom
+    @if $direction == bottom {
+      @if $length >= 3 {
+        $result : nth($padding, 3);
+      } @else {
+        $result : nth($padding, 1);
+      }
+    }
+
+    // Left
+    @if $direction == left {
+      @if $length == 4 {
+        $result : nth($padding, 4);
+      } @elseif $length >= 2 {
+        $result : nth($padding, 2);
+      } @else {
+        $result : nth($padding, 1);
+      }
+    }
+
+  }
+
+  @return $result;
+}
