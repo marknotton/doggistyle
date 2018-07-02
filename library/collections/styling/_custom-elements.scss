@@ -44,9 +44,13 @@
     }
   }
 
-  form input-field {
-    @include input-style();
-  }
+  // form input-field {
+  //   @if variable-exists(input-style-settings) {
+  //     @include input-style($input-style-settings);
+  //   } @else {
+  //     @include input-style();
+  //   }
+  // }
 
   featured-image { @extend %full; background-position:center 33%; background-size:cover;
     > img { display:block; position:absolute; object-fit:cover; object-position: 50% 50%; width:100%; top:0; left:0; height:100%; max-width:100%; max-height:100%;
