@@ -96,25 +96,32 @@
   position:relative;
   background-color:inherit;
 
-  input {
+  input, textarea, select {
+    // Don't show the status bar or asterisk if this field is not required
+    &:not(:required) ~ field-status-bar, &:not(:required) ~ sup { display:none; }
+  }
+
+  input, textarea {
     // If this field is not empty, not in focus, and is invalid... show the status bar;
     &:not([value=""]):not(:focus) {
-      &:valid {
-        & ~ field-status-bar:before {
-          @include var(background-color,$success);
-          width:100%;
-        }
-      }
+
+      & ~ field-status-bar:before { width:100%; }
+
       &:invalid {
         & ~ field-status-bar:before {
           @include var(background-color,$error);
-          width:100%;
         }
       }
     }
-    // Don't show the status bar or asterisk if this field is not required
-    &:not(:required) ~ field-status-bar, &:not(:required) ~ sup { display:none; }
+  }
 
+  select {
+    &:invalid ~ field-status-bar:before {
+      width:0%;
+    }
+    &:valid ~ field-status-bar:before {
+      width:100%;
+    }
   }
 
   label {
@@ -174,6 +181,7 @@
       @include chrome() {
         // This forces the hover state of the autofill styling to respect the label styling
         &:-webkit-autofill, &:-webkit-autofill:hover, &:-webkit-autofill:focus {
+          // This tricks Chrome into repainting the styling on hover/focus
           & ~ field-placeholder { opacity:1; }
           @include var(-webkit-text-fill-color, $active-text);
           -webkit-box-shadow: 0 0 0px 1000px if(is-var($active-background), var($active-background), $active-background) inset;
@@ -294,7 +302,7 @@
 
     // Styling if nothing was enetered. Fallback to a static colour inline SVG.
     &:empty {
-      @include size(12 + $placeholder-padding-left + $placeholder-padding-right);
+      @include size(10 + $placeholder-padding-left + $placeholder-padding-right);
       background-image: url("data:image/svg+xml;charset=utf8,%3Csvg version='1.1' style='fill:#{str-replace(to-string(get-var-value(primary)), '#', '%23')}' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M0,9.4l1.4-4.6c3.2,1.2,5.5,2.2,7,3.1C8,4.1,7.8,1.5,7.8,0h4.4c-0.1,2.1-0.3,4.8-0.7,7.9c2.1-1.1,4.5-2.1,7.1-3.1L20,9.4 c-2.6,0.9-5.1,1.5-7.5,1.8c1.2,1.1,3,3.2,5.2,6.1L14,20c-1.2-1.7-2.6-4-4.1-6.9c-1.5,3-2.8,5.3-3.9,6.9l-3.6-2.7 c2.3-3.1,4-5.1,5-6.1C4.8,10.7,2.3,10.1,0,9.4z'/%3E%3C/svg%3E"), linear-gradient(transparent calc(50% - #{$border-width}), $active-background calc(50% - #{$border-width}),$active-background calc(50% + #{$border-width}), transparent calc(50% + #{$border-width}));;
       background-position:center center;
       background-repeat:no-repeat;
@@ -304,7 +312,7 @@
 
     // Styling if an SVG icon is used (assume it's square)
     > svg {
-      @include size(12);
+      @include size(10);
       @include transition(fill);
       @include var(fill, $active-asterisk);
     }
