@@ -88,10 +88,10 @@
 
     @if variable-exists(variables) and map-has-key($variables, $static-text) {
       @include var(color, $static-text);
-      // @if not $borderless { @include var(border-color, $static-text); }
+      @if not $borderless { @include var(border-color, $static-text); }
     } @else {
       color:$static-text;
-      // @if not $borderless { border-color:$static-text; }
+      @if not $borderless { border-color:$static-text; }
     }
 
     &:hover {
@@ -104,10 +104,10 @@
 
       @if variable-exists(variables) and map-has-key($variables, $hover-text) {
         @include var(color, $hover-text);
-        // @if not $borderless { @include var(border-color, $hover-text); }
+        @if not $borderless { @include var(border-color, $hover-text); }
       } @else {
         color:$hover-text;
-        // @if not $borderless { border-color:$hover-text; }
+        @if not $borderless { border-color:$hover-text; }
       }
 
     }
@@ -136,10 +136,10 @@
 
       @if variable-exists(variables) and map-has-key($variables, $hover-text) {
         @include var(color, $hover-text);
-        // @if not $borderless { @include var(border-color, $hover-text); }
+        @if not $borderless { @include var(border-color, $hover-text); }
       } @else {
         color:$hover-text;
-        // @if not $borderless { border-color:$hover-text; }
+        @if not $borderless { border-color:$hover-text; }
       }
 
     }
