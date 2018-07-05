@@ -194,5 +194,5 @@
         'collections/styling/custom-elements';
 
 
-@if mixin-exists(update-settings) and $reset {  @include update-settings; }
+@if mixin-exists(update-settings) and $reset { @include update-settings; }
 @if $show-breakpoints and $reset { @include show-breakpoints(); }

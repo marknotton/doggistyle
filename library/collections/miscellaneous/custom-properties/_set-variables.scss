@@ -24,3 +24,9 @@
     }
   }
 }
+
+@mixin set-variable($variable, $value) {
+  @at-root :root {
+    #{'--' + string-replace($variable, '--')}: $value;
+  }
+}
