@@ -24,7 +24,7 @@
 /// @alias random-colour
 ///
 /// @access public
-/// 
+///
 /// @require {function} random-colour
 ///
 /// @return {color}
@@ -37,7 +37,7 @@
 /// @alias random-colour
 ///
 /// @access public
-/// 
+///
 /// @require {function} random-colour
 ///
 /// @return {color}
@@ -55,7 +55,7 @@
 ///
 /// @param {number} $amount - How many items are there. Default is 10
 ///
-/// @param {string} $target - Add any children elements you want to target
+/// @param {string} $target - Add any child elements you want to target
 ///
 /// @param {number} $opacity - The opacity strength. Default is 0.5
 ///
@@ -63,16 +63,16 @@
 ///   li { random-colours(5, '.link'); }
 ///
 /// @example css - Output
-///   li:nth-of-type(1) .link { background-color: rgba(166, 213, 186, 0.5); }
-///   li:nth-of-type(2) .link { background-color: rgba(118, 134, 177, 0.5); }
-///   li:nth-of-type(3) .link { background-color: rgba(223, 47, 35, 0.5); }
-///   li:nth-of-type(4) .link { background-color: rgba(175, 255, 1, 0.5); }
-///   li:nth-of-type(5) .link { background-color: rgba(100, 108, 80, 0.5); }
+///   li:nth-child(1) .link { background-color: rgba(166, 213, 186, 0.5); }
+///   li:nth-child(2) .link { background-color: rgba(118, 134, 177, 0.5); }
+///   li:nth-child(3) .link { background-color: rgba(223, 47, 35, 0.5); }
+///   li:nth-child(4) .link { background-color: rgba(175, 255, 1, 0.5); }
+///   li:nth-child(5) .link { background-color: rgba(100, 108, 80, 0.5); }
 ///
 /// @return {*}
 
 @mixin random-colours($amount:10, $target:null, $opacity:0.5) {
   @for $i from 1 through $amount {
-    &:nth-of-type(#{$i}) #{$target} { background-color:random-colour($opacity); }
+    &:nth-child(#{$i}) #{$target} { background-color:random-colour($opacity); }
   }
 }
