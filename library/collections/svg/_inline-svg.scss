@@ -7,7 +7,7 @@
   $name : nth($explode, 1);
   $filename : _add-extension($svg, 'svg');
   @at-root (without: media) {
-    @svg-load #{$name} url(#{if(is-null($path), '', $path+'/')+$filename}) {
+    @svg-load #{$name} url(#{if(is-null($path) or $path == false, '', $path+'/')+$filename}) {
       @if not is-null($fill) {
         * { fill: $fill; }
       }
