@@ -1,4 +1,9 @@
 /// A quick way of adding a key and value to the end of a map
+///
+/// @author Mark Notton
+///
+/// @return {map} 
+
 @function map-set($map, $key, $value) {
   @return map-merge($map, ($key: $value));
 }

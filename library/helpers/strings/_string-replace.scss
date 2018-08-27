@@ -33,6 +33,6 @@
 ///
 /// @return {string}
 
-@function string-replace($search, $string:'', $replace:'') {
+@function string-replace($string, $search:'', $replace:'') {
   @return str-replace($search, $string, $replace);
 }

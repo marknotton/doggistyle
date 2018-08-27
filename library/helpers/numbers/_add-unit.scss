@@ -27,14 +27,7 @@
 ///   50px
 ///   50%
 ///   50%
-
-// @function add-unit($value, $unit:$default-unit) {
-//   @if is-number($value) and unitless($value) {
-//     @return strip($value) + $unit;
-//   } @else {
-//     @return $value;
-//   }
-// }
+///
 
 @function add-unit($value, $unit:null, $replace:false) {
   @if type-of($value) == 'number' {

@@ -3,16 +3,17 @@
 /// @author Mark Notton
 ///
 /// @access private
-/// 
+///
 /// @require {function} is-pseudo
 ///
 /// @return {string}
-/// 
+///
 /// @example scss - Usage
 ///   &#{_sudo(before)} { ... }
 ///
 /// @example scss - Output
 ///   &:before { ... }
+///
 
 @function _sudo($pseudo, $colon:true) {
   @if is-pseudo($pseudo) {
@@ -20,4 +21,8 @@
   } @else {
     @return null;
   }
+}
+
+@function _pseudo($pseudo, $colon:true) {
+  @return _sudo($pseudo, $colon);
 }

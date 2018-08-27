@@ -13,13 +13,14 @@
 ///   $list: a, b, c d e, f, g, h;
 ///   $new-list: h, g, f, c d e, b, a
 ///   $new-list: h, g, f, e d c, b, a
+///
 
 @function reverse($list, $recursive: false) {
    $result: ();
 
    @for $i from length($list)*-1 through -1 {
       @if type-of(nth($list, abs($i))) == list and $recursive {
-        $result: append($result, reverse(nth($list, abs($i)), $recursive));      
+        $result: append($result, reverse(nth($list, abs($i)), $recursive));
       }
 
       @else {

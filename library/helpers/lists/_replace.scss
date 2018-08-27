@@ -7,11 +7,12 @@
 /// @example scss - Usage
 ///   $list: a, b, r, a, c a, d a, b, r, a;
 ///   $new-list1: replace($list, a, u);
-///   $new-list2: replace($list, a, u, true); 
+///   $new-list2: replace($list, a, u, true);
 ///
 /// @example scss - Output
 ///   $new-list1: u, b, r, u, c a, d a, b, r, u;
 ///   $new-list2: u, b, r, u, c u, d u, b, r, u;
+///
 
 @function replace($list, $old-value, $new-value, $recursive: false) {
   $result: ();

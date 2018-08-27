@@ -29,6 +29,7 @@
 ///
 /// @example css - Output
 /// color:#dcfac0;
+///
 
 @function map-deep-get($map, $keys...) {
   @each $key in $keys {
@@ -37,11 +38,10 @@
   @return $map;
 }
 
-
 /// @alias map-deep-get
 ///
 /// @access public
-/// 
+///
 /// @require {function} map-deep-get
 ///
 /// @return {*}

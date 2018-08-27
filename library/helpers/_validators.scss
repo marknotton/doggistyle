@@ -1,26 +1,19 @@
+$blend-modes : initial inherit unset screen overlay darken lighten color-dodge multiply color-burn hard-light soft-light difference exclusion hue saturation color luminosity normal;
 
-// Background and Mix blends
-$blend-modes : (initial inherit unset screen overlay darken lighten color-dodge multiply color-burn hard-light soft-light difference exclusion hue saturation color luminosity normal);
-
-// Browser prefixers
 $vendors : webkit moz ms o;
 
-// Gradient types
 $gradient-types : linear radial repeating-linear repeating-radial linear-repeat radial-repeat circle elipse;
 
-// Transform types
 $transform-types : matrix translate translateX translateY scale scaleX scaleY rotate skew skewX skewY matrix3d translate3d translateZ scale3d scaleZ rotate3d rotateX rotateY rotateZ perspective;
 
-// Transform values
 $transform-values : inherit initial unset none;
 
-// Filter values & types
 $filter-values : inherit initial unset;
+
 $filter-types : url blur brightness contrast drop-shadow shadow grayscale greyscale hue-rotate hue invert opacity saturate sepia;
 
-// Unit types
-$relative-lengths : em, ex, %, px, cm, mm, in, pt, pc, ch, rem, vh, vw, vmin, vmax;
+$relative-units : em, ex, %, px, cm, mm, in, pt, pc, ch, rem, vh, vw, vmin, vmax;
 
-$absolute-lengths : cm, mm, in, px, pt, pc;
+$absolute-units : cm, mm, in, px, pt, pc;
 
-$all-units : join($relative-lengths, $absolute-lengths);
+$all-units : join($relative-units, $absolute-units);

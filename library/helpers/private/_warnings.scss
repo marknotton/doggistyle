@@ -1,3 +1,0 @@
-@mixin warning($warning) {
-  @if not $disable-warnings { @warn #{$warning}; }
-}

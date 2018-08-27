@@ -27,6 +27,7 @@
 ///   $list4 : false;
 ///
 /// @return {bool}
+
 @function contains($list, $values, $recursive:false) {
 
   @if is-string($values) or is-number($values) or is-list($values) or $recursive {

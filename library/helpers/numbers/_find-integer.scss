@@ -12,7 +12,7 @@
 ///
 /// @return {list} new pointer, parsed number
 
-@function helper-find-integer($source, $pointer) {
+@function find-integer($source, $pointer) {
   $source: to-lower-case($source);
   $length: str-length($source);
   $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
@@ -37,4 +37,3 @@
 
   @return $pointer, $result;
 }
-

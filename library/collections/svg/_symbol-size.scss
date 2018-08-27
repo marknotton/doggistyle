@@ -41,7 +41,9 @@
       @include svg-size(map-get($svg, width), map-get($svg, height), $new-width, $new-height, $transform-origin);
     }
   } @else {
-    @warn($symbol + ' dimensions were not found in your symbols map.');
+    @if $warnings {
+      @warn($symbol + ' dimensions were not found in your symbols map.');
+    }
   }
 }
 

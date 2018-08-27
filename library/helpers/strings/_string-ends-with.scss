@@ -11,6 +11,7 @@
 /// @param {string} $needle - substring to check
 ///
 /// @return {Bool}
+
 @function _string-ends-with($string, $needle) {
   @return str-slice($string, -1 * str-length($needle)) == $needle;
 }

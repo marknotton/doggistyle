@@ -1,0 +1,212 @@
+// -------------------------------------------------------------------------- //
+// Options
+// -------------------------------------------------------------------------- //
+
+// Show warnings
+$warnings : true !default;
+
+// Include a variety of 'normaliser' settings
+$reset : true !default;
+
+// Include a variety of 'normaliser' settings specific for emailers
+$reset-emailers : false !default;
+
+// Include a variety of custom-element and markup styling
+$include-styling : true !default;
+
+// Default border radius
+$border-radius : 10 !default;
+
+// Default units
+$default-unit : px !default;
+
+// This only works when css variable colours are defined as an RGB list, NOT Hex colours.
+$support-css-variable-alpha-colours : false !default;
+
+// -------------------------------------------------------------------------- //
+// Aspect Ratios
+// -------------------------------------------------------------------------- //
+
+$aspect-ratios : (
+  4x3   : 75%,
+  16x9  : 56.25%,
+  16x10 : 62.5%,
+) !default;
+
+// -------------------------------------------------------------------------- //
+// Directories
+// -------------------------------------------------------------------------- //
+
+$images: "/assets/images/" !default;
+
+$sprites: "/assets/images/sprites/" !default;
+
+$fonts: "/assets/fonts/" !default;
+
+// -------------------------------------------------------------------------- //
+// Gaps
+// -------------------------------------------------------------------------- //
+
+$gaps : 16 !default;
+$gap  : gap(1) !default;
+$gap0 : gap(0) !default;
+$gap1 : add-unit($gap) !default;
+$gap2 : gap(2) !default;
+$gap3 : gap(3) !default;
+$gap4 : gap(4) !default;
+$gap5 : gap(5) !default;
+$gap6 : gap(6) !default;
+
+// -------------------------------------------------------------------------- //
+// Spacers
+// -------------------------------------------------------------------------- //
+
+$spacing:            5 !default;
+$vertical-spacing:   $spacing !default;
+$horizontal-spacing: $spacing !default;
+
+// Horizontal Spacers
+$hspace:  space(1, vw, $horizontal-spacing) !default;
+$hspace1: $hspace  !default;
+$hspace0: space(0, vw, $horizontal-spacing) !default;
+$hspace2: space(2, vw, $horizontal-spacing) !default;
+$hspace3: space(3, vw, $horizontal-spacing) !default;
+$hspace4: space(4, vw, $horizontal-spacing) !default;
+$hspace5: space(5, vw, $horizontal-spacing) !default;
+
+// Vertical Spacers
+$vspace:  space(1, vh, $vertical-spacing) !default;
+$vspace1: $vspace  !default;
+$vspace0: space(0, vh, $vertical-spacing) !default;
+$vspace2: space(2, vh, $vertical-spacing) !default;
+$vspace3: space(3, vh, $vertical-spacing) !default;
+$vspace4: space(4, vh, $vertical-spacing) !default;
+$vspace5: space(5, vh, $vertical-spacing) !default;
+
+// As this is likely to be used more often, these are aliased to the vspace variables
+$space:  $vspace !default;
+$space1: $vspace1 !default;
+$space0: $vspace0 !default;
+$space2: $vspace2 !default;
+$space3: $vspace3 !default;
+$space4: $vspace4 !default;
+$space5: $vspace5 !default;
+
+// -------------------------------------------------------------------------- //
+// Miscellaneous
+// -------------------------------------------------------------------------- //
+
+// Shorthand for !important (for the lazy)
+$imp : !important;
+
+// -------------------------------------------------------------------------- //
+// Media Quries & Breakpoints
+// -------------------------------------------------------------------------- //
+
+$mobile-first:  false !default;
+$breakpoints:   () !default;
+
+$max:           1440  !default;
+$min:           320   !default;
+$max-width:     add-unit($max) !default;
+$min-width:     add-unit($min) !default;
+$maximum:       $max-width !default;
+$minimum:       $min-width !default;
+
+$small:         480  !default;
+$large:         1200 !default;
+$medium:        (($large - $small) / 2) + $small !default; // 780
+$small-medium:  (($medium - $small) / 2) + $small !default; // 630
+
+$show-breakpoints : false !default;
+$show-breakpoints-selector : 'body.dev-environment' !default;
+
+// -------------------------------------------------------------------------- //
+// Notches
+// -------------------------------------------------------------------------- //
+
+$support-notches : false !default;
+
+$notches : (
+  iphoneX : 30pt 209pt
+) !default;
+
+// -------------------------------------------------------------------------- //
+// Text
+// -------------------------------------------------------------------------- //
+
+$global-line-height-guide : 70 !default;
+
+$font-size: 16 !default;
+
+$size: add-unit($font-size) !default;
+
+$h1: ceil(($font-size*2.5))                      !default; // 40px
+$h2: ceil((($h1 - $font-size) / 2) + $font-size) !default; // 28px
+$h3: ceil((($h2 - $font-size) / 2) + $font-size) !default; // 22px
+$h4: ceil((($h3 - $font-size) / 2) + $font-size) !default; // 19px
+$h5: ceil((($h4 - $font-size) / 2) + $font-size) !default; // 17.5px
+$h6: ceil((($h5 - $font-size) / 2) + $font-size) !default; // 16.75px
+
+// -------------------------------------------------------------------------- //
+// Colours
+// -------------------------------------------------------------------------- //
+
+// Basics
+$red:         #97080E !default;
+$orange:      #DA4B0F !default;
+$yellow:      #E9B104 !default;
+$green:       #488C13 !default;
+$blue:        #1B55C0 !default;
+$pink:        #E05D6B !default;
+$purple:      #613D5A !default;
+$grey:        #787878 !default;
+$brown:       #774F38 !default;
+$white:       #FFFFFF !default;
+$black:       #000000 !default;
+
+// Social Networks
+$facebook:    #3A5897 !default;
+$twitter:     #00aced !default;
+$google:      #df5146 !default;
+$youtube:     #CD1F1F !default;
+$linkedin:    #1D77B5 !default;
+$instagram:   #E33F5E !default;
+$pinterest:   #BC071D !default;
+$dailymotion: #0066DC !default;
+$vine:        #14B487 !default;
+$snapchat:    #FCFB00 !default;
+$flickr:      #EB1D82 !default;
+$vimeo:       #aad450 !default;
+$wordpress:   #20759A !default;
+$blogger:     #F4811E !default;
+$thumbler:    #36465C !default;
+$reddit :     #FC4501 !default;
+$ello :       #221F1F !default;
+
+$social-media-colours : (
+  facebook:   $facebook,
+  twitter:    $twitter,
+  google:     $google,
+  googleplus: $google,
+  youtube:    $youtube,
+  linkedin:   $linkedin,
+  instagram:  $instagram,
+  pinterest:  $pinterest,
+  dailymotion:$dailymotion,
+  vine:       $vine,
+  snapchat:   $snapchat,
+  flickr:     $flickr,
+  vimeo:      $vimeo,
+  wordpress:  $wordpress,
+  blogger:    $blogger,
+  thumbler:   $thumbler,
+  reddit :    $reddit ,
+  ello :      $ello
+) !default;
+
+// Special Colours
+$yello:       #FFCB08      !default;
+$selection:   #B2D3FA      !default;
+$text-colour: $black       !default;
+$text:        $text-colour !default;

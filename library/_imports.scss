@@ -1,20 +1,13 @@
-// Doggy-Style 0.1.1-beta
+// Doggistyle 0.3.0
 // http://goo.gl/RorsoL
-// Copyright 2013-2016 Mark Notton
+// Copyright 2013-2019 Mark Notton
 // MIT License
 
 // Settings
-@import 'settings/global',
-        'settings/aspect-ratios',
-        'settings/colours',
-        'settings/directories';
+@import 'settings';
 
-// Essential Imports
-@import 'helpers/essential-imports';
-
-// Experimentals
-@import 'experimentals/dropdown',
-        'experimentals/gallery';
+// Dependencies Imports
+@import 'helpers/dependencies';
 
 // Collections: Agent
 @import 'collections/agent/browsers',
@@ -168,11 +161,7 @@
         'collections/text/symbols/punctuation';
 
 // Placeholders
-@import 'placeholders/appearance',
-        'placeholders/clear',
-        'placeholders/pointer',
-        'placeholders/pseudo',
-        'placeholders/text';
+@import 'placeholders';
 
 @import 'settings/gaps',
         'settings/grid',
@@ -185,8 +174,7 @@
         'deprecated/pad';
 
 // Collections: Styling
-@import 'collections/styling/normalize',
-        'collections/styling/reset-emailers',
+@import 'collections/styling/reset-emailers',
         'collections/styling/button',
         'collections/styling/reset',
         'collections/styling/box-shadow',

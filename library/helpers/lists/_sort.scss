@@ -1,16 +1,5 @@
-/// Default order used to determine which string comes first
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/sorting-function/
-///
-/// @type list
-
-$default-order: "!" "#" "$" "%" "&" "'" "(" ")" "*" "+" "," "-" "." "/" "[" "]" "^" "_" "{" "|" "}" "~" "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z" !default;
-
-
 /// Sort list in a particular order.
-/// 
+///
 /// @author Hugo Giraudel
 ///
 /// @link https://css-tricks.com/snippets/sass/sorting-function/
@@ -25,6 +14,8 @@ $default-order: "!" "#" "$" "%" "&" "'" "(" ")" "*" "+" "," "-" "." "/" "[" "]" 
 /// @require {variable} default-order
 ///
 /// @return {list}
+
+$default-order: "!" "#" "$" "%" "&" "'" "(" ")" "*" "+" "," "-" "." "/" "[" "]" "^" "_" "{" "|" "}" "~" "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z" !default;
 
 @function sort($list, $order: $default-order) {
   $less:  ();
