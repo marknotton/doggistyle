@@ -169,7 +169,12 @@
           &:before {
             opacity:0;
           }
+          &:empty ~ field-asterisk {
+            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg version='1.1' style='fill:#{_hash-fix(primary)}' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M0,9.4l1.4-4.6c3.2,1.2,5.5,2.2,7,3.1C8,4.1,7.8,1.5,7.8,0h4.4c-0.1,2.1-0.3,4.8-0.7,7.9c2.1-1.1,4.5-2.1,7.1-3.1L20,9.4 c-2.6,0.9-5.1,1.5-7.5,1.8c1.2,1.1,3,3.2,5.2,6.1L14,20c-1.2-1.7-2.6-4-4.1-6.9c-1.5,3-2.8,5.3-3.9,6.9l-3.6-2.7 c2.3-3.1,4-5.1,5-6.1C4.8,10.7,2.3,10.1,0,9.4z'/%3E%3C/svg%3E"),
+            linear-gradient(transparent 50%, $inactive-background calc(50% - #{$border-width}),$inactive-background calc(50% + #{$border-width}), transparent calc(50% + #{$border-width}));
+          }
         }
+
         @if ( $placeholder-style == halfway ) {
           & ~ field-placeholder {
             background-color:transparent;
@@ -304,7 +309,7 @@
     &:empty {
       @include size(10 + $placeholder-padding-left + $placeholder-padding-right);
       background-image: url("data:image/svg+xml;charset=utf8,%3Csvg version='1.1' style='fill:#{_hash-fix(primary)}' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M0,9.4l1.4-4.6c3.2,1.2,5.5,2.2,7,3.1C8,4.1,7.8,1.5,7.8,0h4.4c-0.1,2.1-0.3,4.8-0.7,7.9c2.1-1.1,4.5-2.1,7.1-3.1L20,9.4 c-2.6,0.9-5.1,1.5-7.5,1.8c1.2,1.1,3,3.2,5.2,6.1L14,20c-1.2-1.7-2.6-4-4.1-6.9c-1.5,3-2.8,5.3-3.9,6.9l-3.6-2.7 c2.3-3.1,4-5.1,5-6.1C4.8,10.7,2.3,10.1,0,9.4z'/%3E%3C/svg%3E"),
-      linear-gradient(transparent 50%, $active-border-colour calc(50% - #{$border-width}),$active-border-colour calc(50% + #{$border-width}), transparent calc(50% + #{$border-width}));
+      linear-gradient(transparent 50%, $active-background calc(50% - #{$border-width}),$active-background calc(50% + #{$border-width}), transparent calc(50% + #{$border-width}));
       background-position:center center;
       background-repeat:no-repeat;
       background-size:calc(100% - #{$placeholder-padding-right*2}) calc(100% - #{$placeholder-padding-right*2}), 100% 100%;
