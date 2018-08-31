@@ -74,6 +74,7 @@ $reset-text-elements     : true !default;
 			font-size: 1.6rem;
 			text-rendering: optimizeLegibility;
 			-webkit-font-smoothing: antialiased;
+			color:$text;
 		  @extend %font-default, .default !optional;
 
 		  @include size(100%);
@@ -193,8 +194,12 @@ $reset-text-elements     : true !default;
 		[type="reset"],
 		[type="submit"] {
 			-webkit-appearance: button;
-			cursor: pointer;
-			@extend %clear-button;
+			background:none;
+			border:none;
+			padding:0;
+			margin:0;
+			cursor:pointer;
+			&:focus { outline:0; }
 		}
 
 		button::-moz-focus-inner,
@@ -257,6 +262,23 @@ $reset-text-elements     : true !default;
 			cursor: default;
 		}
 
+		@if mixin-exists(input-fields) {
+			@include input-fields() {
+				border-radius:0;
+				border:0;
+				text-rendering: optimizeLegibility;
+				-webkit-appearance:none;
+				-webkit-border-radius:0;
+				-webkit-font-smoothing: antialiased;
+
+				&:focus { outline:0; }
+
+				@if mixin-exists(placeholder) {
+					@include placeholder();
+				}
+			}
+		}
+
 	}
 
 	// ------------------------------------------------------------------------ //
@@ -283,6 +305,8 @@ $reset-text-elements     : true !default;
 
 		a {
 		  background-color:transparent;
+			text-decoration:none;
+			color:$text;
 		}
 
 		abbr[title] {
