@@ -13,6 +13,7 @@
     success-colour        : $green,
     bar-height            : 2px,
     border-width          : 1,
+    carat-colour          : $black,
     border-style          : solid,
     input : (
       height    : 50px,
@@ -72,6 +73,7 @@
   $form-background            : map-get($settings, form-background-colour);
   $error                      : map-get($settings, error-colour);
   $success                    : map-get($settings, success-colour);
+  $carat-colour               : map-get($settings, carat-colour);
   $bar-height                 : map-get($settings, bar-height);
   $border-width               : add-unit(map-fetch($settings, border-width));
   $border-style               : map-fetch($settings, border-style);
@@ -102,6 +104,9 @@
   }
 
   input, textarea {
+
+    carat-color : $carat-colour;
+
     // If this field is not empty, not in focus, and is invalid... show the status bar;
     &:not([value=""]):not(:focus) {
 
