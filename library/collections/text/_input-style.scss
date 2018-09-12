@@ -61,7 +61,7 @@
   $placeholder-padding        : map-fetch($settings, placeholder, padding);
   $placeholder-style          : map-fetch($settings, placeholder, style);
   $placeholder-reduction      : map-fetch($settings, placeholder, reduction);
-  $placeholder-offset           : add-unit(map-fetch($settings, placeholder, offset));
+  $placeholder-offset         : add-unit(map-fetch($settings, placeholder, offset));
   $placeholder-padding-top    : add-unit(_get-padding($placeholder-padding, top));
   $placeholder-padding-right  : add-unit(_get-padding($placeholder-padding, right));
   $placeholder-padding-bottom : add-unit(_get-padding($placeholder-padding, bottom));
@@ -164,13 +164,19 @@
         @include var(color, $inactive-text);
         & ~ field-placeholder {
           left:$input-padding-left;
-          top:$input-height/2;
+          @if ( $placeholder-style == halfway ) {
+            top:$input-height/2;
+            @include transform(y -50%, scale 1);
+          }
           @if ( $placeholder-style == outside ) {
             top:$input-height/2 - $placeholder-padding-top/2 + $placeholder-padding-bottom/2;
+            @include transform(y -50%, scale 1);
+          }
+          @if ($placeholder-style == inside ) {
+            opacity:1;
           }
           @include var(color, $inactive-placeholder);
           padding-left:0; padding-right:0;
-          @include transform(y -50%, scale 1);
           &:before {
             opacity:0;
           }
@@ -280,16 +286,20 @@
     left:$placeholder-offset;
     pointer-events:none;
     padding:$placeholder-padding-top $placeholder-padding-right $placeholder-padding-bottom $placeholder-padding-left;
-    @include y(-50%);
     @include var(color, $active-placeholder);
     @include transform-origin(0 50%);
     @if ( $placeholder-style == halfway ) {
+      @include y(-50%);
       @include transform(y -50%, scale (1 - $placeholder-reduction));
       left:($placeholder-offset * $placeholder-reduction + $placeholder-offset) + $radius/2;
       padding-right:($placeholder-padding-right * $placeholder-reduction + $placeholder-padding-right);
       padding-left:($placeholder-padding-left * $placeholder-reduction + $placeholder-padding-left);
     } @elseif $placeholder-style == outside {
+      @include y(-50%);
       @include transform(y -100%, scale (1 - $placeholder-reduction));
+    } @elseif $placeholder-style == inside {
+      @include y(50%);
+      opacity:0;
     }
   }
 
@@ -302,7 +312,7 @@
     font-size:add-unit((strip(to-number($input-font-size))) - (strip(to-number($input-font-size))*$placeholder-reduction)*2);
     @include var(color, $active-asterisk);
 
-    @if ( $placeholder-style == outside ) {
+    @if ( $placeholder-style == outside or $placeholder-style == inside ) {
       top:$placeholder-padding-top/2; right:$placeholder-padding-bottom/2;
     }
     @if ( $placeholder-style == halfway ) {
