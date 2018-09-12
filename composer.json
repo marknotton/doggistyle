@@ -2,7 +2,7 @@
     "name": "marknotton/doggistyle",
     "description": "Sass library",
     "type": "sass",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "keywords": [
         "sass",
         "scss"
@@ -27,7 +27,7 @@
     "extra": {
         "name": "Doggistyle",
         "handle": "doggistyle",
-        "schemaVersion": "0.2.2",
+        "schemaVersion": "0.2.3",
         "hasCpSettings": false,
         "hasCpSection": false,
         "changelogUrl": "https://github.com/marknotton/doggistyle/blob/master/CHANGELOG.md"
