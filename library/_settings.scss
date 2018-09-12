@@ -5,9 +5,6 @@
 // Show warnings
 $warnings : true !default;
 
-// Include a variety of 'normaliser' settings
-$reset : true !default;
-
 // Include a variety of 'normaliser' settings specific for emailers
 $reset-emailers : false !default;
 
@@ -20,8 +17,24 @@ $border-radius : 10 !default;
 // Default units
 $default-unit : px !default;
 
+// Default units for fonts and line-heights
+$default-font-unit : rem !default;
+
 // This only works when css variable colours are defined as an RGB list, NOT Hex colours.
 $support-css-variable-alpha-colours : false !default;
+
+// -------------------------------------------------------------------------- //
+// Reseters
+// -------------------------------------------------------------------------- //
+
+$reset                   : true !default;
+$reset-section-elements  : true !default;
+$reset-header-elements   : true !default;
+$reset-grouping-elements : true !default;
+$reset-table-elements    : true !default;
+$reset-form-elements     : true !default;
+$reset-embedded-elements : true !default;
+$reset-text-elements     : true !default;
 
 // -------------------------------------------------------------------------- //
 // Aspect Ratios
@@ -137,9 +150,9 @@ $notches : (
 
 $global-line-height-guide : 70 !default;
 
-$font-size: 16 !default;
+$font-size: 1.6 !default;
 
-$size: add-unit($font-size) !default;
+$size: add-unit($font-size, $default-font-unit) !default;
 
 $h1: ceil(($font-size*2.5))                      !default; // 40px
 $h2: ceil((($h1 - $font-size) / 2) + $font-size) !default; // 28px
