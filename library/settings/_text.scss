@@ -2,7 +2,7 @@ $global-line-height-guide : 70;
 
 $font-size: 16 !default;
 
-$size: add-unit($font-size) !default;
+$size: add-unit($font-size, rem) !default;
 
 $h1: ceil(($font-size*2.5))                      !default; // 40px
 $h2: ceil((($h1 - $font-size) / 2) + $font-size) !default; // 28px
