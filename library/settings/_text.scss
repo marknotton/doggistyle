@@ -2,11 +2,24 @@ $global-line-height-guide : 70;
 
 $font-size: 1.6 !default;
 
-$size: add-unit($font-size, rem) !default;
+$size: add-unit($font-size, $default-font-unit) !default;
 
-$h1: ceil(($font-size*2.5))                      !default; // 40px
-$h2: ceil((($h1 - $font-size) / 2) + $font-size) !default; // 28px
-$h3: ceil((($h2 - $font-size) / 2) + $font-size) !default; // 22px
-$h4: ceil((($h3 - $font-size) / 2) + $font-size) !default; // 19px
-$h5: ceil((($h4 - $font-size) / 2) + $font-size) !default; // 17.5px
-$h6: ceil((($h5 - $font-size) / 2) + $font-size) !default; // 16.75px
+@if $default-font-unit == rem {
+
+  $h1: ceil(($font-size*2.5))/10                      !global !default; // 4.0rem
+  $h2: ceil((($h1 - $font-size) / 2) + $font-size)/10 !global !default; // 2.8rem
+  $h3: ceil((($h2 - $font-size) / 2) + $font-size)/10 !global !default; // 2.2rem
+  $h4: ceil((($h3 - $font-size) / 2) + $font-size)/10 !global !default; // 1.9rem
+  $h5: ceil((($h4 - $font-size) / 2) + $font-size)/10 !global !default; // 1.75rem
+  $h6: ceil((($h5 - $font-size) / 2) + $font-size)/10 !global !default; // 1.675rem
+
+} @else {
+
+  $h1: ceil(($font-size*2.5))                      !global !default; // 40px
+  $h2: ceil((($h1 - $font-size) / 2) + $font-size) !global !default; // 28px
+  $h3: ceil((($h2 - $font-size) / 2) + $font-size) !global !default; // 22px
+  $h4: ceil((($h3 - $font-size) / 2) + $font-size) !global !default; // 19px
+  $h5: ceil((($h4 - $font-size) / 2) + $font-size) !global !default; // 17.5px
+  $h6: ceil((($h5 - $font-size) / 2) + $font-size) !global !default; // 16.75px
+
+}

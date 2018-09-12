@@ -5,7 +5,7 @@
   // ------------------------------------------------------------------------ //
 
   $default-settings : (
-    note-font-size        : $font-size - 2px,
+    note-font-size        : $font-size - 0.2rem,
     note-text-colour      : $black,
     static-colour         : #a9a9a9,
     border-radius         : 0,
@@ -17,7 +17,7 @@
     border-style          : solid,
     input : (
       height    : 50px,
-      font-size : $font-size + px,
+      font-size : add-unit($font-size, rem),
       padding   : $gap0 $gap
     ),
     placeholder : (
@@ -32,7 +32,7 @@
       asterisk-colour    : primary,
       text-colour        : $black,
       note-colour        : #a9a9a9,
-      border-colour     : #a9a9a9,
+      border-colour      : #a9a9a9,
     ),
     inactive : (
       background-colour  : col($white, 0.2),
@@ -40,7 +40,7 @@
       asterisk-colour    : #a9a9a9,
       text-colour        : $black,
       note-colour        : #a9a9a9,
-      border-colour     : #a9a9a9,
+      border-colour      : #a9a9a9,
     )
   );
 

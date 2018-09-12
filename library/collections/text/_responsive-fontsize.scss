@@ -115,25 +115,49 @@
   $max-width : if(is-null($max-width), $max, $max-width);
   $line-height-percent : if($line-height == true and is-null($line-height-percent), 30, $line-height-percent);
 
-  font-size: calc(#{add-unit($min-size)} + #{$max-size - $min-size} * (100vw - #{add-unit($min-width)}) / #{$max-width - $min-width});
+  @if $default-font-unit == rem {
+    font-size: calc(#{add-unit($min-size/10, $default-font-unit)} + #{$max-size/10 - $min-size} * (100vw - #{add-unit($min-width)}) / #{$max-width - $min-width});
+  } @else {
+    font-size: calc(#{add-unit($min-size, $default-font-unit)} + #{$max-size - $min-size} * (100vw - #{add-unit($min-width)}) / #{$max-width - $min-width});
+  }
 
   @if $line-height == true {
-    line-height: calc(#{add-unit(increase-by-percentage($min-size, $line-height-percent))} + #{$max-size - $min-size} * (100vw - #{add-unit($min-width)}) / #{$max-width - $min-width});
+    @if $default-font-unit == rem {
+      line-height: calc(#{add-unit(increase-by-percentage($min-size/10, $line-height-percent), $default-font-unit)} + #{$max-size - $min-size/10} * (100vw - #{add-unit($min-width, $default-font-unit)}) / #{$max-width - $min-width});
+    } @else {
+      line-height: calc(#{add-unit(increase-by-percentage($min-size, $line-height-percent), $default-font-unit)} + #{$max-size - $min-size} * (100vw - #{add-unit($min-width, $default-font-unit)}) / #{$max-width - $min-width});
+    }
   }
 
   @include break($min-width, max) {
-    font-size:add-unit($min-size);
+    @if $default-font-unit == rem {
+      font-size:add-unit($min-size/10, $default-font-unit);
+    } @else {
+      font-size:add-unit($min-size, $default-font-unit);
+    }
     @if not is-null($min-lineheight) {
-      line-height:add-unit($min-lineheight);
+      @if $default-font-unit == rem {
+        line-height:add-unit($min-lineheight/10, $default-font-unit);
+      } @else {
+        line-height:add-unit($min-lineheight, $default-font-unit);
+      }
     } @elseif $line-height == true {
       line-height:initial;
     }
   }
 
   @include break($max-width, min) {
-    font-size:add-unit($max-size);
+    @if $default-font-unit == rem {
+      font-size:add-unit($max-size/10, $default-font-unit);
+    } @else {
+      font-size:add-unit($max-size, $default-font-unit);
+    }
     @if not is-null($max-lineheight) {
-      line-height:add-unit($max-lineheight);
+      @if $default-font-unit == rem {
+        line-height:add-unit($max-lineheight/10, $default-font-unit);
+      } @else {
+        line-height:add-unit($max-lineheight, $default-font-unit);
+      }
     } @elseif $line-height == true {
       line-height:initial;
     }

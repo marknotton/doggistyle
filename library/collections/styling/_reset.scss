@@ -28,7 +28,6 @@ $reset-text-elements     : true !default;
 	}
 
 	:root {
-	  font-size: 62.5%;
 		line-height: 1.15;
 		-webkit-text-size-adjust: 100%;
 	}
@@ -39,7 +38,9 @@ $reset-text-elements     : true !default;
 		-moz-box-sizing:border-box;
 	}
 
-	html { height:100%; font-size: 62.5%; }
+	html { height:100%; font-size: 10px; }
+
+	body { font-size: 62.5%; }
 
 	html, body {
 		min-width:$min-width;
@@ -71,7 +72,6 @@ $reset-text-elements     : true !default;
 	@if $reset-section-elements {
 
 		body {
-			font-size: 1.6rem;
 			text-rendering: optimizeLegibility;
 			-webkit-font-smoothing: antialiased;
 			color:$text;
