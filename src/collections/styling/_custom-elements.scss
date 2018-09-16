@@ -12,7 +12,8 @@
     }
   }
 
-  featured-image { @extend %full; background-position:center 33%; background-size:cover;
+  featured-image { 
+    @extend %full;
     min-width:$min + px;
     > img {
       display:block;
@@ -22,6 +23,12 @@
       max-width:100%; max-height:100%;
       top:0; left:0;
       @include browsers(ie) { display:none; }
+    }
+    &[style*='background-image'] {
+      background-size:cover;
+      background-repeat:none;
+      background-position:center 33.33%;
+      background-repeat:no-repeat;
     }
   }
 

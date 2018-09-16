@@ -16,6 +16,7 @@
 ///
 /// @example scss - Output
 ///   50
+///
 
 @function strip($number) {
   @if not is-number($number) {

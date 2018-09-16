@@ -11,5 +11,5 @@
 ///
 /// @return {Number} with units
 @function gap($size:1) {
-  @return if($size == 0, to-number(add-unit($gaps/2, px)), to-number(add-unit($gaps*$size, px)));
+  @return if($size == 0, to-number(add-unit($gaps/2, $default-unit)), to-number(add-unit($gaps*$size, $default-unit)));
 }
