@@ -1,0 +1,16 @@
+////////////////////////////////////////////////////////////////////////////////
+/// List Items To Strings                                 #list-items-to-strings
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Turn non comma delimited list into comma delimited list
+///
+/// @group helpers-lists
+///
+
+@function list-undelimited-to-comma-delimited($list) {
+  @if ( length($list) == 1 and is-list($list) ) {
+    @return list-items-to-strings(nth($list, 1), comma);
+  } @else {
+    @return $list;
+  }
+}

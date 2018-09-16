@@ -1,0 +1,8 @@
+@mixin animation-shake($amount:10, $animation-name:shake) {
+  @include keyframes(#{$animation-name}) {
+    0% { transform:rotate(0) }
+    25% { transform:rotate(-#{$amount}deg) }
+    75% { transform:rotate(#{$amount}deg) }
+    100% { transform:rotate(0) }
+  }
+}

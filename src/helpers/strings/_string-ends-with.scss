@@ -1,0 +1,16 @@
+////////////////////////////////////////////////////////////////////////////////
+/// String Ends With                                           #string-ends-with
+////////////////////////////////////////////////////////////////////////////////
+
+/// Check whether `$string` ends with `$needle`
+/// @author Hugo Giraudel
+/// @access public
+/// @group helpers-strings
+/// @link https://github.com/HugoGiraudel/SassyStrings/blob/master/dist/_SassyStrings.scss
+/// @param {string} $string - string to check
+/// @param {string} $needle - substring to check
+/// @return {Bool}
+
+@function string-ends-with($string, $needle) {
+  @return str-slice($string, -1 * str-length($needle)) == $needle;
+}

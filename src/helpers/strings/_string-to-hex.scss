@@ -1,0 +1,47 @@
+////////////////////////////////////////////////////////////////////////////////
+/// String To Hex                                                 #string-to-hex
+////////////////////////////////////////////////////////////////////////////////
+
+/// Cast a string into a hexadecimal color
+/// @author Hugo Giraudel
+/// @link https://github.com/HugoGiraudel/SassyCast
+/// @access private
+/// @group helpers-strings
+/// @param {string} $string - string
+/// @return {color | String} - string or hex color depending on the match
+/// @require {function} hex-to-dec
+
+@function string-to-hex($string) {
+  $string-lower: to-lower-case($string);
+  $r: "";  $g: ""; $b: "";
+  $hex: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f";
+  $length: str-length($string);
+  $max: if($length == 4, 1, 2);
+
+  // Check for length accuracy
+  @if $length != 4 and $length != 7 {
+    @return $string;
+  }
+
+  // Loop from the second character (omitting #)
+  @for $i from 2 through $length {
+    $c: str-slice($string-lower, $i, $i);
+
+    // If wrong character, return
+    @if not index($hex, $c) {
+      @return $string;
+    }
+
+    @if      str-length($r) < $max { $r: $r + $c }
+    @else if str-length($g) < $max { $g: $g + $c }
+    @else if str-length($b) < $max { $b: $b + $c }
+  }
+
+  @if $length == 4 {
+    $r: $r + $r;
+    $g: $g + $g;
+    $b: $b + $b;
+  }
+
+  @return rgb(hex-to-dec($r), hex-to-dec($g), hex-to-dec($b));
+}

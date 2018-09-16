@@ -1,0 +1,26 @@
+/// Text Shadow
+/// @param {Size} $x [2px] - X
+/// @param {Size} $y [2px] - Y
+/// @param {Size} $blur [2px] - Blur
+/// @param {Color} $color [rgba(0,0,0,.4)] - Color
+
+@mixin text-shadow($args...) {
+
+  $defaults : (
+    x      : 0,
+    y      : 0,
+    blur   : 10,
+    colour : rgba(0,0,0,0.4)
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $x         : map-get($settings, x);
+  $y         : map-get($settings, y);
+  $blur      : map-get($settings, blur);
+  $colour    : map-get($settings, colour);
+  $important : map-get($settings, important);
+
+  text-shadow: add-unit($x) add-unit($y) add-unit($blur) $color $important;
+
+}

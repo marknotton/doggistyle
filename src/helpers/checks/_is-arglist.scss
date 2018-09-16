@@ -1,0 +1,17 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Arglist                                                          #is-arglist
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a arglist
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-arglist($value) {
+  @return type-of($value) == 'arglist';
+}

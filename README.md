@@ -19,7 +19,3 @@ A collection of Sass resources organised into a single library
 
 ### NPM
 ```npm install doggistyle```
-
-
-### Bower
-```bower install doggistyle```

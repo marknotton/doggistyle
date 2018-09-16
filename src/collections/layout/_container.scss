@@ -1,0 +1,32 @@
+@mixin container($args...) {
+
+  $defaults : (
+    gutter1   : $gap2,
+    gutter2   : $gap1,
+    break     : $medium,
+    max-width : $max-width
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $gutter1 : map-get($settings, gutter1);
+  $gutter2 : map-get($settings, gutter2);
+  $break   : map-get($settings, break);
+  $max     : map-get($settings, max-width);
+
+  width:100%;
+  position:relative;
+  display:block;
+  margin-left:auto; margin-right:auto;
+  max-width:add-unit($max);
+  padding-left:$gutter1;
+  padding-right:$gutter1;
+
+  @if not is-null($gutter2) {
+    @include break($break, '<') {
+      padding-left:$gutter2;
+      padding-right:$gutter2;
+    }
+  }
+
+}

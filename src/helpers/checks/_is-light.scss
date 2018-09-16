@@ -1,0 +1,20 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Light                                                              #is-light
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if a colour is light
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @group helpers-checks
+///
+/// @require {function} brightness
+/// @require {function} lightness
+///
+/// @return {bool}
+
+@function is-light($colour) {
+  @return brightness($colour) > lightness();
+}

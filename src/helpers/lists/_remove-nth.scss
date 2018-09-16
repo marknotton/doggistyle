@@ -1,0 +1,66 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Remove Nth                                                       #remove-nth
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Remove nth item from a list
+///
+/// @author Hugo Giraudel
+///
+/// @group helpers-lists
+///
+/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#removing-values-from-list
+///
+/// @access public
+///
+/// @example scss - Usage
+///   $list: a, b, z, c, d, e, f;
+///   $new-list: remove-nth($list,   3);
+///   $new-list: remove-nth($list,   0);
+///   $new-list: remove-nth($list,  -2);
+///   $new-list: remove-nth($list, -10);
+///   $new-list: remove-nth($list, 100);
+///   $new-list: remove-nth($list, zog);
+///
+/// @example scss - Output
+///   $new-list: a, b, c, d, e, f
+///   $new-list: error
+///   $new-list: a, b, z, c, d, f
+///   $new-list: error
+///   $new-list: error
+///   $new-list: error
+///
+
+@function remove-nth($list, $index) {
+  $result: null;
+
+  @if type-of($index) != number {
+    @if $warnings {
+      @warn "$index: #{quote($index)} is not a number for `remove-nth`.";
+    }
+  }
+
+  @else if $index == 0 {
+    @if $warnings {
+      @warn "List index 0 must be a non-zero integer for `remove-nth`.";
+    }
+  }
+
+  @else if abs($index) > length($list) {
+    @if $warnings {
+      @warn "List index is #{$index} but list is only #{length($list)} item long for `remove-nth`.";
+    }
+  }
+
+  @else {
+    $result: ();
+    $index: if($index < 0, length($list) + $index + 1, $index);
+
+    @for $i from 1 through length($list) {
+      @if $i != $index {
+        $result: append($result, nth($list, $i));
+      }
+    }
+  }
+
+  @return $result;
+}

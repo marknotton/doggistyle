@@ -1,0 +1,16 @@
+@mixin transition-delay($times...) {
+	$times-list : ();
+	@each $time in $times {
+		$times-list: append( $times-list, add-unit($time, $default-timing-unit ), comma);
+	}
+  @include prefixer(transition-delay, $times-list, webkit);
+}
+
+/// @alias transition-delay
+/// @access public
+/// @require {mixin} transition-delay
+/// @return
+
+@mixin delay($time...) {
+  @include transition-delay($time...);
+}

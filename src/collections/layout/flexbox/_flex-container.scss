@@ -1,0 +1,328 @@
+// Documentation: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
+
+// Container properties
+$flex-container-aliases : direction wrap flow justify items content;
+$flex-container         : display flex-direction flex-wrap flex-flow justify-content align-items align-content;
+$flex-container         : merge($flex-container, $flex-container-aliases);
+
+// Container values
+$flex-display           : flex inline-flex inline;
+$flex-direction         : row row-reverse column column-reverse inherit col; // default row
+$flex-wrap              : nowrap wrap wrap-reverse; // default no-wrap
+$flex-justify-content   : flex-start flex-end center space-between space-around start end between around; // default flex-start
+$flex-align-items       : flex-start flex-end center baseline stretch start end; // default stretch
+$flex-align-content     : flex-start flex-end center space-between space-around stretch start end between around; // default stretch
+$flex-flow              : merge($flex-direction, $flex-wrap);
+
+/// Flexbox container mixin validates and prefixes the most current Flexbox W3C working draft
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @warning Flexbox does not currently work on buttons, fieldsets or textareas
+///
+/// @warning box-orient, box-direction, box-ordinal-group, box-left, box-positive, box-pack, box-align
+///          ...and other unsupported/old flexbox values have been excluded
+///
+/// @todo Do special checks for 'flex-flow'
+///
+/// @param {Map or List} $settings - Maps require a the property or alias : value
+///                                  Lists require a list of properties or values in the same order as the list below
+///
+///   Property         Alias        Default       Values
+///   -------------------------------------------------------------------------------------------------------------------
+///   display          (-)          (flex)        flex | inline-flex | *inline
+///   flex-direction   (direction)  (row)         row | row-reverse | column | *col | column-reverse | inherit
+///   flex-wrap        (wrap)       (nowrap)      nowrap | no-wrap | wrap | wrap-reverse
+///   justify-content  (justify)    (flex-start)  flex-start | flex-end | center | space-between | space-around | *start | *end
+///   align-items      (items)      (stretch)     flex-start | flex-end | center | baseline | stretch | *start | *end
+///   align-content    (content)    (stretch)     flex-start | flex-end | center | space-between | space-around | stretch | *start | *end
+///   !flex-flow       (flow)       (-)           flex-direction & flex-wrap (This isn't implimented at all, do not use!)
+///
+///   List Settings
+///   Order            Default
+///   -------------------------------------------------------------------------------------------------------------------
+///   display          (flex)
+///   flex-direction   (row)
+///   flex-wrap        (nowrap)
+///   justify-content  (flex-start)
+///   align-items      (-)
+///   align-content    (-)
+///
+///
+/// @param {Bool} $display - If no display value is used, 'display:flex' will be defined automatically.
+///   Unless this paramater is set to 'false'
+///
+/// @require {mixin}    contains
+/// @require {mixin}    prefixer
+/// @require {function} merge
+/// @require {function} _smart_flex-container
+/// @require {function} arglist-to-list
+/// @require {function} list-undelimited-to-comma-delimited
+/// @require {function} is-bool
+/// @require {variable} flex-container-aliases
+/// @require {variable} flex-container
+/// @require {variable} flex-container
+/// @require {variable} flex-display
+/// @require {variable} flex-direction
+/// @require {variable} flex-wrap
+/// @require {variable} flex-flow
+/// @require {variable} flex-justify-content
+/// @require {variable} flex-align-items
+/// @require {variable} flex-align-content
+///
+/// @example scss - Map Usage
+/// .foo {
+///   @include flex-container((
+///     direction:row,
+///     justify-content:flex-end
+///   ));
+/// }
+///
+/// @example css - CSS Output
+/// .foo {
+///   -webkit-flex-direction: row;
+///   -moz-flex-direction: row;
+///   -ms-flex-direction: row;
+///   -o-flex-direction: row;
+///   flex-direction: row;
+///   -webkit-justify-content: flex-end;
+///   -moz-justify-content: flex-end;
+///   -ms-justify-content: flex-end;
+///   -o-justify-content: flex-end;
+///   justify-content: flex-end;
+///   -js-display: flex;
+///   display: -webkit-box;
+///   display: -moz-box;
+///   display: -webkit-flexbox;
+///   display: -ms-flexbox;
+///   display: -webkit-flex;
+///   display: flex;
+/// }
+///
+/// @example scss - List Usage
+/// .foo {
+///   @include flex-container(inline col wrap between);
+/// }
+///
+/// @example css - CSS Output
+/// .foo {
+///   -webkit-flex-direction: column;
+///   -moz-flex-direction: column;
+///   -ms-flex-direction: column;
+///   -o-flex-direction: column;
+///   flex-direction: column;
+///   -webkit-flex-wrap: wrap;
+///   -moz-flex-wrap: wrap;
+///   -ms-flex-wrap: wrap;
+///   -o-flex-wrap: wrap;
+///   flex-direction: column;
+///   -webkit-justify-content: space-between;
+///   -moz-justify-content: space-between;
+///   -ms-justify-content: space-between;
+///   -o-justify-content: space-between;
+///   justify-content: space-between;
+///   -js-display: inline-flex;
+///   display: -webkit-inline-flexbox;
+///   display: -ms-inline-flexbox;
+///   display: -webkit-inline-flex;
+///   display: inline-flex;
+/// }
+///
+
+@mixin flex-container($settings...) {
+
+  $important : false;
+
+  // Empty
+  @if $settings == null or length($settings) == 0 { $settings : (display:flex)}
+
+  // Map
+  @elseif is-map(first($settings)) {
+    @if length($settings) > 1 {
+      $important : nth($settings, 2);
+    }
+    @if length($settings) > 2  {
+      @include warning("The first flex-container paramater is a map, which means you can only add one more option. This option is reserved as for a Boolean to tell this mixin to add !important or not (false by default). However you've added too many. These are not going to be used: " + slice($settings, 3))
+    }
+    $settings : first($settings);
+  }
+  // Arglist
+  @elseif is-arglist($settings) {
+    $settings : _smart_flex-container(arglist-to-list($settings));
+  }
+
+  // Add display:flex if not display value was set
+  @if not map-has-key($settings, display) {
+    $settings : map-set($settings, display, flex);
+  }
+
+  // Add display:flex if not display value was set
+  @if map-has-key($settings, important) {
+    $important : map-get($settings, important);
+  }
+
+  // Validation checks for every value for every property
+  @each $property, $value in $settings {
+
+    $output : false;
+
+    @if contains($flex-container, $property) {
+      // Alias checks
+      @if contains($property, (content items)) {
+        $property : #{align-}$property;
+      }
+      @elseif contains($property, (direction wrap flow)) {
+        $property : #{flex-}$property;
+        // Special alias check for nowrap
+        $value : if($value == no-wrap, nowrap, $value);
+      }
+      @elseif $property == justify {
+        $property : justify-content;
+      }
+
+      @if contains($value, (start end)) {
+        $value : #{flex-}$value;
+      } @elseif contains($value, (around between)) {
+        $value : #{space-}$value;
+      } @elseif contains($value, (col)) {
+        $value : column;
+      } @elseif contains($value, (inline)) {
+        $value : inline-flex;
+      }
+
+      @if $property == display and $value != null {
+        @if $value == inline-flex {
+          display: -webkit-inline-flex is-important($important);
+          display: inline-flex is-important($important);
+        } @else {
+          -js-display: flex is-important($important); // This is for flexibility support
+          display: -webkit-box is-important($important);
+          display: -moz-box is-important($important);
+          display: -webkit-flexbox is-important($important);
+          display: -ms-flexbox is-important($important);
+          display: -webkit-flex is-important($important);
+          display: flex is-important($important);
+        }
+      }
+
+      // Check these properties against their list of valid values
+      $checks : (flex-direction: $flex-direction, flex-wrap: $flex-wrap, justify-content: $flex-justify-content, align-items: $flex-align-items, align-content: $flex-align-content);
+      @each $prop, $check in $checks {
+        @if $property == $prop and contains($check, $value){
+          $output : true;
+        }
+      }
+      // Only output and prefix everything when $output is true
+      @if $output {
+        $property:$value $important;
+      }
+
+    }
+  }
+}
+
+
+// Quick Flex Container Mixins
+
+/// @alias flex-container -
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @warning Flexbox does not currently work on buttons, fieldsets or textareas
+///
+/// @warning box-orient, box-direction, box-ordinal-group, box-left, box-positive, box-pack, box-align
+///          ...and other unsupported/old flexbox values have been excluded
+///
+/// @todo Do special checks for 'flex-flow'
+///
+/// @param {Map} $settings - flexbox container property or alias : flexbox value.
+
+@mixin flex-display($value:flex, $important:false) {
+  @include flex-container((display:$value), $important);
+}
+
+@mixin flex-direction($value, $important:false) {
+  @include flex-container((direction:$value), $important);
+}
+
+@mixin flex-wrap($value, $important:false) {
+  @include flex-container((wrap:$value), $important);
+}
+
+@mixin flex-flow($value, $important:false) {
+  @include flex-container((flow:$value), $important);
+}
+
+@mixin flex-justify-content($value, $important:false) {
+  @include flex-container((justify:$value), $important);
+}
+@mixin flex-justify($value, $important:false) {
+  @include flex-container((justify:$value), $important);
+}
+
+@mixin flex-align-items($value, $important:false) {
+  @include flex-container((items:$value), $important);
+}
+
+@mixin flex-align-content($value, $important:false) {
+  @include flex-container((content:$value), $important);
+}
+
+// Private function provide a shorthand option in the flex-container mixin
+// Defaults : display:flex, flex-direction:row, flex-wrap:nowrap, justify-content:flex-start
+// Order   : display, flex-direction, flex-wrap, justify-content, align-items, align-content
+// Optionals : display, align-items, align-content
+@function _smart_flex-container($settings) {
+
+  $defaults : (
+    direction         : row,
+    wrap              : nowrap,
+    justify-content   : flex-start,
+  );
+
+  $_defined-justify-content : false;
+  $_defined-align-items : false;
+  $_defined-align-content : false;
+
+  $settings : list-undelimited-to-comma-delimited($settings);
+
+  @each $property in $settings {
+
+    @if merge($flex-display, contains($flex-container, $property)) {
+
+      @if ( contains($flex-display, $property) ) {
+        $defaults : map-set($defaults, display, $property);
+      }
+      @elseif ( contains($flex-direction, $property) ) {
+        $defaults : map-set($defaults, direction, $property);
+      }
+      @elseif ( contains($flex-wrap, $property) ) {
+        $defaults : map-set($defaults, wrap, $property);
+      }
+      @elseif ( contains($flex-justify-content, $property) and $_defined-justify-content == false ) {
+        $_defined-justify-content : true;
+        $defaults : map-set($defaults, justify-content, $property);
+      }
+      @elseif ( contains($flex-align-items, $property) and $_defined-align-items == false ) {
+        $_defined-align-items : true;
+        $defaults : map-set($defaults, align-items, $property);
+      }
+      @elseif ( contains($flex-align-content, $property)  and $_defined-align-content == false ) {
+        $_defined-align-content : true;
+        $defaults : map-set($defaults, align-content, $property);
+      }
+      @if ( contains((important, !important), $property) or $property == true ) {
+        $defaults : map-set($defaults, important, true);
+      }
+
+    }
+
+  }
+
+ @return $defaults;
+
+}

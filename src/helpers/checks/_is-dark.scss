@@ -1,0 +1,20 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Dark                                                                #is-dark
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if a colour is dark
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @group helpers-checks
+///
+/// @require {function} brightness
+/// @require {function} lightness
+///
+/// @return {bool}
+
+@function is-dark($colour) {
+  @return brightness($colour) < lightness();
+}

@@ -1,0 +1,15 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Get Var Value                                                 #get-var-value
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @group helpers-misc
+///
+
+@function get-var-value($variable) {
+  @if is-var($variable) {
+    $value : get-var-variable($variable);
+    @return map-get($variables, $value);
+  } @else {
+    @return map-get($variables, $variable);
+  }
+}

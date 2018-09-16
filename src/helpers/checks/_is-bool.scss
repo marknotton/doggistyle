@@ -1,0 +1,29 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Boolean                                                          #is-boolean
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a boolean
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-boolean($value) {
+  @return type-of($value) == 'bool';
+}
+
+/// Bool ============================================================== #is-bool
+///
+/// @access public
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-bool($value) {
+  @return type-of($value) == 'bool';
+}

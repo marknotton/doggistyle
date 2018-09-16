@@ -1,0 +1,46 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Add Unit                                                           #add-unit
+////////////////////////////////////////////////////////////////////////////////
+
+/// Adds a default unit to a number if one is not used.
+/// @author Mark Notton
+/// @group helpers-numbers
+/// @param {number} $value
+/// @param {string} $unit - If a value is unitless add the default unit.
+/// @param {bool} $replace - If the value already has a unit, and a different unit was specifically
+///   supplied, this boolean desides wether to forcibly replace the unit.
+/// @require {variable} default-unit
+/// @require {variable} $relative-lengths
+/// @require {variable} $abolute-lengths
+/// @require {function} is-unit
+/// @require {function} is-number
+/// @require {function} strip
+///
+/// @example scss - Usage
+///   add-unit(50)
+///   add-unit(50px)
+///   add-unit(50, %)
+///   add-unit(50px, %)
+///
+/// @output scss - Output
+///   50px
+///   50px
+///   50%
+///   50%
+
+@function add-unit($value, $unit:null, $replace:false) {
+  @if type-of($value) == 'number' {
+    @if unitless($value) {
+      @return to-number($value + if($unit == null, $default-unit, $unit));
+    }
+    @elseif is-unit($value) {
+      @if $replace and $unit != null {
+        @return to-number(strip($value) + $unit);
+      } @else {
+        @return to-number($value);
+      }
+    }
+  } @else {
+    @return $value;
+  }
+}

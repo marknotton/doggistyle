@@ -1,0 +1,36 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Merge                                                                 #merge
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Merge any number of lists together
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @group helpers-lists
+///
+/// @param (arglist) $lists - Add as many lists that you are want to merge. Separate lists should be comma-delimited.
+///
+/// @example scss - Usage
+///   $list1 : a b c;
+///   $list2 : 1 2 3;
+///   $new-list : merge($list1, $list2);
+///
+/// @example scss - Usage
+///   $new-list : (a b c 1 2 3);
+///
+/// @return {list}
+
+@function merge($lists...) {
+
+  $new-list : ();
+
+  @each $lists in arglist-to-list($lists...) {
+    @each $list in $lists {
+      $new-list : join($new-list, $list);
+    }
+  }
+
+  @return $new-list;
+}

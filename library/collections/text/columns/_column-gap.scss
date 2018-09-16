@@ -1,8 +1,0 @@
-//
-@mixin column-gap($setting) {
-  @if is-number($setting) or contains(join($column-global-rules, normal), $setting) {
-    @include prefixer(column-gap, add-unit($setting));
-  } @else {
-    @include warning("The options used for column-gap do not match to allowed criteria.");
-  }
-}

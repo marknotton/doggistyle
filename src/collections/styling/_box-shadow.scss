@@ -1,0 +1,52 @@
+/// Box Shadow
+/// @param {Size} $x [0px] - X
+/// @param {Size} $y [0px] - Y
+/// @param {Size} $blur [5px] - Blur
+/// @param {Color} $color [rgba(0,0,0,.6)] - Color
+
+@mixin box-shadow($args...) {
+
+  $defaults : (
+    x      : 0,
+    y      : 0,
+    blur   : 5,
+    colour : rgba(0,0,0,0.6)
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $x      : map-get($settings, x);
+  $y      : map-get($settings, y);
+  $blur   : map-get($settings, blur);
+  $colour : map-get($settings, colour);
+  $important : map-get($settings, important);
+
+  box-shadow: inset add-unit($x) add-unit($y) add-unit($blur) $color $important;
+}
+
+
+/// Box Inner Shadow
+/// @param {Size} $x [0px] - X
+/// @param {Size} $y [0px] - Y
+/// @param {Size} $blur [6px] - Blur
+/// @param {Color} $color [rgba(0,0,0,.6)] - Color
+
+@mixin box-inner-shadow($args...) {
+
+  $defaults : (
+    x      : 0,
+    y      : 0,
+    blur   : 5,
+    colour : rgba(0,0,0,0.6)
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $x      : map-get($settings, x);
+  $y      : map-get($settings, y);
+  $blur   : map-get($settings, blur);
+  $colour : map-get($settings, colour);
+  $important : map-get($settings, important);
+
+  box-shadow: add-unit($x) add-unit($y) add-unit($blur) $color $important;
+}

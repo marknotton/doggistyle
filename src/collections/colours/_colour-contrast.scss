@@ -1,0 +1,70 @@
+/// Compares contrast of a given colour and returns the most appropriate given colour that contrasts it.
+///
+/// @author David Halford
+///
+/// @access public
+///
+/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
+///
+/// @param {color} $colour - Define a colour that you want to check is dark or light
+///
+/// @param {list | colour} - Define up to two seperate colours. Each one will be checked for their lightness or darkness
+///    If one of the colours is not dark enough it will revert to black;
+///    If the other colour is not light enough it will revert to white;
+///
+/// @require {function} is-colour
+/// @require {function} is-dark
+/// @require {function} is-light
+/// @require {function} brightness
+/// @require {function} lightness
+///
+/// @return {number}
+///
+/// @example {scss} - Usage
+///   color : colour-contrast(red, purple yellow);
+///
+/// @example {scss} - Output
+///   color : yellow;
+
+@function colour-contrast($colour, $text-colours:null) {
+
+  $dark-text : black;
+  $light-text : white;
+
+  $colour : get-variable-colour-value($colour);
+
+  @if is-colour($colour) {
+
+    @each $setting in $text-colours {
+      @if is-colour($setting) {
+        @if $dark-text == black {
+          $dark-text: $setting;
+        }
+        @elseif $light-text == white {
+          $light-text: $setting;
+        }
+      }
+    }
+
+    $dark-text : if(is-dark($dark-text), $dark-text, black);
+    $light-text : if(is-light($light-text), $light-text, white);
+
+    @return if(brightness($colour) <  lightness(), $light-text, $dark-text);
+
+  } @else {
+
+    @return $dark-text;
+  }
+}
+
+/// @alias contrasting-colour
+///
+/// @access public
+///
+/// @require {function} contrasting-colour
+///
+/// @return {color}
+
+@function color-contrast($colour, $light:white, $dark:dark) {
+  @return colour-contrast($colour, $light, $dark);
+}

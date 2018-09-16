@@ -1,0 +1,43 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Function                                                        #is-function
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Explodes a function into a list.
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @group helpers-checks
+///
+/// @require {function} to-number
+/// @require {function} is-string
+/// @require {function} string-explode
+///
+/// @example scss - Usage
+///   @debug is-function(rotate(45deg));
+///   @debug is-function(transform);
+///
+/// @example scss - Output
+///   (rotate, 45deg)
+///   false
+///
+/// @return {bool | list} If value is not a string or does not fit the 'function'
+/// syntax, return false. Otherwise, return a list with the 'function' name and
+/// the 'value' that was passed.
+
+@function is-function($function) {
+
+  @if is-string($function) {
+
+    $first-brace : str-index($function, '(');
+    $last-brace : str-index($function, ')');
+
+    @return $first-brace and $last-brace;
+
+  } @else {
+
+    @return false;
+
+  }
+}

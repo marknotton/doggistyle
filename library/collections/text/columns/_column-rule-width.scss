@@ -1,8 +1,0 @@
-//
-@mixin column-rule-width($setting) {
-  @if is-number($setting) or contains(join($column-global-rules, (thin, medium, thick)), $setting) {
-    @include prefixer(column-rule-width, add-unit($setting));
-  } @else {
-    @include warning("The options used for column-rule-width do not match to allowed criteria.");
-  }
-}

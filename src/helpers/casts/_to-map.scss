@@ -1,0 +1,26 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Cast to map                                                          #to-map
+////////////////////////////////////////////////////////////////////////////////
+
+/// @name Cast to map
+/// @author Hugo Giraudel
+/// @link https://github.com/HugoGiraudel/SassyCast
+/// @group helpers-casts
+/// @param {*} $value - Value to cast
+/// @return {map}
+
+@function to-map($value) {
+  @if type-of($value) == "list" {
+    $map: ();
+
+    @if length($value) > 1 {
+      @for $i from 1 through length($value) {
+        $map: map-merge($map, ($i: nth($value, $i)));
+      }
+    }
+
+    @return $map;
+  }
+
+  @return if(type-of($value) != map, (1: $value), $value);
+}

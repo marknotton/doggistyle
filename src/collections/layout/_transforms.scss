@@ -1,0 +1,267 @@
+/// Transforms mixin that allows various syntax's
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @param {Map} $settings - Each argument should consist of a transform type and it's value
+///
+/// @require {variable} transform-types
+/// @require {variable} transform-values
+/// @require {function} arglist-to-list
+/// @require {function} contains
+/// @require {function} is-function
+/// @require {function} is-string
+/// @require {mixin} prefixer
+///
+/// @example scss - Usage
+///   Doggy Style Syntax
+///   @include transform(rotate 90, scale 0.8);
+///   Bourbon Syntax
+///   @include transform(rotate(90deg) scale(0.8));
+///   Generic Syntax
+///   @include transform(rotate(90deg), scale(0.8));
+///
+/// @example css - CSS Output
+///    -webkit-transform: rotate(90deg) scale(0.8);
+///    -moz-transform: rotate(90deg) scale(0.8);
+///    transform: rotate(90deg) scale(0.8);
+///
+
+@mixin transform($settings...) {
+
+  $transforms : ();
+  $important : null;
+
+  @if not contains($transform-values, $settings, true) and length($settings) >= 1 {
+
+    $settings-lists : arglist-to-list($settings);
+
+    @each $settings in $settings-lists {
+
+      @if is-function($settings) {
+        $settings : function-to-list($settings);
+      }
+
+      $transform : null;
+
+      $value : ();
+
+      // Check for transforms
+      @each $setting in $settings {
+        @if is-string($setting) and contains(merge($transform-types, x y X Y), $setting) {
+          $transform : $setting;
+        }
+      }
+
+      // Check and validate all transform types
+      @each $setting in $settings {
+
+        @if not is-string($setting) {
+          @if contains($transform, (translate translateY translateX translateZ translate3d y x Y X perspective)) {
+            // Values that require a unit
+            @each $val in $setting {
+              @if ($transform == 'x' or $transform == 'X') {
+                $transform : translateX;
+              } @elseif ($transform == 'y' or $transform == 'Y') {
+                $transform : translateY;
+              }
+              $value : append($value, add-unit($val), comma);
+            }
+          } @elseif contains($transform, (rotate rotateX rotateY rotateZ rotate3d skew skewX skewY)) {
+            // Values that require an angle
+            @each $val in $setting {
+              @if $transform != rotate3d {
+                $value : append($value, add-unit($val, deg), comma);
+              } @else {
+                $value : append($value, $val, comma);
+              }
+            }
+          } @elseif contains($transform, (scale)) {
+            // Values that require an angle
+            @each $val in $setting {
+                $value : append($value, $val, comma);
+            }
+          } @else {
+            @if is-bool($setting) {
+              $important : $setting;
+            } @else {
+              // All other values
+              $value : append($value, $setting);
+            }
+          }
+        } @elseif contains($transform-values, $setting) {
+          // Values that are strings and are global values
+          $value : append($value, $setting);
+        }
+      }
+
+      // Append transform and value to the transforms list
+      @if $transform != null {
+        $transforms : append($transforms, $transform+"("+$value+")");
+      }
+
+    }
+  } @else {
+   $transforms : nth($settings, 1);
+  }
+
+  transform: $transforms $important;
+
+}
+
+
+/// Transform origin
+@mixin transform-origin($value: 50% 50%) {
+
+  $values : ();
+
+  @if length($value) > 1 {
+    @each $val in $value {
+      $values : append($values, add-unit($val));
+    }
+  } @else {
+    $values : add-unit($value);
+  }
+
+  transform-origin: $values;
+}
+
+
+@mixin transform-style($value) {
+  @if contains((flat preserve-3d initial inherit), $value) {
+    transform-style: $value;
+  } @else {
+    @include warning($value + ": is an invalid value for 'transform-style'");
+  }
+}
+
+/// Matrix
+@mixin matrix($args...) {
+  @include transform(matrix $args);
+}
+
+@mixin matrix3d($args...) {
+  @include transform(matrix3d $args);
+}
+
+
+/// Translate
+@mixin translate($values) {
+  $x : nth($values, 1);
+  $y : if( length($values) > 1, nth($values, 2), $x);
+  @include transform(translate $x $y);
+}
+
+@mixin translateX($values) {
+  @include transform(translateX $values);
+}
+@mixin x($values) { @include translateX($values) };
+
+@mixin translateY($values) {
+  @include transform(translateY $values);
+}
+@mixin y($values) { @include translateY($values) };
+
+@mixin translate3d($values) {
+  $x : nth($values, 1);
+  $y : if( length($values) > 1, nth($values, 2), 0);
+  $z : if( length($values) > 2, nth($values, 3), 0);
+  @include transform(translate3d $x $y $z);
+}
+
+@mixin translateZ($value) {
+  @include transform(translateZ $value);
+}
+
+
+/// Scale
+@mixin scale($values) {
+  $width: nth($values, 1);
+  $height : if(length($values) > 1, nth($values, 2), null);
+
+
+  @include transform(scale $width $height);
+}
+
+@mixin scaleX($value) {
+  @include transform(scaleX strip($value));
+}
+
+@mixin scaleY($value) {
+  @include transform(scaleY strip($value));
+}
+
+@mixin scale3d($values) {
+  $x : strip(nth($values, 1));
+  $y : if( length($values) > 1, strip(nth($values, 2)), 0);
+  $z : if( length($values) > 2, strip(nth($values, 3)), 0);
+  @include transform(scale3d $x $y $z);
+}
+
+@mixin scaleZ($value) {
+  @include transform(scaleZ strip($value));
+}
+
+
+/// Rotate
+@mixin rotate($value) {
+  @include transform(rotate $value);
+}
+
+@mixin rotateX($value) {
+  @include transform(rotateX $value);
+}
+
+@mixin rotateY($value) {
+  @include transform(rotateY $value);
+}
+
+@mixin rotateZ($value) {
+  @include transform(rotateZ $value);
+}
+
+@mixin rotate3d($values) {
+  $x :   if( length($values) == 1, strip(nth($values, 1)), 0);
+  $y :   if( length($values) > 1,  strip(nth($values, 2)), 1);
+  $z :   if( length($values) > 2,  strip(nth($values, 3)), 0);
+  $deg : if( length($values) > 3,  to-number(add-unit(nth($values, 4), deg)), 0);
+  @include transform(rotate3d $x $y $z $deg);
+}
+
+
+/// Skew
+@mixin skew($values) {
+  $x : add-unit(nth($values, 1), deg);
+  $y : add-unit(if( length($values) > 1, nth($values, 2), 0), deg);
+  @include transform(skew $x $y);
+}
+
+@mixin skewX($value) {
+  @include transform(skewX add-unit($value, deg));
+}
+
+@mixin skewY($value) {
+  @include transform(skewY add-unit($value, deg));
+}
+
+
+/// Perspective
+@mixin perspective($value:600) {
+  perspective: add-unit($value);
+}
+
+@mixin perspective-origin($value:50% 50%) {
+
+  $values : ();
+
+  @if length($value) > 1 {
+    @each $val in $value {
+      $values : append($values, add-unit($val));
+    }
+  } @else {
+    $values : add-unit($value);
+  }
+
+  perspective-origin: $values;
+}

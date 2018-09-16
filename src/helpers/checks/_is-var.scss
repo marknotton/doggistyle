@@ -1,0 +1,32 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Var                                                                  #is-var
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a custom element (css variable). If it is, find and return the variable string
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @group helpers-checks
+///
+/// @require {function} _string-starts-with
+///
+/// @return {string|bool}
+
+@function is-var($value) {
+
+  @if string-starts-with(quote($value), 'var(--') {
+
+    $value : str-replace($value, 'var(--', '');
+    $value : str-replace($value, ')', '');
+
+    @return $value;
+
+  } @else {
+
+    @return false;
+
+  }
+
+}

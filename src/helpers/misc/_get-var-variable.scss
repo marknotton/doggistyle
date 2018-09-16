@@ -1,0 +1,14 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Get Var Variable                                           #get-var-variable
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @group helpers-misc
+///
+
+@function get-var-variable($value) {
+  @if is-var($value) == false {
+    @return $value;
+  } @else {
+    @return is-var($value);
+  }
+}

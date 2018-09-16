@@ -1,0 +1,27 @@
+// Columns for text
+@mixin columns($args...) {
+
+  $defaults : (
+    count   : 2,
+    spacing : $gap,
+    width   : 20em
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $count   : map-get($settings, count);
+  $spacing : map-get($settings, spacing);
+  $width   : map-get($settings, width);
+  $target  : map-get($settings, target);
+
+  column-count : $count;
+
+  @if $count == 1 {
+    column-width : auto;
+    column-gap : normal;
+  } @else {
+    -webkit-column-break-inside:avoid; page-break-inside:avoid; break-inside:avoid;
+    column-width : add-unit($width);
+    column-gap : add-unit($spacing);
+  }
+}

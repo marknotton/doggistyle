@@ -1,7 +1,0 @@
-@mixin nth-last($nth:1, $repeat:null) {
-  @if ($repeat == true) {
-    &:nth-last-of-type(#{$nth + n + "+" + $nth}) { @content }
-  } @else {
-    &:nth-last-of-type(#{$nth}) { @content }
-  }
-}

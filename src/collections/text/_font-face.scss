@@ -1,0 +1,24 @@
+@mixin font-face($args...) {
+
+  $defaults : (
+    family  : 'Arial',
+    file    : '',
+    formats : eot svg ttf woff,
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $family  : map-get($settings, family);
+  $file    : map-get($settings, file);
+  $formats : map-get($settings, formats);
+
+  @font-face {
+    $source : ();
+    font-family : $family;
+    @each $format in $formats {
+      $source : append($source, url($fonts + add-extension(str-replace($file, $fonts), $format)) format(quote($format)), comma);
+    }
+    src: $source;
+    @content;
+  }
+}

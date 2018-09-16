@@ -1,0 +1,30 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Extension                                                      #is-extension
+////////////////////////////////////////////////////////////////////////////////
+///
+/// If the end of a string matches the given extension, return the extension.
+/// Otherwise return false.
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @group helpers-checks
+///
+/// @return {Bool String}
+
+@function is-extension($string, $extension) {
+
+  $string : to-string($string);
+
+  $extension : to-lower-case($extension);
+
+  $explode : string-explode($string, '.');
+
+  @if $extension == to-lower-case(last($explode)) {
+    @return $extension;
+  } @else {
+    @return false;
+  }
+
+}

@@ -1,0 +1,25 @@
+/// @author Mark Notton
+/// @require postcss-inline-svg
+/// @see https://github.com/TrySound/postcss-inline-svg
+
+@mixin inline-svg($svg, $fill:null, $stroke:null, $stroke-width:null, $path:'sprites') {
+
+  $explode : string-explode($svg, '.');
+
+  $name : nth($explode, 1);
+  $filename : add-extension($svg, 'svg');
+  @at-root (without: media) {
+    @svg-load #{$name} url(#{if(is-null($path) or $path == false, '', $path+'/')+$filename}) {
+      @if not is-null($fill) {
+        * { fill: $fill; }
+      }
+      @if not is-null($stroke) {
+        * { stroke: $stroke; stroke-width:add-unit($stroke-width); }
+      }
+      @content;
+    }
+  }
+
+  & { background-image: svg-inline(unquote($name)); }
+
+}

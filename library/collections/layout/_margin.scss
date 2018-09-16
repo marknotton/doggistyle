@@ -1,3 +1,0 @@
-@mixin margin($settings...) {
-  @include smart-gaps(margin, $settings...);
-}

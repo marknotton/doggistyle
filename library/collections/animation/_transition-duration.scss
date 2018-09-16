@@ -1,3 +1,0 @@
-@mixin transition-duration($time) {
-  @include prefixer(transition-duration, add-unit($time, s), webkit);
-}

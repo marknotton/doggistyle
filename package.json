@@ -2,10 +2,17 @@
   "name": "doggistyle",
   "version": "0.3.0",
   "description": "A collection of Sass resources organised into a single library",
-  "main": "library/_import.scss",
+  "main": "dist/_doggistyle.scss",
   "repository": "https://www.npmjs.com/package/doggistyle",
   "author": "Mark Notton <mark@marknotton.uk>",
   "license": "MIT",
   "_location": "marknotton/doggistyle",
-  "location": "marknotton/doggistyle"
+  "location": "marknotton/doggistyle",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-notifier": "^1.0.5",
+    "gulp-plumber": "^1.2.0",
+    "sassdoc": "^2.5.0"
+  }
 }

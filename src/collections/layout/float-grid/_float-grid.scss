@@ -1,0 +1,41 @@
+// The original grid mixin
+@mixin float-grid($args, $gutter:null, $bottom:true, $important:false) {
+
+  $count: nth($args, 1);
+  $gutter: if($gutter == null, if(length($args) == 2, nth($args, 2), 0), $gutter);
+
+  @if ($gutter == true) { $gutter:$gaps; }
+
+  @if ($gutter != 0 or $count == 1) {
+    @for $i from 1 through $count {
+      @include nth($i, true) {
+        clear:none; margin-right:add-unit($gutter);
+      }
+    }
+    @include nth($count, true) { margin-right:0; }
+  }
+
+  @if ($count == 1) {
+    @include nth($count, true) {
+      margin-right:0;
+    }
+  }
+
+  @if $bottom { margin-bottom:add-unit(if(is-bool($bottom), $gutter, $bottom)); }
+
+  // Checks
+  $width:     if($count  >  1, 100%/$count, 100%);
+  $remainder: if($gutter != 0, #{'+ '} add-unit($gutter/$count), null);
+  $gutter:    if($gutter != 0, #{'- '} add-unit($gutter), null);
+
+  // Output
+  float:left;
+  @if ( $gutter != null ) {
+    width:calc(#{$width} #{$gutter} #{$remainder});
+  } @else {
+    width:$width;
+  }
+
+  @content;
+
+}
