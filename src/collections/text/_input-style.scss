@@ -1,3 +1,5 @@
+/// @todo REWRIGHT
+
 @mixin input-style($args...) {
 
   // ------------------------------------------------------------------------ //
@@ -141,7 +143,7 @@
       width:100%; min-height:$input-height;
       @include var(background-color, $active-background);
       @include placeholder(transparent)
-      @if strip($radius) != 0 { @include radius($radius); }
+      @if strip-unit($radius) != 0 { @include radius($radius); }
       @include transition(background-color border-color color);
       &:not(:required) ~ field-asterisk { display:none; }
       &:valid ~ field-asterisk {
@@ -241,7 +243,7 @@
     @include flex-container(center center);
     @include transition(transform background-color padding color opacity left top);
 
-    @if ( $placeholder-style == halfway and strip($border-width) >= 1) {
+    @if ( $placeholder-style == halfway and strip-unit($border-width) >= 1) {
       &:before {
         content:"";
         display:block;
@@ -289,7 +291,7 @@
   field-asterisk {
 
     padding:0 $placeholder-padding-right 0 $placeholder-padding-left;
-    font-size:add-unit((strip(to-number($input-font-size))) - (strip(to-number($input-font-size))*$placeholder-reduction)*2);
+    font-size:add-unit((strip-unit(to-number($input-font-size))) - (strip-unit(to-number($input-font-size))*$placeholder-reduction)*2);
     @include var(color, $active-asterisk);
 
     @if ( $placeholder-style == outside ) {

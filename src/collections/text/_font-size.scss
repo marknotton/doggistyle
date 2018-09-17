@@ -1,35 +1,20 @@
-// //This will add a lineheight in percentage that's just a little bit greater than the font
-// @mixin fontsize($size:$text, $lineheight:10%, $letterspacing:normal) {
-//  @if (str-index(#{$lineheight}, "%")) {
-//     // Make the lingheight a percentage of the font size
-//     $lineheight: strip($lineheight);
-//     $height: ($size/100*$lineheight)+$size;
-//     font-size:add-unit($size); line-height:add-unit($height);
-//   } @else {
-//     // Manually add a lineheight
-//     font-size:add-unit($size); line-height:add-unit($lineheight);
-//   }
-//   @if ($letterspacing != normal and isNumber($letterspacing)) {
-//     letter-spacing:add-unit($letterspacing);
-//   }
-// }
-
 //This will add a lineheight in percentage that's just a little bit greater than the font
-@mixin font-size($size:$font-size, $smart:true) {
-  @if type-of($size) == number {
-    font-size:add-unit($size);
-    line-height:smart-lineheight($size, $smart);
-  } @else {
-    @if (length($size) >= 2) {
-      font-size:add-unit(nth($size, 1));
-      line-height:smart-lineheight(nth($size, 2), $smart);
-    }
-    @if (length($size) == 3) {
-      letter-spacing:add-unit(nth($size, 3));
-    }
-  }
-}
+@mixin font-size($args...) {
 
-@mixin fontsize($size:$font-size, $smart:true) {
-  @include font-size($size, $smart);
+  $defaults : (
+    font-size      : $font-size,
+    line-height    : null,
+    letter-spacing : null,
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $font-size      : map-get($settings, font-size);
+  $line-height    : map-get($settings, line-height);
+  $letter-spacing : map-get($settings, letter-spacing);
+
+  font-size      : add-unit($font-size, $default-font-unit);
+  line-height    : add-unit($line-height, $default-font-unit);
+  letter-spacing : add-unit($letter-spacing, $default-font-unit);
+
 }

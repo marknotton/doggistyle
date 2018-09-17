@@ -1,4 +1,4 @@
-@if $reset {
+@if $normalise and not $normalise-emailers {
 
 	/// @author Nicolas Gallagher & Mark Notton
 	/// @see github.com/necolas/normalize.css
@@ -61,7 +61,7 @@
 	// Section Elements
 	// ------------------------------------------------------------------------ //
 
-	@if $reset-section-elements {
+	@if $normalise-section-elements {
 
 		body {
 			font-size: 1.6rem;
@@ -91,7 +91,7 @@
 	// Header Elements
 	// ------------------------------------------------------------------------ //
 
-	@if $reset-header-elements {
+	@if $normalise-header-elements {
 
 		h1, h2, h3, h4, h5, h6 {
 			-webkit-margin-before:0em;
@@ -117,7 +117,7 @@
 	// Grouping Elements
 	// ------------------------------------------------------------------------ //
 
-	@if $reset-grouping-elements {
+	@if $normalise-grouping-elements {
 
 		hr {
 			border:none;
@@ -156,7 +156,7 @@
 	// Table Elements
 	// ------------------------------------------------------------------------ //
 
-	@if $reset-table-elements {
+	@if $normalise-table-elements {
 
 		table {
 			border-collapse: collapse;
@@ -169,7 +169,7 @@
 	// Form Elements
 	// ------------------------------------------------------------------------ //
 
-	@if $reset-form-elements {
+	@if $normalise-form-elements {
 
 		button,	input, optgroup,	select,	textarea {
 			font-family: inherit;
@@ -282,7 +282,7 @@
 	// Embedded Elements
 	// ------------------------------------------------------------------------ //
 
-	@if $reset-embedded-elements {
+	@if $normalise-embedded-elements {
 
 		img {
 			border-style: none;
@@ -294,7 +294,7 @@
 	// Text Elements
 	// ------------------------------------------------------------------------ //
 
-	@if $reset-text-elements {
+	@if $normalise-text-elements {
 
 		em {
 			font-style:italic;
@@ -346,5 +346,69 @@
 		}
 
 	}
+
+} @else if $normalise-emailers {
+
+	// ------------------------------------------------------------------------ //
+	// Emailers
+	// ------------------------------------------------------------------------ //
+
+	body {
+    margin:0; padding:0;
+    -webkit-text-size-adjust:100%;
+    -ms-text-size-adjust:100%;
+  }
+
+  #bodyTable {
+    height:100% $imp;
+    margin:0;
+    padding:0;
+    width:100% $imp;
+  }
+
+  .wrapper {  max-width:$max + px; }
+
+  .ExternalClass { width:100%;
+    p, span, font, td, div { line-height: 100%; }
+  }
+
+  img {
+    border:0 none;
+    height:auto;
+    line-height:100%;
+    outline:none;
+    text-decoration:none;
+    display:block;
+    -ms-interpolation-mode: bicubic;
+  }
+
+  .imageFix { display:block; }
+
+  a {
+    outline:none;
+    display:table;
+    color:#f0f9ff;
+    text-decoration:underline;
+    img { border:0 none; }
+    &:hover { text-decoration:none $imp; }
+    &[x-apple-data-detectors] { color:inherit $imp; text-decoration:none $imp; }
+    &[href^="tel"]:hover { text-decoration:none $imp;}
+  }
+
+  #outlook a { padding:0; }
+
+  table { mso-table-lspace:0pt; mso-table-rspace:0pt;  }
+  table, td { border-collapse:collapse; border-spacing:0;  }
+  td, p, span, h1, h2, h3, h4, h5, h6 { font-family:Arial, sans-serif; padding:0; margin:0;  }
+  td, p, span { font-size:14px; margin:0; padding:0;  }
+  td { overflow:hidden;word-break:normal; }
+  th { padding:0;}
+
+  [owa] div { display:block $imp; font-size:1px; line-height:1px;}
+  [owa] div button { display:block; font-size:1px; line-height:1px;}
+
+  b, strong{ font-weight:700; }
+
+  .small-print { font-size:11px; color:#d5d6d8; }
 
 }

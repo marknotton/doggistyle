@@ -1,8 +1,7 @@
-@if $reset {
+@if $reset and $global-styling {
 
   image-element, gallery-image, article-image {
     @extend %full;
-    max-width:100vw;
     display:block;
     &[style*='background-image'] {
       background-size:cover;
@@ -12,7 +11,7 @@
     }
   }
 
-  featured-image { 
+  featured-image {
     @extend %full;
     min-width:$min + px;
     > img {

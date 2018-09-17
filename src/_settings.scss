@@ -9,11 +9,8 @@
 // Show warnings
 $warnings : true !default;
 
-// Include a variety of 'normaliser' settings specific for emailers
-$reset-emailers : false !default;
-
 // Include a variety of custom-element and markup styling
-$include-styling : true !default;
+$global-styling : true !default;
 
 // Default border radius
 $border-radius : 10 !default;
@@ -31,17 +28,18 @@ $default-timing-unit : s !default;
 $support-css-variable-alpha-colours : false !default;
 
 // =============================================================================
-// Reseters                                                               #reset
+// Normalisers                                                        #normalise
 // =============================================================================
 
-$reset                   : true !default;
-$reset-section-elements  : true !default;
-$reset-header-elements   : true !default;
-$reset-grouping-elements : true !default;
-$reset-table-elements    : true !default;
-$reset-form-elements     : true !default;
-$reset-embedded-elements : true !default;
-$reset-text-elements     : true !default;
+$normalise                   : true  !default;
+$normalise-section-elements  : true  !default;
+$normalise-header-elements   : true  !default;
+$normalise-grouping-elements : true  !default;
+$normalise-table-elements    : true  !default;
+$normalise-form-elements     : true  !default;
+$normalise-embedded-elements : true  !default;
+$normalise-text-elements     : true  !default;
+$normalise-emailers          : false !default;
 
 // =============================================================================
 // Aspect Ratios                                                  #aspect-ratios
@@ -57,11 +55,9 @@ $aspect-ratios : (
 // Directories                                                      #directories
 // =============================================================================
 
-$images: "/assets/images/" !default;
-
-$sprites: "/assets/images/sprites/" !default;
-
-$fonts: "/assets/fonts/" !default;
+$images  : "/assets/images/" !default;
+$sprites : "/assets/images/sprites/" !default;
+$fonts   : "/assets/fonts/" !default;
 
 // =============================================================================
 // Gaps                                                                    #gaps
@@ -149,24 +145,20 @@ $notches : (
 // Text
 // =============================================================================
 
-$global-line-height-guide : 70 !default;
+$font-size: add-unit(1.6, $default-font-unit) !default;
 
-$font-size: 1.6 !default;
-
-$size: add-unit($font-size, $default-font-unit) !default;
-
-$h1: ceil(($font-size*2.5))                      !default; // 40px
-$h2: ceil((($h1 - $font-size) / 2) + $font-size) !default; // 28px
-$h3: ceil((($h2 - $font-size) / 2) + $font-size) !default; // 22px
-$h4: ceil((($h3 - $font-size) / 2) + $font-size) !default; // 19px
-$h5: ceil((($h4 - $font-size) / 2) + $font-size) !default; // 17.5px
-$h6: ceil((($h5 - $font-size) / 2) + $font-size) !default; // 16.75px
+$h1: ceil(($font-size*2.5))                      !default; // 4.0em
+$h2: ceil((($h1 - $font-size) / 2) + $font-size) !default; // 2.8em
+$h3: ceil((($h2 - $font-size) / 2) + $font-size) !default; // 2.2em
+$h4: ceil((($h3 - $font-size) / 2) + $font-size) !default; // 1.9em
+$h5: ceil((($h4 - $font-size) / 2) + $font-size) !default; // 1.75em
+$h6: ceil((($h5 - $font-size) / 2) + $font-size) !default; // 1.675em
 
 // =============================================================================
 // Colours
 // =============================================================================
 
-// Basics
+// Commmon
 $red:         #97080E !default;
 $orange:      #DA4B0F !default;
 $yellow:      #E9B104 !default;
@@ -179,7 +171,7 @@ $brown:       #774F38 !default;
 $white:       #FFFFFF !default;
 $black:       #000000 !default;
 
-// Social Networks
+// Social Media
 $facebook:    #3A5897 !default;
 $twitter:     #00aced !default;
 $google:      #df5146 !default;

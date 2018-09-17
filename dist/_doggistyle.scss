@@ -10,8 +10,7 @@
 // Installation and documention can be found here:
 // @see https://github.com/marknotton/doggistyle
 //
-// The MIT License (MIT)
-// Copyright (c) 2018-19 Mark Notton
+// The MIT License (MIT) - Mark Notton
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -28,11 +27,8 @@
 // Show warnings
 $warnings : true !default;
 
-// Include a variety of 'normaliser' settings specific for emailers
-$reset-emailers : false !default;
-
 // Include a variety of custom-element and markup styling
-$include-styling : true !default;
+$global-styling : true !default;
 
 // Default border radius
 $border-radius : 10 !default;
@@ -43,23 +39,25 @@ $default-unit : px !default;
 // Default units for fonts and line-heights
 $default-font-unit : rem !default;
 
+// Default units for timings
 $default-timing-unit : s !default;
 
 // This only works when css variable colours are defined as an RGB list, NOT Hex colours.
 $support-css-variable-alpha-colours : false !default;
 
 // =============================================================================
-// Reseters                                                               #reset
+// Normalisers                                                        #normalise
 // =============================================================================
 
-$reset                   : true !default;
-$reset-section-elements  : true !default;
-$reset-header-elements   : true !default;
-$reset-grouping-elements : true !default;
-$reset-table-elements    : true !default;
-$reset-form-elements     : true !default;
-$reset-embedded-elements : true !default;
-$reset-text-elements     : true !default;
+$normalise                   : true  !default;
+$normalise-section-elements  : true  !default;
+$normalise-header-elements   : true  !default;
+$normalise-grouping-elements : true  !default;
+$normalise-table-elements    : true  !default;
+$normalise-form-elements     : true  !default;
+$normalise-embedded-elements : true  !default;
+$normalise-text-elements     : true  !default;
+$normalise-emailers          : false !default;
 
 // =============================================================================
 // Aspect Ratios                                                  #aspect-ratios
@@ -75,11 +73,9 @@ $aspect-ratios : (
 // Directories                                                      #directories
 // =============================================================================
 
-$images: "/assets/images/" !default;
-
-$sprites: "/assets/images/sprites/" !default;
-
-$fonts: "/assets/fonts/" !default;
+$images  : "/assets/images/" !default;
+$sprites : "/assets/images/sprites/" !default;
+$fonts   : "/assets/fonts/" !default;
 
 // =============================================================================
 // Gaps                                                                    #gaps
@@ -143,17 +139,12 @@ $imp : !important;
 
 $mobile-first:  false !default;
 
-$max:           1440 !default;
-$min:           320 !default;
-$max-width:     add-unit($max) !default;
-$min-width:     add-unit($min) !default;
-$maximum:       $max-width !default;
-$minimum:       $min-width !default;
-
-$small:         480  !default;
-$large:         1200 !default;
-$medium:        (($large - $small) / 2) + $small !default; // 780
-$small-medium:  (($medium - $small) / 2) + $small !default; // 630
+$max:           1440px !default;
+$min:           320px  !default;
+$small:         480px  !default;
+$large:         1200px !default;
+$medium:        (($large - $small) / 2) + $small !default; // 780px
+$small-medium:  (($medium - $small) / 2) + $small !default; // 630px
 
 $show-breakpoints : false !default;
 $show-breakpoints-selector : 'body.dev-environment' !default;
@@ -172,24 +163,20 @@ $notches : (
 // Text
 // =============================================================================
 
-$global-line-height-guide : 70 !default;
+$font-size: add-unit(1.6, $default-font-unit) !default;
 
-$font-size: 1.6 !default;
-
-$size: add-unit($font-size, $default-font-unit) !default;
-
-$h1: ceil(($font-size*2.5))                      !default; // 40px
-$h2: ceil((($h1 - $font-size) / 2) + $font-size) !default; // 28px
-$h3: ceil((($h2 - $font-size) / 2) + $font-size) !default; // 22px
-$h4: ceil((($h3 - $font-size) / 2) + $font-size) !default; // 19px
-$h5: ceil((($h4 - $font-size) / 2) + $font-size) !default; // 17.5px
-$h6: ceil((($h5 - $font-size) / 2) + $font-size) !default; // 16.75px
+$h1: ceil((1.6*2.5))                      !default; // 4.0em
+$h2: ceil((($h1 - 1.6) / 2) + 1.6) !default; // 2.8em
+$h3: ceil((($h2 - 1.6) / 2) + 1.6) !default; // 2.2em
+$h4: ceil((($h3 - 1.6) / 2) + 1.6) !default; // 1.9em
+$h5: ceil((($h4 - 1.6) / 2) + 1.6) !default; // 1.75em
+$h6: ceil((($h5 - 1.6) / 2) + 1.6) !default; // 1.675em
 
 // =============================================================================
 // Colours
 // =============================================================================
 
-// Basics
+// Commmon
 $red:         #97080E !default;
 $orange:      #DA4B0F !default;
 $yellow:      #E9B104 !default;
@@ -202,7 +189,7 @@ $brown:       #774F38 !default;
 $white:       #FFFFFF !default;
 $black:       #000000 !default;
 
-// Social Networks
+// Social Media
 $facebook:    #3A5897 !default;
 $twitter:     #00aced !default;
 $google:      #df5146 !default;
@@ -285,13 +272,9 @@ $angel-types : deg rad grad turn;
 /// ============================================================================
 
 /// CSS cubic-bezier timing functions from Ceaser Easeing.
-///
 /// @author Jared Hardy
-///
 /// @link https://github.com/jhardy/compass-ceaser-easing
-///
 /// @access public
-///
 /// @type string
 
 $linear         : cubic-bezier(0.250, 0.250, 0.750, 0.750);
@@ -408,661 +391,6 @@ $breakpoints:   () !default;
 
 %show-text {
   text-indent:0; overflow:visible; white-space:normal; user-select:all;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Cast to boolean                                                     #to-bool
-////////////////////////////////////////////////////////////////////////////////
-
-/// @name Cast To Boolean
-/// @author Hugo Giraudel
-/// @link https://github.com/HugoGiraudel/SassyCast
-/// @group helpers-casts
-/// @param {*} $value - Value to cast
-/// @return {bool}
-
-@function to-bool($value) {
-  @if not $value or $value == "" or $value == 0 {
-    @return false;
-  }
-
-  @return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Cast to colour                                                    #to-colour
-////////////////////////////////////////////////////////////////////////////////
-
-/// @name Cast to colour
-/// @author Hugo Giraudel
-/// @link https://github.com/HugoGiraudel/SassyCast
-/// @group helpers-casts
-/// @param {*} $value - Value to cast
-/// @return {color | null}
-
-@function to-colour($value) {
-  @if type-of($value) == "color" {
-    @return $value;
-  }
-
-  @if type-of($value) != "string" {
-    //@warn "Could not cast `#{inspect($value)}` to color.";
-    @return null;
-  }
-
-  $value-lower: to-lower-case($value);
-  $colors: transparent black silver gray white maroon red purple fuchsia green lime olive yellow navy blue teal aqua aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue blueviolet brown burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan darkblue darkcyan darkgoldenrod darkgray darkgreen darkgrey darkkhaki darkmagenta darkolivegreen darkorange darkorchid darkred darksalmon darkseagreen darkslateblue darkslategray darkslategrey darkturquoise darkviolet deeppink deepskyblue dimgray dimgrey dodgerblue firebrick floralwhite forestgreen fuchsia gainsboro ghostwhite gold goldenrod gray green greenyellow grey honeydew hotpink indianred indigo ivory khaki lavender lavenderblush lawngreen lemonchiffon lightblue lightcoral lightcyan lightgoldenrodyellow lightgray lightgreen lightgrey lightpink lightsalmon lightseagreen lightskyblue lightslategray lightslategrey lightsteelblue lightyellow lime limegreen linen magenta maroon mediumaquamarine mediumblue mediumorchid mediumpurple mediumseagreen mediumslateblue mediumspringgreen mediumturquoise mediumvioletred midnightblue mintcream mistyrose moccasin navajowhite navy oldlace olive olivedrab orange orangered orchid palegoldenrod palegreen paleturquoise palevioletred papayawhip peachpuff peru pink plum powderblue purple red rosybrown royalblue saddlebrown salmon sandybrown seagreen seashell sienna silver skyblue slateblue slategray slategrey snow springgreen steelblue tan teal thistle tomato turquoise violet wheat white whitesmoke yellow yellowgreen;
-  $keywords: ();
-
-  // Filling $keywords with stringified color keywords
-  @each $color in $colors {
-    $keywords: append($keywords, $color + "");
-  }
-
-  // Deal with inherit keyword
-  @if $value-lower == "inherit" {
-    @return unquote($value);
-  }
-
-  // Deal with color keywords
-  @if index($keywords, $value-lower) {
-    @return nth($colors, index($keywords, $value-lower));
-  }
-
-  // Deal with hexadecimal triplets
-  @else if str-slice($value-lower, 1, 1) == "#" {
-    @return string-to-hex($value);
-  }
-
-  // Deal with rgb(a) colors
-  @else if str-slice($value-lower, 1, 3) == "rgb" {
-    @return string-to-rgb($value);
-  }
-
-  // Deal with hsl(a) colors
-  @else if str-slice($value-lower, 1, 3) == "hsl" {
-    @return string-to-hsl($value);
-  }
-
-  // Return value
-  @else {
-    @if $warnings { @warn "Could not cast `#{inspect($value)}` to color."; }
-    @return null;
-  }
-}
-
-/// To Color ========================================================= #to-color
-/// @alias to-colour
-/// @access public
-/// @require {function} to-colour
-/// @return {colour}
-
-@function to-color($value) {
-  @return to-colour($value);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Cast to list                                                        #to-list
-////////////////////////////////////////////////////////////////////////////////
-
-/// @name Cast to list
-/// @author Hugo Giraudel
-/// @link https://github.com/HugoGiraudel/SassyCast
-/// @group helpers-casts
-/// @param {*} $value - Value to cast
-/// @param {String} $keep ("both") - whether to keep `keys`, `values` or `both` when casting a map
-/// @return {list}
-
-@function to-list($value, $keep: "both") {
-  $keep: if(index("keys" "values" "both", $keep), $keep, "both");
-
-  @if type-of($value) == "map" {
-    $keys: ();
-    $values: ();
-    @each $key, $val in $value {
-      $keys: append($keys, $key);
-      $values: append($values, $val);
-    }
-
-    @if $keep == "keys" {
-      @return $keys;
-    }
-    @else if $keep == "values" {
-      @return $values;
-    }
-    @else {
-      @return zip($keys, $values);
-    }
-  }
-
-  @return if(type-of($value) != list, ($value,), $value);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Cast to map                                                          #to-map
-////////////////////////////////////////////////////////////////////////////////
-
-/// @name Cast to map
-/// @author Hugo Giraudel
-/// @link https://github.com/HugoGiraudel/SassyCast
-/// @group helpers-casts
-/// @param {*} $value - Value to cast
-/// @return {map}
-
-@function to-map($value) {
-  @if type-of($value) == "list" {
-    $map: ();
-
-    @if length($value) > 1 {
-      @for $i from 1 through length($value) {
-        $map: map-merge($map, ($i: nth($value, $i)));
-      }
-    }
-
-    @return $map;
-  }
-
-  @return if(type-of($value) != map, (1: $value), $value);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Cast to number                                                    #to-number
-////////////////////////////////////////////////////////////////////////////////
-
-$sc-constants: (
-  'decimal-space': ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'),
-  'unit': ('px', 'cm', 'mm', '%', 'ch', 'pc', 'in', 'em', 'rem', 'pt', 'ex', 'vw', 'vh', 'vmin', 'vmax', 'ms', 's', 'deg', 'rad', 'grad', 'turn', 'Hz', 'kHz', 'dpi', 'dpcm', 'dppx'),
-  'unit-value': (1px, 1cm, 1mm, 1%, 1ch, 1pc, 1in, 1em, 1rem, 1pt, 1ex, 1vw, 1vh, 1vmin, 1vmax, 1ms, 1s, 1deg, 1rad, 1grad, 1turn, 1Hz, 1kHz, 1dpi, 1dpcm, 1dppx)
-);
-
-/// Default return value for the `to-number(..)` function when running in
-/// non-strict mode.
-/// @access public
-/// @type Number
-$sc-non-strict-default-number: 0 !default;
-
-/// Default return value for the `to-color(..)` function when running in
-/// non-strict mode.
-/// @access public
-/// @type Number
-$sc-non-strict-default-color: transparent !default;
-/// Internal map for dynamically accessing default values for non-strict mode.
-/// @access private
-/// @type Map
-$sc-non-strict-defaults: (
-  'number': $sc-non-strict-default-number,
-  'color': $sc-non-strict-default-color,
-);
-
-/// Helper function to throw when running in strict mode, or warn and return
-/// default value for expected type when running in non-strict mode.
-/// @param {*} $value
-/// @param {String} $expected-type
-
-@function _sc-throw($value, $expected-type) {
-  $return-value: map-get($sc-non-strict-defaults, $expected-type);
-  @return $return-value;
-}
-
-/// Tries to find a unit that would match a CSS length
-/// @access private
-/// @param {Number} $number - number
-/// @param {String}   $unit - potential unit
-/// @return {Number} length (0 if cast failed)
-
-@function _sc-unit($number, $unit) {
-  $units: map-get($sc-constants, 'unit-value');
-  $index: index(map-get($sc-constants, 'unit'), $unit);
-
-  @if not $index {
-    @return _sc-throw($number, 'number');
-  }
-
-  @return ($number * nth($units, $index));
-}
-
-
-/// Cast a value to a number if possible or return 0
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access public
-///
-/// @group helpers-casts
-///
-/// @param {string} $value
-///
-/// @return {number}
-
-@function to-number($value) {
-  $type: type-of($value);
-
-  // If the value is already a number, we can safely return it.
-  @if ($type == 'number') {
-    @return $value;
-  }
-
-  // If the value is the `true` boolean, we return 1.
-  @if ($value == true)  {
-    @return 1;
-  }
-
-  // If the value is the `false` boolean, we return 0.
-  @if ($value == false) {
-    @return 0;
-  }
-
-  // If the type is not a string, there is no way we can convert it to a number,
-  // so we warn and return the default number value (or throw in strict mode).
-  @if ($type != 'string') {
-    @return _sc-throw($value, 'number');
-  }
-
-  // At this point we have discarded all the edge cases so we can start trying
-  // to cast the value into a number.
-  $pointer: 1;
-  $result: 0;
-  $first-character: str-slice($value, $pointer, $pointer);
-  $allowed-first-character: join(('-', '.'), map-get($sc-constants, 'decimal-space'));
-
-  // We perform an early check for errors. If value starts with neither a number
-  // nor a minus sign, it cannot be casted to a number. Therefore we warn and
-  // return the default number value (or throw in strict mode).
-  @if not index($allowed-first-character, $first-character) {
-    @return _sc-throw($value, 'number');
-  }
-
-  // In case the value starts with a dot, we assume it is a float and pad it
-  // with a zero.
-  @if ($first-character == '.') {
-    $value: '0' + $value;
-  }
-
-  // We find the integer part of the value.
-  $find-integer: find-integer($value, $pointer);
-  $pointer: nth($find-integer, 1);
-  $result:  nth($find-integer, 2);
-
-  // If there still is a dot, it means we have to check for the digits part of
-  // the value.
-  @if (str-slice($value, $pointer, $pointer) == '.') {
-    $find-digits: find-digits($value, $pointer);
-    $pointer: nth($find-digits, 1);
-    $digits:  nth($find-digits, 2);
-    $result: ($result + $digits);
-  }
-
-  // If the first character is a minus symbol, it means the number is negative
-  // so we can multiply it per -1.
-  @if ($first-character == '-') {
-    $result: ($result * -1);
-  }
-
-  // If we are still not done with the evaluation, it means there could be a CSS
-  // unit, so we check for it.
-  @if ($pointer <= str-length($value)) {
-    $result: _sc-unit($result, str-slice($value, $pointer));
-  }
-
-  @return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Cast to string                                                    #to-string
-////////////////////////////////////////////////////////////////////////////////
-
-/// @name Cast To String
-/// @author Hugo Giraudel
-/// @link https://github.com/HugoGiraudel/SassyCast
-/// @group helpers-casts
-/// @param {*} $value - value to cast
-/// @return {string}
-
-@function to-string($value) {
-  @return if(type-of($value) != string, inspect($value), $value);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Deep Get                                                   #map-deep-get
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Fetch nested keys in a map
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-/// @access public
-///
-/// @group helpers-maps
-///
-/// @param (map) $map - Usually a variable name
-///
-/// @param (arglist) $keys - With comma delimination write the path to the disired map element
-///
-/// @return {*}
-///
-/// @example scss - Usage
-/// $foo: (
-///   bar: (
-///     lorem : (
-///       test1: #dcfac0,
-///       test2: #00968b,
-///     ),
-///     ipsom: (
-///       test1: #f4fac7,
-///       test2: #c2454e,
-///     )
-///   )
-/// );
-/// color: map-fetch($foo, bar, lorem, test1);
-///
-/// @example css - Output
-/// color:#dcfac0;
-///
-
-@function map-deep-get($map, $keys...) {
-  @each $key in $keys {
-    $map: map-get($map, $key);
-  }
-  @return $map;
-}
-
-/// @alias map-deep-get
-///
-/// @access public
-///
-/// @require {function} map-deep-get
-///
-/// @return {*}
-
-@function map-fetch($map, $keys...) {
-  @return map-deep-get($map, $keys...);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Deep Merge                                               #map-deep-merge
-////////////////////////////////////////////////////////////////////////////////
-
-/// @name Map Deep Merge
-/// @author Zsolt Pentz
-/// @see https://medium.com/@pentzzsolt/a-non-destructive-map-merge-function-for-sass-f91637f87b2e
-
-@function map-deep-merge($parent-map, $child-map) {
-	$result: $parent-map;
-	@each $key, $value in $child-map {
-		@if (not map-has-key($result, $key)) or (type-of(map-get($result, $key)) != type-of($value)) or (not (type-of(map-get($result, $key)) == map and type-of($value) == map)) {
-			$result: map-merge($result, ($key: $value));
-		}
-		@else {
-			$result: map-merge($result, ($key: map-deep-merge(map-get($result, $key), $value)));
-		}
-	}
-	@return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Deep Set                                                   #map-deep-set
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Update a key deeply nested
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-/// @access public
-///
-/// @group helpers-maps
-///
-/// @param {map} $map - Map to update
-///
-/// @param {arglist} $keys - Keys to access to value to update
-///
-/// @param {*} $value - New value (last member of `$keys`)
-///
-/// @return {map} - Updated map
-
-@function map-deep-set($map, $keys.../*, $value */) {
-  $map-list: ($map,);
-  $result: null;
-
-  @if length($keys) == 2 {
-    @return map-merge($map, (nth($keys, 1): nth($keys, -1)));
-  }
-
-  @for $i from 1 through length($keys) - 2 {
-    $map-list: append($map-list, map-get(nth($map-list, -1), nth($keys, $i)));
-  }
-
-  @for $i from length($map-list) through 1 {
-    $result: map-merge(nth($map-list, $i), (nth($keys, $i): if($i == length($map-list), nth($keys, -1), $result)));
-  }
-
-  @return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Depth                                                         #map-depth
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Compute the maximum depth of a map
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-/// @access public
-///
-/// @group helpers-maps
-///
-/// @param {map} $map
-///
-/// @return {number} max depth of `$map`
-
-@function map-depth($map) {
-  $level: 1;
-
-  @each $key, $value in $map {
-    @if type-of($value) == "map" {
-      $level: max(map-depth($value) + 1, $level);
-    }
-  }
-
-  @return $level;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Extend                                                       #map-extend
-////////////////////////////////////////////////////////////////////////////////
-///
-/// jQuery-style extend function
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-/// @access public
-///
-/// @group helpers-maps
-///
-/// @param {map} $map - first map
-///
-/// @param {arglist} $maps - other maps
-///
-/// @param {bool} $deep - recursive mode
-///
-/// @return {map}
-
-@function map-extend($map, $maps.../*, $deep */) {
-  $last: nth($maps, -1);
-  $deep: $last == true;
-  $max: if($deep, length($maps) - 1, length($maps));
-
-  // Loop through all maps in $maps...
-  @for $i from 1 through $max {
-    // Store current map
-    $current: nth($maps, $i);
-
-    // If not in deep mode, simply merge current map with map
-    @if not $deep {
-      $map: map-merge($map, $current);
-    } @else {
-      // If in deep mode, loop through all tuples in current map
-      @each $key, $value in $current {
-
-        // If value is a nested map and same key from map is a nested map as well
-        @if type-of($value) == "map" and type-of(map-get($map, $key)) == "map" {
-          // Recursive extend
-          $value: map-extend(map-get($map, $key), $value, true);
-        }
-
-        // Merge current tuple with map
-        $map: map-merge($map, ($key: $value));
-      }
-    }
-  }
-
-  @return $map;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Has Keys                                                   #map-has-keys
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Test if map got all `$keys` at first level
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-/// @access public
-///
-/// @group helpers-maps
-///
-/// @param {map} $map - Map
-///
-/// @param {arglist} $keys - Keys to test
-///
-/// @return {bool}
-
-@function map-has-keys($map, $keys...) {
-  @each $key in $keys {
-    @if not map-has-key($map, $key) {
-      @return false;
-    }
-  }
-
-  @return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Has Nested Keys                                     #map-has-nested-keys
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Test if map got all `$keys` nested with each others
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-/// @access public
-///
-/// @group helpers-maps
-///
-/// @param {map} $map - Map
-///
-/// @param {arglist} $keys - Keys to test
-///
-/// @return {bool}
-
-@function map-has-nested-keys($map, $keys...) {
-  @each $key in $keys {
-    @if not map-has-key($map, $key) {
-      @return false;
-    }
-    $map: map-get($map, $key);
-  }
-
-  @return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Set                                                             #map-set
-////////////////////////////////////////////////////////////////////////////////
-///
-/// A quick way of adding a key and value to the end of a map
-///
-/// @author Mark Notton
-///
-/// @group helpers-maps
-///
-/// @return {map}
-
-@function map-set($map, $key, $value) {
-  @return map-merge($map, ($key: $value));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Zip                                                             #map-zip
-////////////////////////////////////////////////////////////////////////////////
-///
-/// An equivalent of `zip` function but for maps.
-/// I wrote my own version of this before realising Hugo had done something similar.
-/// I have kept the name, but used my own.
-///
-/// @author Mark Notton
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-/// @link http://sass-lang.com/documentation/Sass/Script/Functions.html#zip-instance_method
-///
-/// @access public
-///
-/// @group helpers-maps
-///
-/// @param {list} $list1 - Keys for map
-///
-/// @param {list} $list2 - Values for map
-///
-/// @param {bool} $swappable - Swap variables around so list1 has the most values. Default is true.
-///
-/// @return {map} Freshly created map
-
-@function map-zip($list1, $list2, $swappable:true) {
-
-  $map : ();
-
-  $list1-size : length($list1);
-  $list2-size : length($list2);
-
-  $count : if($list1-size < $list2-size, $list1-size, $list2-size);
-
-
-  @if ($list1-size < $list2-size and $swappable) {
-    $temp : $list1;
-    $list1 : $list2;
-    $list2 : $temp;
-  }
-
-  @if $warnings {
-    @if ($list1-size < $list2-size) {
-      @if $warnings {
-        @warn('The second list had '+($list2-size - $list1-size)+' more value'+ if($list2-size - $list1-size != 1, 's', '') +' than the first list');
-      }
-    } @elseif ($list1-size > $list2-size) {
-      @if $warnings {
-        @warn('The first list had '+($list1-size - $list2-size)+' more value'+ if($list1-size - $list2-size != 1, 's', '') +' than the second list');
-      }
-    }
-  }
-
-  @for $i from 1 through $count {
-    $map : map-set($map, nth($list1, $i), nth($list2, $i));
-  }
-
-  @return $map;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1933,6 +1261,829 @@ $sc-non-strict-defaults: (
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Cast to boolean                                                     #to-bool
+////////////////////////////////////////////////////////////////////////////////
+
+/// @name Cast To Boolean
+/// @author Hugo Giraudel
+/// @link https://github.com/HugoGiraudel/SassyCast
+/// @group helpers-casts
+/// @param {*} $value - Value to cast
+/// @return {bool}
+
+@function to-bool($value) {
+  @if not $value or $value == "" or $value == 0 {
+    @return false;
+  }
+
+  @return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Cast to colour                                                    #to-colour
+////////////////////////////////////////////////////////////////////////////////
+
+/// @name Cast to colour
+/// @author Hugo Giraudel
+/// @link https://github.com/HugoGiraudel/SassyCast
+/// @group helpers-casts
+/// @param {*} $value - Value to cast
+/// @return {color | null}
+
+@function to-colour($value) {
+  @if type-of($value) == "color" {
+    @return $value;
+  }
+
+  @if type-of($value) != "string" {
+    //@warn "Could not cast `#{inspect($value)}` to color.";
+    @return null;
+  }
+
+  $value-lower: to-lower-case($value);
+  $colors: transparent black silver gray white maroon red purple fuchsia green lime olive yellow navy blue teal aqua aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue blueviolet brown burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan darkblue darkcyan darkgoldenrod darkgray darkgreen darkgrey darkkhaki darkmagenta darkolivegreen darkorange darkorchid darkred darksalmon darkseagreen darkslateblue darkslategray darkslategrey darkturquoise darkviolet deeppink deepskyblue dimgray dimgrey dodgerblue firebrick floralwhite forestgreen fuchsia gainsboro ghostwhite gold goldenrod gray green greenyellow grey honeydew hotpink indianred indigo ivory khaki lavender lavenderblush lawngreen lemonchiffon lightblue lightcoral lightcyan lightgoldenrodyellow lightgray lightgreen lightgrey lightpink lightsalmon lightseagreen lightskyblue lightslategray lightslategrey lightsteelblue lightyellow lime limegreen linen magenta maroon mediumaquamarine mediumblue mediumorchid mediumpurple mediumseagreen mediumslateblue mediumspringgreen mediumturquoise mediumvioletred midnightblue mintcream mistyrose moccasin navajowhite navy oldlace olive olivedrab orange orangered orchid palegoldenrod palegreen paleturquoise palevioletred papayawhip peachpuff peru pink plum powderblue purple red rosybrown royalblue saddlebrown salmon sandybrown seagreen seashell sienna silver skyblue slateblue slategray slategrey snow springgreen steelblue tan teal thistle tomato turquoise violet wheat white whitesmoke yellow yellowgreen;
+  $keywords: ();
+
+  // Filling $keywords with stringified color keywords
+  @each $color in $colors {
+    $keywords: append($keywords, $color + "");
+  }
+
+  // Deal with inherit keyword
+  @if $value-lower == "inherit" {
+    @return unquote($value);
+  }
+
+  // Deal with color keywords
+  @if index($keywords, $value-lower) {
+    @return nth($colors, index($keywords, $value-lower));
+  }
+
+  // Deal with hexadecimal triplets
+  @else if str-slice($value-lower, 1, 1) == "#" {
+    @return string-to-hex($value);
+  }
+
+  // Deal with rgb(a) colors
+  @else if str-slice($value-lower, 1, 3) == "rgb" {
+    @return string-to-rgb($value);
+  }
+
+  // Deal with hsl(a) colors
+  @else if str-slice($value-lower, 1, 3) == "hsl" {
+    @return string-to-hsl($value);
+  }
+
+  // Return value
+  @else {
+    @if $warnings { @warn "Could not cast `#{inspect($value)}` to color."; }
+    @return null;
+  }
+}
+
+/// To Color ========================================================= #to-color
+/// @alias to-colour
+/// @access public
+/// @require {function} to-colour
+/// @return {colour}
+
+@function to-color($value) {
+  @return to-colour($value);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Cast to length                                                    #to-length
+////////////////////////////////////////////////////////////////////////////////
+
+/// Add `$unit` to `$value`
+/// @param {Number} $value - Value to add unit to
+/// @param {String} $unit - String representation of the unit
+/// @return {Number} - `$value` expressed in `$unit`
+
+@function to-length($value, $unit) {
+  $units: ('px': 1px, 'cm': 1cm, 'mm': 1mm, '%': 1%, 'ch': 1ch, 'pc': 1pc, 'in': 1in, 'em': 1em, 'rem': 1rem, 'pt': 1pt, 'ex': 1ex, 'vw': 1vw, 'vh': 1vh, 'vmin': 1vmin, 'vmax': 1vmax);
+
+  @if not index(map-keys($units), $unit) {
+    $_: log('Invalid unit `#{$unit}`.');
+  }
+
+  @return $value * map-get($units, $unit);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Cast to list                                                        #to-list
+////////////////////////////////////////////////////////////////////////////////
+
+/// @name Cast to list
+/// @author Hugo Giraudel
+/// @link https://github.com/HugoGiraudel/SassyCast
+/// @group helpers-casts
+/// @param {*} $value - Value to cast
+/// @param {String} $keep ("both") - whether to keep `keys`, `values` or `both` when casting a map
+/// @return {list}
+
+@function to-list($value, $keep: "both") {
+  $keep: if(index("keys" "values" "both", $keep), $keep, "both");
+
+  @if type-of($value) == "map" {
+    $keys: ();
+    $values: ();
+    @each $key, $val in $value {
+      $keys: append($keys, $key);
+      $values: append($values, $val);
+    }
+
+    @if $keep == "keys" {
+      @return $keys;
+    }
+    @else if $keep == "values" {
+      @return $values;
+    }
+    @else {
+      @return zip($keys, $values);
+    }
+  }
+
+  @return if(type-of($value) != list, ($value,), $value);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Cast to map                                                          #to-map
+////////////////////////////////////////////////////////////////////////////////
+
+/// @name Cast to map
+/// @author Hugo Giraudel
+/// @link https://github.com/HugoGiraudel/SassyCast
+/// @group helpers-casts
+/// @param {*} $value - Value to cast
+/// @return {map}
+
+@function to-map($value) {
+  @if type-of($value) == "list" {
+    $map: ();
+
+    @if length($value) > 1 {
+      @for $i from 1 through length($value) {
+        $map: map-merge($map, ($i: nth($value, $i)));
+      }
+    }
+
+    @return $map;
+  }
+
+  @return if(type-of($value) != map, (1: $value), $value);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Cast to number                                                    #to-number
+////////////////////////////////////////////////////////////////////////////////
+
+/// Cast a value to a number if possible or return 0
+/// @author Hugo Giraudel
+/// @link https://www.sassmeister.com/gist/9fa19d254864f33d4a80
+/// @group helpers-casts
+/// @param {string} $value
+/// @return {number}
+
+@function to-number($value) {
+  @if type-of($value) == 'number' {
+    @return $value;
+  } @else if type-of($value) != 'string' {
+    $_: log('Value for `to-number` should be a number or a string.');
+  }
+
+  $result: 0;
+  $digits: 0;
+  $minus: str-slice($value, 1, 1) == '-';
+  $numbers: ('0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9);
+
+  @for $i from if($minus, 2, 1) through str-length($value) {
+    $character: str-slice($value, $i, $i);
+
+    @if not (index(map-keys($numbers), $character) or $character == '.') {
+      @return to-length(if($minus, -$result, $result), str-slice($value, $i))
+    }
+
+    @if $character == '.' {
+      $digits: 1;
+    } @else if $digits == 0 {
+      $result: $result * 10 + map-get($numbers, $character);
+    } @else {
+      $digits: $digits * 10;
+      $result: $result + map-get($numbers, $character) / $digits;
+    }
+  }
+
+  @return if($minus, -$result, $result);;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Cast to string                                                    #to-string
+////////////////////////////////////////////////////////////////////////////////
+
+/// @name Cast To String
+/// @author Hugo Giraudel
+/// @link https://github.com/HugoGiraudel/SassyCast
+/// @group helpers-casts
+/// @param {*} $value - value to cast
+/// @return {string}
+
+@function to-string($value) {
+  @return if(type-of($value) != string, inspect($value), $value);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Brightness                                                       #brightness
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Calculates a colours brightness
+///
+/// @author David Halford
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
+///
+/// @return {number}
+
+@function brightness($colour) {
+  @return abs(round((red($colour) * 299) + (green($colour) * 587) + (blue($colour) * 114) / 1000));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Get Colour Value                                           #get-colour-value
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Cast a stringified number / stringified percentage into number type
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @param {string} $string - string
+///
+/// @return {number} - unitless number or percentage
+///
+/// @require {function} to-number
+
+@function get-colour-value($string) {
+  $first: str-slice($string, 1, 1);
+
+  @if $first == '.' {
+    $string: '0' + $string;
+  }
+
+  $last: str-slice($string, -1, -1);
+
+  @return if($last == '%', to-number(str-slice($string, 1, -2), 2) * 1%, to-number($string));
+}
+
+/// Get Color Value =========================================== #get-color-value
+///
+/// @alias get-colour-value
+///
+/// @access public
+///
+/// @group helpers-colours
+///
+/// @require {function} get-colour-value
+///
+/// @return {colour}
+
+@function get-color-value($string) {
+  @return get-colour-value($string);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Get Variable Colour Value                         #get-variable-colour-value
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @access public
+///
+/// @group helpers-colours
+///
+/// @require {function} get-variable-colour-value
+///
+/// @return {colour}
+
+@function get-variable-colour-value($colour, $opacity:1) {
+
+  @if not is-colour($colour) and variable-exists(variables) {
+
+    $value : map-get($variables, get-var-variable($colour));
+
+    @if not is-null($value) {
+
+      @if is-list($value) {
+        $red:   nth($value, 1);
+        $green: nth($value, 2);
+        $blue:  nth($value, 3);
+        $value : rgba($red, $green, $blue, $opacity);
+      }
+
+      $colour : $value;
+    }
+
+  }
+
+  @return $colour;
+
+}
+
+///  Get Variable Color Value ======================== #get-variable-color-value
+///
+/// @alias get-variable-colour-value
+///
+/// @access public
+///
+/// @group helpers-colours
+///
+/// @require {function} get-variable-colour-value
+///
+/// @return {colour}
+
+@function get-variable-color-value($colour, $opacity:1) {
+  @return get-variable-colour-value($colour, $opacity);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Gradient Properties                                     #gradient-properties
+////////////////////////////////////////////////////////////////////////////////
+///
+// Add each argument into a single comma delimited list
+///
+/// @group helpers-colours
+///
+
+@function gradient-properties($args...) {
+  $properties : ();
+
+  $args: if(length($args) > 0, $args, null);
+
+  @for $i from 1 through length($args) {
+    $properties : append($properties, nth($args, $i), comma);
+  }
+
+  @return $properties;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Hash Fix                                                           #hash-fix
+////////////////////////////////////////////////////////////////////////////////
+///
+/// For reasons specific to Firefox (currently version 45),
+/// SVG's require all hash symbols to be replaced with '%23'. This includes hex
+/// colours and <use> xlinks This function will find and replace that hash
+/// symbol with the appropriate new string (which also works in other browsers)
+///
+/// @author Mark Notton
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @link http://stackoverflow.com/questions/28588050/how-to-use-a-hex-value-for-svg-in-firefox#answer-28588194
+///
+/// @return {string} - Without "#" as the first character
+
+@function hash-fix($string) {
+  @if get-var-value($string) {
+    @return str-replace(to-string(get-var-value($string)), '#', '%23');
+  } @else {
+    @return if(is-first-character($string, '#'), str-replace(#{$string}, '#', '%23'), $string);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Hexadecimal to Decimal                                           #hex-to-dec
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Convert an hexadecimal number to a decimal number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @param {string} $string - string
+///
+/// @param {string} $string - hexadecimal value
+///
+/// @return {number} - decimal number
+
+@function hex-to-dec($string){
+  $hex: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f";
+  $string: to-lower-case($string);
+  $length: str-length($string);
+
+  $dec: 0;
+  @for $i from 1 through $length {
+    $factor: 1 + ( 15 * ( $length - $i ));
+    $index: index($hex, str-slice($string, $i, $i));
+    $dec: $dec + $factor * ($index - 1);
+  }
+
+  @return $dec;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Hexadecimal to RGBA                                             #hex-to-rgba
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @group helpers-colours
+///
+
+@function hex-to-rgba($colour, $opacity:1) {
+
+  @if is-hex($colour) {
+
+    $red:   red($colour);
+    $green: green($colour);
+    $blue:  blue($colour);
+
+    @return unquote("rgba(#{$red}, #{$green}, #{$blue}, #{$opacity})");
+
+  } @else {
+
+    @return $colour;
+
+  }
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Lightness                                                         #lightness
+////////////////////////////////////////////////////////////////////////////////
+///
+/// A smart calculation to what lightness is
+///
+/// @notice This could just be a variable, but for potential future minipulation I've left it as a function
+///
+/// @author David Halford
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
+///
+/// @return {number}
+
+@function lightness() {
+  @return round((red(#ffffff) * 299) + (green(#ffffff) * 587) + (blue(#ffffff) * 114) / 1000)/2;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Deep Get                                                   #map-deep-get
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Fetch nested keys in a map
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+/// @access public
+///
+/// @group helpers-maps
+///
+/// @param (map) $map - Usually a variable name
+///
+/// @param (arglist) $keys - With comma delimination write the path to the disired map element
+///
+/// @return {*}
+///
+/// @example scss - Usage
+/// $foo: (
+///   bar: (
+///     lorem : (
+///       test1: #dcfac0,
+///       test2: #00968b,
+///     ),
+///     ipsom: (
+///       test1: #f4fac7,
+///       test2: #c2454e,
+///     )
+///   )
+/// );
+/// color: map-fetch($foo, bar, lorem, test1);
+///
+/// @example css - Output
+/// color:#dcfac0;
+///
+
+@function map-deep-get($map, $keys...) {
+  @each $key in $keys {
+    $map: map-get($map, $key);
+  }
+  @return $map;
+}
+
+/// @alias map-deep-get
+///
+/// @access public
+///
+/// @require {function} map-deep-get
+///
+/// @return {*}
+
+@function map-fetch($map, $keys...) {
+  @return map-deep-get($map, $keys...);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Deep Merge                                               #map-deep-merge
+////////////////////////////////////////////////////////////////////////////////
+
+/// @name Map Deep Merge
+/// @author Zsolt Pentz
+/// @see https://medium.com/@pentzzsolt/a-non-destructive-map-merge-function-for-sass-f91637f87b2e
+
+@function map-deep-merge($parent-map, $child-map) {
+	$result: $parent-map;
+	@each $key, $value in $child-map {
+		@if (not map-has-key($result, $key)) or (type-of(map-get($result, $key)) != type-of($value)) or (not (type-of(map-get($result, $key)) == map and type-of($value) == map)) {
+			$result: map-merge($result, ($key: $value));
+		}
+		@else {
+			$result: map-merge($result, ($key: map-deep-merge(map-get($result, $key), $value)));
+		}
+	}
+	@return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Deep Set                                                   #map-deep-set
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Update a key deeply nested
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+/// @access public
+///
+/// @group helpers-maps
+///
+/// @param {map} $map - Map to update
+///
+/// @param {arglist} $keys - Keys to access to value to update
+///
+/// @param {*} $value - New value (last member of `$keys`)
+///
+/// @return {map} - Updated map
+
+@function map-deep-set($map, $keys.../*, $value */) {
+  $map-list: ($map,);
+  $result: null;
+
+  @if length($keys) == 2 {
+    @return map-merge($map, (nth($keys, 1): nth($keys, -1)));
+  }
+
+  @for $i from 1 through length($keys) - 2 {
+    $map-list: append($map-list, map-get(nth($map-list, -1), nth($keys, $i)));
+  }
+
+  @for $i from length($map-list) through 1 {
+    $result: map-merge(nth($map-list, $i), (nth($keys, $i): if($i == length($map-list), nth($keys, -1), $result)));
+  }
+
+  @return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Depth                                                         #map-depth
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Compute the maximum depth of a map
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+/// @access public
+///
+/// @group helpers-maps
+///
+/// @param {map} $map
+///
+/// @return {number} max depth of `$map`
+
+@function map-depth($map) {
+  $level: 1;
+
+  @each $key, $value in $map {
+    @if type-of($value) == "map" {
+      $level: max(map-depth($value) + 1, $level);
+    }
+  }
+
+  @return $level;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Extend                                                       #map-extend
+////////////////////////////////////////////////////////////////////////////////
+///
+/// jQuery-style extend function
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+/// @access public
+///
+/// @group helpers-maps
+///
+/// @param {map} $map - first map
+///
+/// @param {arglist} $maps - other maps
+///
+/// @param {bool} $deep - recursive mode
+///
+/// @return {map}
+
+@function map-extend($map, $maps.../*, $deep */) {
+  $last: nth($maps, -1);
+  $deep: $last == true;
+  $max: if($deep, length($maps) - 1, length($maps));
+
+  // Loop through all maps in $maps...
+  @for $i from 1 through $max {
+    // Store current map
+    $current: nth($maps, $i);
+
+    // If not in deep mode, simply merge current map with map
+    @if not $deep {
+      $map: map-merge($map, $current);
+    } @else {
+      // If in deep mode, loop through all tuples in current map
+      @each $key, $value in $current {
+
+        // If value is a nested map and same key from map is a nested map as well
+        @if type-of($value) == "map" and type-of(map-get($map, $key)) == "map" {
+          // Recursive extend
+          $value: map-extend(map-get($map, $key), $value, true);
+        }
+
+        // Merge current tuple with map
+        $map: map-merge($map, ($key: $value));
+      }
+    }
+  }
+
+  @return $map;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Has Keys                                                   #map-has-keys
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Test if map got all `$keys` at first level
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+/// @access public
+///
+/// @group helpers-maps
+///
+/// @param {map} $map - Map
+///
+/// @param {arglist} $keys - Keys to test
+///
+/// @return {bool}
+
+@function map-has-keys($map, $keys...) {
+  @each $key in $keys {
+    @if not map-has-key($map, $key) {
+      @return false;
+    }
+  }
+
+  @return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Has Nested Keys                                     #map-has-nested-keys
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Test if map got all `$keys` nested with each others
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+/// @access public
+///
+/// @group helpers-maps
+///
+/// @param {map} $map - Map
+///
+/// @param {arglist} $keys - Keys to test
+///
+/// @return {bool}
+
+@function map-has-nested-keys($map, $keys...) {
+  @each $key in $keys {
+    @if not map-has-key($map, $key) {
+      @return false;
+    }
+    $map: map-get($map, $key);
+  }
+
+  @return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Set                                                             #map-set
+////////////////////////////////////////////////////////////////////////////////
+///
+/// A quick way of adding a key and value to the end of a map
+///
+/// @author Mark Notton
+///
+/// @group helpers-maps
+///
+/// @return {map}
+
+@function map-set($map, $key, $value) {
+  @return map-merge($map, ($key: $value));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Zip                                                             #map-zip
+////////////////////////////////////////////////////////////////////////////////
+///
+/// An equivalent of `zip` function but for maps.
+/// I wrote my own version of this before realising Hugo had done something similar.
+/// I have kept the name, but used my own.
+///
+/// @author Mark Notton
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+/// @link http://sass-lang.com/documentation/Sass/Script/Functions.html#zip-instance_method
+///
+/// @access public
+///
+/// @group helpers-maps
+///
+/// @param {list} $list1 - Keys for map
+///
+/// @param {list} $list2 - Values for map
+///
+/// @param {bool} $swappable - Swap variables around so list1 has the most values. Default is true.
+///
+/// @return {map} Freshly created map
+
+@function map-zip($list1, $list2, $swappable:true) {
+
+  $map : ();
+
+  $list1-size : length($list1);
+  $list2-size : length($list2);
+
+  $count : if($list1-size < $list2-size, $list1-size, $list2-size);
+
+
+  @if ($list1-size < $list2-size and $swappable) {
+    $temp : $list1;
+    $list1 : $list2;
+    $list2 : $temp;
+  }
+
+  @if $warnings {
+    @if ($list1-size < $list2-size) {
+      @if $warnings {
+        @warn('The second list had '+($list2-size - $list1-size)+' more value'+ if($list2-size - $list1-size != 1, 's', '') +' than the first list');
+      }
+    } @elseif ($list1-size > $list2-size) {
+      @if $warnings {
+        @warn('The first list had '+($list1-size - $list2-size)+' more value'+ if($list1-size - $list2-size != 1, 's', '') +' than the second list');
+      }
+    }
+  }
+
+  @for $i from 1 through $count {
+    $map : map-set($map, nth($list1, $i), nth($list2, $i));
+  }
+
+  @return $map;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// Add                                                                     #add
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -2732,256 +2883,6 @@ $sc-non-strict-defaults: (
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Brightness                                                       #brightness
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Calculates a colours brightness
-///
-/// @author David Halford
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
-///
-/// @return {number}
-
-@function brightness($colour) {
-  @return abs(round((red($colour) * 299) + (green($colour) * 587) + (blue($colour) * 114) / 1000));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Get Colour Value                                           #get-colour-value
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Cast a stringified number / stringified percentage into number type
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @param {string} $string - string
-///
-/// @return {number} - unitless number or percentage
-///
-/// @require {function} to-number
-
-@function get-colour-value($string) {
-  $first: str-slice($string, 1, 1);
-
-  @if $first == '.' {
-    $string: '0' + $string;
-  }
-
-  $last: str-slice($string, -1, -1);
-
-  @return if($last == '%', to-number(str-slice($string, 1, -2), 2) * 1%, to-number($string));
-}
-
-/// Get Color Value =========================================== #get-color-value
-///
-/// @alias get-colour-value
-///
-/// @access public
-///
-/// @group helpers-colours
-///
-/// @require {function} get-colour-value
-///
-/// @return {colour}
-
-@function get-color-value($string) {
-  @return get-colour-value($string);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Get Variable Colour Value                         #get-variable-colour-value
-////////////////////////////////////////////////////////////////////////////////
-///
-/// @access public
-///
-/// @group helpers-colours
-///
-/// @require {function} get-variable-colour-value
-///
-/// @return {colour}
-
-@function get-variable-colour-value($colour, $opacity:1) {
-
-  @if not is-colour($colour) and variable-exists(variables) {
-
-    $value : map-get($variables, get-var-variable($colour));
-
-    @if not is-null($value) {
-
-      @if is-list($value) {
-        $red:   nth($value, 1);
-        $green: nth($value, 2);
-        $blue:  nth($value, 3);
-        $value : rgba($red, $green, $blue, $opacity);
-      }
-
-      $colour : $value;
-    }
-
-  }
-
-  @return $colour;
-
-}
-
-///  Get Variable Color Value ======================== #get-variable-color-value
-///
-/// @alias get-variable-colour-value
-///
-/// @access public
-///
-/// @group helpers-colours
-///
-/// @require {function} get-variable-colour-value
-///
-/// @return {colour}
-
-@function get-variable-color-value($colour, $opacity:1) {
-  @return get-variable-colour-value($colour, $opacity);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Gradient Properties                                     #gradient-properties
-////////////////////////////////////////////////////////////////////////////////
-///
-// Add each argument into a single comma delimited list
-///
-/// @group helpers-colours
-///
-
-@function gradient-properties($args...) {
-  $properties : ();
-
-  $args: if(length($args) > 0, $args, null);
-
-  @for $i from 1 through length($args) {
-    $properties : append($properties, nth($args, $i), comma);
-  }
-
-  @return $properties;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Hash Fix                                                           #hash-fix
-////////////////////////////////////////////////////////////////////////////////
-///
-/// For reasons specific to Firefox (currently version 45),
-/// SVG's require all hash symbols to be replaced with '%23'. This includes hex
-/// colours and <use> xlinks This function will find and replace that hash
-/// symbol with the appropriate new string (which also works in other browsers)
-///
-/// @author Mark Notton
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @link http://stackoverflow.com/questions/28588050/how-to-use-a-hex-value-for-svg-in-firefox#answer-28588194
-///
-/// @return {string} - Without "#" as the first character
-
-@function hash-fix($string) {
-  @if get-var-value($string) {
-    @return str-replace(to-string(get-var-value($string)), '#', '%23');
-  } @else {
-    @return if(is-first-character($string, '#'), str-replace(#{$string}, '#', '%23'), $string);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Hexadecimal to Decimal                                           #hex-to-dec
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Convert an hexadecimal number to a decimal number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @param {string} $string - string
-///
-/// @param {string} $string - hexadecimal value
-///
-/// @return {number} - decimal number
-
-@function hex-to-dec($string){
-  $hex: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f";
-  $string: to-lower-case($string);
-  $length: str-length($string);
-
-  $dec: 0;
-  @for $i from 1 through $length {
-    $factor: 1 + ( 15 * ( $length - $i ));
-    $index: index($hex, str-slice($string, $i, $i));
-    $dec: $dec + $factor * ($index - 1);
-  }
-
-  @return $dec;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Hexadecimal to RGBA                                             #hex-to-rgba
-////////////////////////////////////////////////////////////////////////////////
-///
-/// @group helpers-colours
-///
-
-@function hex-to-rgba($colour, $opacity:1) {
-
-  @if is-hex($colour) {
-
-    $red:   red($colour);
-    $green: green($colour);
-    $blue:  blue($colour);
-
-    @return unquote("rgba(#{$red}, #{$green}, #{$blue}, #{$opacity})");
-
-  } @else {
-
-    @return $colour;
-
-  }
-
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Lightness                                                         #lightness
-////////////////////////////////////////////////////////////////////////////////
-///
-/// A smart calculation to what lightness is
-///
-/// @notice This could just be a variable, but for potential future minipulation I've left it as a function
-///
-/// @author David Halford
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
-///
-/// @return {number}
-
-@function lightness() {
-  @return round((red(#ffffff) * 299) + (green(#ffffff) * 587) + (blue(#ffffff) * 114) / 1000)/2;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Get Settings                                                   #get-settings
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -3306,13 +3207,25 @@ $sc-non-strict-defaults: (
     }
     @elseif is-unit($value) {
       @if $replace and $unit != null {
-        @return to-number(strip($value) + $unit);
+        @return to-number(strip-unit($value) + $unit);
       } @else {
         @return to-number($value);
       }
     }
   } @else {
     @return $value;
+  }
+}
+
+@function decrease-by-percentage($unit, $percent, $type:true) {
+
+  $unit : strip-unit($unit);
+  $percent : strip-unit($percent);
+
+  @if $type == true {
+    @return $unit / 100 * (100 - $percent);
+  } @else {
+    @return $unit / 100 * (100 - ($percent * 100));
   }
 }
 
@@ -3471,6 +3384,18 @@ $sc-non-strict-defaults: (
   @return $result;
 }
 
+@function increase-by-percentage($unit, $percent, $type:true) {
+
+  $unit : strip-unit($unit);
+  $percent : strip-unit($percent);
+
+  @if $type == true {
+    @return $unit / 100 * (100 + $percent);
+  } @else {
+    @return $unit / 100 * (100 + ($percent * 100));
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Min Max Number                                               #min-max-number
 ////////////////////////////////////////////////////////////////////////////////
@@ -3521,7 +3446,7 @@ $sc-non-strict-defaults: (
 
 @function percent-to-decimal($number) {
   @if is-percentage($number) {
-    @return strip($number)/100;
+    @return strip-unit($number)/100;
   } @else {
     @if $number > 1 {
       @return $number/100;
@@ -3529,6 +3454,43 @@ $sc-non-strict-defaults: (
       @return $number;
     }
   }
+}
+
+/// Strips any units from a number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/strip-unit-function/
+///
+/// @param {string} $number
+///
+/// @return {number}
+///
+/// @require {function} is-number
+/// @require {function} to-number
+///
+/// @example scss - Usage
+///   strip-unit(50px)
+///
+/// @example scss - Output
+///   50
+///
+
+@function remove-unit($number) {
+
+  @if not is-number($number) {
+    $number : to-number($number);
+  }
+
+  @if is-number($number) and not unitless($number) {
+    @return ($number / ($number * 0 + 1));
+  }
+
+  @return $number;
+}
+
+@function strip-unit($number) {
+  @return remove-unit($number);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

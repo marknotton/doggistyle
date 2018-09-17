@@ -12,16 +12,18 @@
 /// @require {function} to-number
 ///
 /// @example scss - Usage
-///   strip(50px)
+///   strip-unit(50px)
 ///
 /// @example scss - Output
 ///   50
 ///
 
-@function strip($number) {
+@function remove-unit($number) {
+
   @if not is-number($number) {
     $number : to-number($number);
   }
+
   @if is-number($number) and not unitless($number) {
     @return ($number / ($number * 0 + 1));
   }
@@ -29,6 +31,6 @@
   @return $number;
 }
 
-@function remove-unit($number) {
-  @return strip($number);
+@function strip-unit($number) {
+  @return remove-unit($number);
 }

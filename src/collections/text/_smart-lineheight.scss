@@ -1,7 +1,9 @@
+/// @todo REVIEW
+
 @function smart-lineheight($size, $smart:true) {
   @if $smart and not is-unit($size) {
     @if is-percentage($size) {
-      @return add-unit(100+(strip($size)), %);
+      @return add-unit(100+(strip-unit($size)), %);
     } @else {
       @return add-unit(((($size/50)+($size))*2) + $global-line-height-guide, %);
     }

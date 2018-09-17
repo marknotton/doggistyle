@@ -2,24 +2,40 @@
 /// @require postcss-inline-svg
 /// @see https://github.com/TrySound/postcss-inline-svg
 
-@mixin inline-svg($svg, $fill:null, $stroke:null, $stroke-width:null, $path:'sprites') {
+@mixin inline-svg($args...) {
 
-  $explode : string-explode($svg, '.');
+  $defaults : (
+    svg          : null,
+    fill         : null,
+    stroke       : null,
+    stroke-width : null,
+    path         : 'sprites'
+  );
 
-  $name : nth($explode, 1);
-  $filename : add-extension($svg, 'svg');
-  @at-root (without: media) {
-    @svg-load #{$name} url(#{if(is-null($path) or $path == false, '', $path+'/')+$filename}) {
-      @if not is-null($fill) {
-        * { fill: $fill; }
+  $settings : get-settings($defaults, $args...);
+
+  $svg          : map-get($settings, svg);
+  $fill         : map-get($settings, fill);
+  $stroke       : map-get($settings, stroke);
+  $stroke-width : map-get($settings, stroke-width);
+  $path         : map-get($settings, path);
+
+  @if not is-null($svg) {
+
+    $name     : nth(string-explode($svg, '.'), 1);
+    $filename : add-extension($svg, 'svg');
+
+    @at-root (without: media) {
+      @svg-load #{$name} url(#{if(is-null($path) or $path == false, '', $path+'/')+$filename}) {
+        fill: $fill;
+        stroke: $stroke;
+        stroke-width:add-unit($stroke-width);
+        @content;
       }
-      @if not is-null($stroke) {
-        * { stroke: $stroke; stroke-width:add-unit($stroke-width); }
-      }
-      @content;
     }
-  }
 
-  & { background-image: svg-inline(unquote($name)); }
+    & { background-image: svg-inline(unquote($name)); }
+
+  }
 
 }

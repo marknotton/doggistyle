@@ -4,7 +4,7 @@
     // If a string is passed and exists in the breakpoints map as a key, return the value
     @return map-get($breakpoints, $break);
   } @elseif is-number($break) {
-    $number : strip($break);
+    $number : strip-unit($break);
     // If a number is passed and it exists in the breakpoints map, return the key
     @if contains(map-values($breakpoints), $number) {
       $list : null;

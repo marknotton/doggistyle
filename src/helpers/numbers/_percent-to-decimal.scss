@@ -27,7 +27,7 @@
 
 @function percent-to-decimal($number) {
   @if is-percentage($number) {
-    @return strip($number)/100;
+    @return strip-unit($number)/100;
   } @else {
     @if $number > 1 {
       @return $number/100;

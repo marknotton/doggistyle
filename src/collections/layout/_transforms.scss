@@ -185,22 +185,22 @@
 }
 
 @mixin scaleX($value) {
-  @include transform(scaleX strip($value));
+  @include transform(scaleX strip-unit($value));
 }
 
 @mixin scaleY($value) {
-  @include transform(scaleY strip($value));
+  @include transform(scaleY strip-unit($value));
 }
 
 @mixin scale3d($values) {
-  $x : strip(nth($values, 1));
-  $y : if( length($values) > 1, strip(nth($values, 2)), 0);
-  $z : if( length($values) > 2, strip(nth($values, 3)), 0);
+  $x : strip-unit(nth($values, 1));
+  $y : if( length($values) > 1, strip-unit(nth($values, 2)), 0);
+  $z : if( length($values) > 2, strip-unit(nth($values, 3)), 0);
   @include transform(scale3d $x $y $z);
 }
 
 @mixin scaleZ($value) {
-  @include transform(scaleZ strip($value));
+  @include transform(scaleZ strip-unit($value));
 }
 
 
@@ -222,9 +222,9 @@
 }
 
 @mixin rotate3d($values) {
-  $x :   if( length($values) == 1, strip(nth($values, 1)), 0);
-  $y :   if( length($values) > 1,  strip(nth($values, 2)), 1);
-  $z :   if( length($values) > 2,  strip(nth($values, 3)), 0);
+  $x :   if( length($values) == 1, strip-unit(nth($values, 1)), 0);
+  $y :   if( length($values) > 1,  strip-unit(nth($values, 2)), 1);
+  $z :   if( length($values) > 2,  strip-unit(nth($values, 3)), 0);
   $deg : if( length($values) > 3,  to-number(add-unit(nth($values, 4), deg)), 0);
   @include transform(rotate3d $x $y $z $deg);
 }

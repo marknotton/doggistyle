@@ -189,7 +189,7 @@ $triangle-settings: (
 
   @if $stroke {
     $s-colour    : "' stroke='" + hash-fix($s-colour);
-    $s-width     : "' stroke-width='" + strip($s-width);
+    $s-width     : "' stroke-width='" + strip-unit($s-width);
     $s-alignment : "' stroke-alignment='inner";
     $s-linecap   : if($s-linecap, "' stroke-linecap='" + $s-linecap, '');
     $s-linejoin   : if($s-linejoin, "' stroke-linejoin='" + $s-linejoin, '');

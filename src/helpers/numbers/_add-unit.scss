@@ -35,7 +35,7 @@
     }
     @elseif is-unit($value) {
       @if $replace and $unit != null {
-        @return to-number(strip($value) + $unit);
+        @return to-number(strip-unit($value) + $unit);
       } @else {
         @return to-number($value);
       }

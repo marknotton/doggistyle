@@ -61,11 +61,3 @@
     }
   }
 }
-
-// Get the aspect ratio of a given symbol
-@function symbol-size-ratio($symbol) {
-  $width : map-deep-get($symbols, $symbol, width);
-  $height : map-deep-get($symbols, $symbol, height);
-  // @debug $symbol + ': ' + $width + 'x' + $height;
-  @return percentage($height / $width);
-}

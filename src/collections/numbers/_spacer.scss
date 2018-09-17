@@ -1,0 +1,26 @@
+/// Create a spacer relative to the viewport height or width. Whilst also adding
+/// a calc method to ensure that space is always at least the size of a solid unit (px)
+/// @param {Number} $size - Enter the amount of viewport units to add. 3 = 3% of the viewport height
+/// @param {Number} $min - Enter the amount of pixels the spcaer should never go below;
+/// @param {String} $direction - The unit you want the spacing to be defined as. Default is vh
+/// @example margin-top:spacer(2, 30);
+/// @output margin-top:calc(2vh + 30px);
+/// @return {number} with units
+
+@function spacer($args...) {
+
+  $defaults : (
+    size      : $space,
+    min       : $gap,
+    direction : vh,
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $direction : map-get($settings, direction);
+
+  $size      : add-unit(map-get($settings, size), $direction);
+  $min       : add-unit(map-get($settings, min));
+
+  @return calc(#{$size} + #{$min});
+}

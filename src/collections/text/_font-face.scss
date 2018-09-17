@@ -2,7 +2,7 @@
 
   $defaults : (
     family  : 'Arial',
-    file    : '',
+    file    : null,
     formats : eot svg ttf woff,
   );
 
@@ -13,12 +13,13 @@
   $formats : map-get($settings, formats);
 
   @font-face {
-    $source : ();
     font-family : $family;
-    @each $format in $formats {
-      $source : append($source, url($fonts + add-extension(str-replace($file, $fonts), $format)) format(quote($format)), comma);
+    @if not is-null($file) {
+      $source : ();
+      @each $format in $formats {
+        $source : append($source, url($fonts + add-extension(str-replace($file, $fonts), $format)) format(quote($format)), comma);
+      }      
+      src: $source;
     }
-    src: $source;
-    @content;
   }
 }
