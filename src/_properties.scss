@@ -35,13 +35,9 @@ $angel-types : deg rad grad turn;
 /// ============================================================================
 
 /// CSS cubic-bezier timing functions from Ceaser Easeing.
-///
 /// @author Jared Hardy
-///
 /// @link https://github.com/jhardy/compass-ceaser-easing
-///
 /// @access public
-///
 /// @type string
 
 $linear         : cubic-bezier(0.250, 0.250, 0.750, 0.750);
