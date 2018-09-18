@@ -13,7 +13,7 @@
         $name : $rule;
       }
       @if type-of($rule) == number {
-        $size : strip-unit($rule);
+        $size : remove-unit($rule);
       }
     }
 

@@ -10,8 +10,8 @@
 ///
 ///     @param {number} $max-size  - At the largest breakpoint, this size will be used to fallback on.
 ///     @param {number} $min-size  - At the small breakpoint, this size will be used to fallback on. default $font-size;
-///     @param {number} $min-width - breakpoint to start the responsive font-size. Default $large breakpoint
-///     @param {number} $max-width - breakpoint to stop the responsive font-size. Default $max-width breakpoint
+///     @param {number} $min - breakpoint to start the responsive font-size. Default $large breakpoint
+///     @param {number} $max - breakpoint to stop the responsive font-size. Default $max breakpoint
 ///     @param {boolean} $line-height - If true (default), include a similar calculation for the line height.
 ///     @param {list} $line-height & $line-height-percent - Including a list, with 'true' and a number will effect the
 ///     line-height value relative to the max-size variable.
@@ -48,8 +48,8 @@
   $min-size            : null;
   $max-lineheight      : null;
   $min-lineheight      : null;
-  $min-width           : null;
-  $max-width           : null;
+  $min           : null;
+  $max           : null;
   $line-height         : false;
   $line-height-percent : null;
 
@@ -62,10 +62,10 @@
         $max-size : $setting;
       } @elseif is-null($min-size) {
         $min-size : $setting;
-      } @elseif is-null($min-width) {
-        $min-width : $setting;
-      } @elseif is-null($max-width) {
-        $max-width : $setting;
+      } @elseif is-null($min) {
+        $min : $setting;
+      } @elseif is-null($max) {
+        $max : $setting;
       }
     } @elseif is-bool($setting) {
       // true or false booleans are passed to the line-height variable
@@ -111,17 +111,17 @@
 
   $max-size  : if(is-null($max-size ), ($font-size * 2), $max-size);
   $min-size  : if(is-null($min-size ), $font-size, $min-size);
-  $min-width : if(is-null($min-width), $large, $min-width);
-  $max-width : if(is-null($max-width), $max, $max-width);
+  $min : if(is-null($min), $large, $min);
+  $max : if(is-null($max), $max, $max);
   $line-height-percent : if($line-height == true and is-null($line-height-percent), 30, $line-height-percent);
 
-  font-size: calc(#{add-unit($min-size)} + #{$max-size - $min-size} * (100vw - #{add-unit($min-width)}) / #{$max-width - $min-width});
+  font-size: calc(#{add-unit($min-size)} + #{$max-size - $min-size} * (100vw - #{add-unit($min)}) / #{$max - $min});
 
   @if $line-height == true {
-    line-height: calc(#{add-unit(increase-by-percentage($min-size, $line-height-percent))} + #{$max-size - $min-size} * (100vw - #{add-unit($min-width)}) / #{$max-width - $min-width});
+    line-height: calc(#{add-unit(increase-by-percentage($min-size, $line-height-percent))} + #{$max-size - $min-size} * (100vw - #{add-unit($min)}) / #{$max - $min});
   }
 
-  @include break($min-width, max) {
+  @include break($min, max) {
     font-size:add-unit($min-size);
     @if not is-null($min-lineheight) {
       line-height:add-unit($min-lineheight);
@@ -130,7 +130,7 @@
     }
   }
 
-  @include break($max-width, min) {
+  @include break($max, min) {
     font-size:add-unit($max-size);
     @if not is-null($max-lineheight) {
       line-height:add-unit($max-lineheight);

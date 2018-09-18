@@ -40,7 +40,7 @@
   $important        : map-get($settings, important);
 
   // Set Width
-  $width : strip-unit($original-width);
+  $width : remove-unit($original-width);
   $width-unit : if(not is-null($new-width) and not unitless($new-width), unit($new-width), null);
 
   @if not is-null($new-width) {
@@ -48,13 +48,13 @@
     @if is-empty($width-unit) and is-null($width-unit) {
       $new-width : $width * $new-width;
     } @else {
-      $new-width : strip-unit(to-number($new-width));
+      $new-width : remove-unit(to-number($new-width));
     }
 
   }
 
   // Set Height
-  $height : strip-unit($original-height);
+  $height : remove-unit($original-height);
   $height-unit : if(not is-null($new-height) and not unitless($new-height), unit($new-height), null);
 
   @if not is-null($new-height) {
@@ -62,7 +62,7 @@
     @if is-empty($height-unit) and is-null($height-unit) {
       $new-height : $height * $new-height;
     } @else {
-      $new-height : strip-unit(to-number($new-height));
+      $new-height : remove-unit(to-number($new-height));
     }
 
   }

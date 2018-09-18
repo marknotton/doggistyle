@@ -3,7 +3,7 @@
 	@each $time in $times {
 		$times-list: append( $times-list, add-unit($time, $default-timing-unit ), comma);
 	}
-  transition-delay : $times-list);
+  transition-delay : $times-list;
 }
 
 /// @alias transition-delay

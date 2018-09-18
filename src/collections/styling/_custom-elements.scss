@@ -1,4 +1,4 @@
-@if $reset and $global-styling {
+@if $normalise and $global-styling {
 
   image-element, gallery-image, article-image {
     @extend %full;
@@ -13,7 +13,7 @@
 
   featured-image {
     @extend %full;
-    min-width:$min + px;
+    min-width:$min;
     > img {
       display:block;
       position:absolute;

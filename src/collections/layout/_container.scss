@@ -4,7 +4,7 @@
     gutter1   : var(--gutter, #{$gap2}),
     gutter2   : var(--gutter, #{$gap1}),
     break     : $medium,
-    max-width : $max-width
+    max-width : $max
   );
 
   $settings : get-settings($defaults, $args...);
@@ -19,18 +19,13 @@
   position:relative;
   display:block;
   margin-left:auto; margin-right:auto;
-  max-width:add-unit($max-width);
+  max-width:add-unit($max);
 
   @if not is-null($gutter1) {
 
     @if is-var($gutter1) {
-      padding-left  : add-unit(get-var-value($gutter1)) $important;
-      padding-right : add-unit(get-var-value($gutter1)) $important;
-
-      @supports(--css: variables) {
-        padding-left  : $gutter1 $important;
-        padding-right : $gutter1 $important;
-      }
+      padding-left  : $gutter1 $important;
+      padding-right : $gutter1 $important;
     } @else {
       padding-left  : add-unit($gutter1) $important;
       padding-right : add-unit($gutter1) $important;

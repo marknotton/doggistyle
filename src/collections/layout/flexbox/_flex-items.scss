@@ -93,7 +93,7 @@ $flex-align-self   : auto flex-start flex-end start end center baseline stretch;
 
       // Check these properties against their list of valid values
       @if contains($property, (order, flex-grow, flex-shrink)) {
-        $new-value : strip-unit($value);
+        $new-value : remove-unit($value);
         $output : true;
       }
       @elseif $property == flex-basis {

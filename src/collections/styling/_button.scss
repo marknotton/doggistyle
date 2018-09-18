@@ -63,7 +63,7 @@
     @if $inverted != true {
       $static-background : last($static);
     }
-    @if $inverted == true && $warnings {
+    @if $inverted == true and $warnings {
       @warn "You must defined two static colours for an inverted button. The second ("+$static-background+") colour will be ignored";
     }
   } @else if $inverted == true {

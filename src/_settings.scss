@@ -19,7 +19,7 @@ $border-radius : 10 !default;
 $default-unit : px !default;
 
 // Default units for fonts and line-heights
-$default-font-unit : rem !default;
+$default-font-unit : px !default;
 
 // Default units for timings
 $default-timing-unit : s !default;
@@ -138,21 +138,30 @@ $show-breakpoints-selector : 'body.dev-environment' !default;
 $support-notches : false !default;
 
 $notches : (
-  iphoneX : 30pt 209pt
+  iphoneX : 30pt 209pt,
 ) !default;
 
 // =============================================================================
 // Text
 // =============================================================================
 
-$font-size: add-unit(1.6, $default-font-unit) !default;
-
-$h1: ceil(($font-size*2.5))                      !default; // 4.0em
-$h2: ceil((($h1 - $font-size) / 2) + $font-size) !default; // 2.8em
-$h3: ceil((($h2 - $font-size) / 2) + $font-size) !default; // 2.2em
-$h4: ceil((($h3 - $font-size) / 2) + $font-size) !default; // 1.9em
-$h5: ceil((($h4 - $font-size) / 2) + $font-size) !default; // 1.75em
-$h6: ceil((($h5 - $font-size) / 2) + $font-size) !default; // 1.675em
+@if $default-font-unit == 'rem' {
+  $font-size: add-unit(1.6, $default-font-unit) !global !default;
+  $h1: add-unit(remove-unit($font-size)*2.5,                                     $default-font-unit) !global !default; // 4.0em
+  $h2: add-unit((($h1 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !global !default; // 2.8em
+  $h3: add-unit((($h2 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !global !default; // 2.2em
+  $h4: add-unit((($h3 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !global !default; // 1.9em
+  $h5: add-unit((($h4 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !global !default; // 1.75em
+  $h6: add-unit((($h5 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !global !default; // 1.675em
+} @else {
+  $font-size: add-unit(16, $default-font-unit) !global !default;
+  $h1: add-unit(ceil((remove-unit($font-size)*2.5)),                                   $default-font-unit) !global !default; // 40px
+  $h2: add-unit(ceil((($h1 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !global !default; // 28px
+  $h3: add-unit(ceil((($h2 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !global !default; // 22px
+  $h4: add-unit(ceil((($h3 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !global !default; // 19px
+  $h5: add-unit(ceil((($h4 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !global !default; // 17px
+  $h6: add-unit(ceil((($h5 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !global !default; // 16px
+}
 
 // =============================================================================
 // Colours

@@ -9,20 +9,11 @@ const sassdoc  = require('sassdoc');
 notifier.defaults({ success : 'icon.png' });
 
 const src = [
+  'src/helpers/*/**.scss',
   'src/_settings.scss',
   'src/_properties.scss',
   'src/_placeholders.scss',
-  'src/helpers/*/**.scss',
-  // 'src/collections/*/**.scss',
-  // 'src/collections/animation/*/**.scss',
-  // 'src/collections/colours/*/**.scss',
-  // 'src/collections/image/*/**.scss',
-  // 'src/collections/layout/*/**.scss',
-  // 'src/collections/miscellaneous/*/**.scss',
-  // 'src/collections/numbers/*/**.scss',
-  // 'src/collections/styling/*/**.scss',
-  // 'src/collections/svg/*/**.scss',
-  // 'src/collections/text/*/**.scss',
+  'src/collections/**/*.scss',
 ];
 
 gulp.task('compile', () => {

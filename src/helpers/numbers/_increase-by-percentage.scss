@@ -1,7 +1,7 @@
 @function increase-by-percentage($unit, $percent, $type:true) {
 
-  $unit : strip-unit($unit);
-  $percent : strip-unit($percent);
+  $unit : remove-unit($unit);
+  $percent : remove-unit($percent);
 
   @if $type == true {
     @return $unit / 100 * (100 + $percent);

@@ -2,7 +2,7 @@
 ///
 /// @author Hugo Giraudel
 ///
-/// @link https://css-tricks.com/snippets/sass/strip-unit-function/
+/// @link https://css-tricks.com/snippets/sass/remove-unit-function/
 ///
 /// @param {string} $number
 ///
@@ -12,7 +12,7 @@
 /// @require {function} to-number
 ///
 /// @example scss - Usage
-///   strip-unit(50px)
+///   remove-unit(50px)
 ///
 /// @example scss - Output
 ///   50
