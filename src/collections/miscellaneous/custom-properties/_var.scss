@@ -1,4 +1,17 @@
-@mixin var($property, $variable:primary, $opacity:1, $important:false) {
+@mixin var($args...) {
+
+  $defaults : (
+    property : null,
+    variable : primary,
+    opacity  : 1,
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $property  : map-get($settings, property);
+  $variable  : map-get($settings, variable);
+  $opacity   : map-get($settings, opacity);
+  $important : map-get($settings, important);
 
   $variable-value : $variable;
   $fallback-value : null;
@@ -15,11 +28,11 @@
   $fallback-value : if(is-list($value), nth($value, 2), null);
 
   @if ( not is-null($fallback-value) ) {
-    #{$property} : $fallback-value if($important, !important, null);
+    #{$property} : $fallback-value $important;
   }
 
   @supports(--css: variables) {
-    #{$property} : $variable-value if($important, !important, null);
+    #{$property} : $variable-value $important;
   }
 
 

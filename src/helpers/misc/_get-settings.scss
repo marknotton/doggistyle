@@ -9,6 +9,7 @@
 /// @author Mark Notton
 /// @access public
 /// @return {map}
+/// @todo Make deep merging optional
 /// @example
 /// @mixin myMixin($args...) {
 ///    $defaults : (

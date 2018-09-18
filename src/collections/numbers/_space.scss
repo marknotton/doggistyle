@@ -19,7 +19,7 @@
   $defaults : (
     size      : 1,
     direction : vh,
-    unit      : $space,
+    unit      : if(variable-exists(space),$space, 5vh),
   );
 
   $settings : get-settings($defaults, $args...);

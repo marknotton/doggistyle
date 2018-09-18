@@ -19,6 +19,7 @@
   $stroke       : map-get($settings, stroke);
   $stroke-width : map-get($settings, stroke-width);
   $path         : map-get($settings, path);
+  $important    : map-get($settings, important);
 
   @if not is-null($svg) {
 
@@ -27,14 +28,14 @@
 
     @at-root (without: media) {
       @svg-load #{$name} url(#{if(is-null($path) or $path == false, '', $path+'/')+$filename}) {
-        fill: $fill;
-        stroke: $stroke;
-        stroke-width:add-unit($stroke-width);
+        fill: $fill $important;
+        stroke: $stroke $important;
+        stroke-width:add-unit($stroke-width) $important;
         @content;
       }
     }
 
-    & { background-image: svg-inline(unquote($name)); }
+    & { background-image: svg-inline(unquote($name)) $important; }
 
   }
 

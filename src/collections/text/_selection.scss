@@ -11,19 +11,22 @@
   $background : map-get($settings, background);
   $colour     : map-get($settings, colour);
   $opacity    : map-get($settings, opacity);
+  $important  : map-get($settings, important);
 
   @if ($colour == null or $colour == $background) {
     $fallback-value : get-variable-colour-value($background);
     $colour:colour-contrast($fallback-value);
   }
+
   ::-moz-selection {
-    color: $colour;
-    @include var(background-color, $background, $opacity);
+    color: $colour $important;
+    @include var(background-color, $background, $important);
     @content;
   }
+  
   ::selection {
-    color: $colour;
-    @include var(background-color, $background, $opacity);
+    color: $colour $important;
+    @include var(background-color, $background, $important);
     @content;
   }
 }

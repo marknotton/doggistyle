@@ -1,15 +1,23 @@
 // Place holder animation
-@mixin placeholder($colour:#a9a9a9) {
+@mixin placeholder($args...) {
 
-  $placeholders: ":-webkit-input" ":-moz" "-moz" "-ms-input";
+  $defaults : (
+    colour : #a9a9a9,
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $colour       : map-get($settings, colour);
+  $important    : map-get($settings, important);
+  $placeholders : ":-webkit-input" ":-moz" "-moz" "-ms-input";
 
   @each $placeholder in $placeholders {
     &:focus:#{$placeholder}-placeholder {
-      color:transparent; @content;
+      color:transparent $important; @content;
     }
 
     &:#{$placeholder}-placeholder {
-      color:$colour; @include transition(color);
+      color:$colour $important; @include transition(color);
     }
   }
 

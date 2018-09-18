@@ -37,6 +37,7 @@
   $new-width        : map-get($settings, new-width);
   $new-height       : map-get($settings, new-height);
   $transform-origin : map-get($settings, transform-origin);
+  $important        : map-get($settings, important);
 
   // Set Width
   $width : strip-unit($original-width);
@@ -92,8 +93,6 @@
     $height-unit : $default-unit;
   }
 
-
-
   // Debug
   // @debug 'Original width: #{$width or 'null'} | New width: #{$new-width or 'null'} | Unit: #{$width-unit}';
   // @debug 'Original height: #{$height or 'null'} | New height: #{$new-height or 'null'} | Unit: #{$height-unit}';
@@ -109,7 +108,7 @@
   }
 
   // Final Output
-  width :  to-number($new-width + $width-unit) ;
-  height : to-number($new-height + $height-unit) ;
+  width :  to-number($new-width + $width-unit) $important;
+  height : to-number($new-height + $height-unit) $important;
 
 };

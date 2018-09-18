@@ -3,25 +3,26 @@
 
   $defaults : (
     count   : 2,
-    spacing : $gap,
+    spacing : if(variable-exists(gap),$gap, 16px),
     width   : 20em
   );
 
   $settings : get-settings($defaults, $args...);
 
-  $count   : map-get($settings, count);
-  $spacing : map-get($settings, spacing);
-  $width   : map-get($settings, width);
-  $target  : map-get($settings, target);
+  $count     : map-get($settings, count);
+  $spacing   : map-get($settings, spacing);
+  $width     : map-get($settings, width);
+  $target    : map-get($settings, target);
+  $important : map-get($settings, important);
 
-  column-count : $count;
+  column-count : $count $important;
 
   @if $count == 1 {
-    column-width : auto;
-    column-gap : normal;
+    column-width : auto $important;
+    column-gap   : normal $important;
   } @else {
-    -webkit-column-break-inside:avoid; page-break-inside:avoid; break-inside:avoid;
-    column-width : add-unit($width);
-    column-gap : add-unit($spacing);
+    break-inside : avoid $important;
+    column-width : add-unit($width) $important;
+    column-gap   : add-unit($spacing) $important;
   }
 }

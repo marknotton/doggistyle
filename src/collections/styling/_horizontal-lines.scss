@@ -3,8 +3,8 @@
 
   $defaults : (
     weight       : 2,
-    colour       : $grey,
-    line-spacing : $gap,
+    colour       : if(variable-exists(grey),$grey, #787878),
+    line-spacing : if(variable-exists(gap),$gap, 16px),
     wrap         : false
   );
 

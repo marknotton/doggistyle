@@ -1,13 +1,30 @@
 /// Sets the width and height to the same values
 /// If the second para "special" is defined as min or max, the dimenstions will be prefixed with that
-@mixin size($sizes, $special:null) {
-  $prefix : null;
-  $width: first($sizes);
-  @if contains($special, (min, max)) {
-    $prefix : $special + "-";
-  }
 
-  $height : check($special, check(second($sizes), first($sizes)));
-  #{$prefix}width: add-unit($width);
-  #{$prefix}height: add-unit($height);
+/// @example @include size(100, 200, max);
+/// @output max-width:100px; max-height:100px;
+
+/// @example @include size(150, important);
+/// @output width:150px !important; height:150px !important;
+
+@mixin size($args...) {
+
+  $defaults : (
+    width : null,
+    height : null,
+    prefix : null,
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $width     : map-get($settings, width);
+  $height    : check(map-get($settings, height), $width, number);
+  $prefix    : map-get($settings, prefix);
+  $important : map-get($settings, important);
+
+  $prefix : if(contains($prefix, (min, max)), $prefix + '-', null);
+
+  #{$prefix}width  : add-unit($width) $important;
+  #{$prefix}height : add-unit($height) $important;
+
 }

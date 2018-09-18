@@ -1,12 +1,30 @@
-@mixin viewport-width($break:$min, $refactor:false) {
-  position:absolute;
+@mixin viewport-width($args...) {
+
+  $defaults : (
+    refactor   : true,
+    breakpoint : if(variable-exists(min),$min, 320px),
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $refactor   : map-get($settings, refactor);
+  $breakpoint : map-get($settings, breakpoint);
+  $important  : map-get($settings, important);
+
   width:100%;
-  min-width:$min + px; 
-  @include break($break, '>') {
-    width:100vw;
-    left:50%;
-    @include x(-50%);
+  min-width : add-unit($breakpoint);
+
+  @if not is-null($breakpoint) {
+
+    @include break($break, '>') {
+      width:100vw;
+      left:50%;
+      @include x(-50%);
+    }
+
   }
+
+
   @if ( $refactor != false ) {
     $refactor-gap : if(is-number($refactor), add-unit($refactor), $gap);
     @include break($break - 1, '<') {
