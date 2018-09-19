@@ -26,6 +26,7 @@ $default-timing-unit : s !default;
 
 // This only works when css variable colours are defined as an RGB list, NOT Hex colours.
 $support-css-variable-alpha-colours : false !default;
+$support-css-variable-alpha-colors : $support-css-variable-alpha-colours !default;
 
 // =============================================================================
 // Normalisers                                                        #normalise
@@ -168,17 +169,59 @@ $notches : (
 // =============================================================================
 
 // Commmon
-$red:         #97080E !default;
-$orange:      #DA4B0F !default;
-$yellow:      #E9B104 !default;
-$green:       #488C13 !default;
-$blue:        #1B55C0 !default;
-$pink:        #E05D6B !default;
-$purple:      #613D5A !default;
-$grey:        #787878 !default;
-$brown:       #774F38 !default;
-$white:       #FFFFFF !default;
-$black:       #000000 !default;
+$red      : #97080E !default;
+$red1     : $red !default;
+$red2     : darken($red, 10) !default;
+$red3     : lighten($red, 10) !default;
+
+$orange   : #DA4B0F !default;
+$orange1  : $orange !default;
+$orange2  : darken($orange, 10) !default;
+$orange3  : lighten($orange, 10) !default;
+
+$yellow   : #E9B104 !default;
+$yellow1  : $yellow !default;
+$yellow2  : darken($yellow, 10) !default;
+$yellow3  : lighten($yellow, 10) !default;
+
+$green    : #488C13 !default;
+$green1   : $green !default;
+$green2   : darken($green, 10) !default;
+$green3   : lighten($green, 10) !default;
+
+$blue     : #1B55C0 !default;
+$blue1    : $blue !default;
+$blue2    : darken($blue, 10) !default;
+$blue3    : lighten($blue, 10) !default;
+
+$pink     : #E05D6B !default;
+$pink1    : $pink !default;
+$pink2    : darken($pink, 10) !default;
+$pink3    : lighten($pink, 10) !default;
+
+$purple   : #613D5A !default;
+$purple1  : $purple !default;
+$purple2  : darken($purple, 10) !default;
+$purple3  : lighten($purple, 10) !default;
+
+$grey     : #787878 !default;
+$grey1    : $grey !default;
+$grey2    : darken($grey, 10) !default;
+$grey3    : lighten($grey, 10) !default;
+
+$brown    : #774F38 !default;
+$brown1   : $brown !default;
+$brown2   : darken($brown, 10) !default;
+$brown3   : lighten($brown, 10) !default;
+
+$white    : #FFFFFF !default;
+$white1   : $white !default;
+$white2   : darken($white, 10) !default;
+
+$black    : #000000 !default;
+$black1   : $black !default;
+$black2   : lighten($black, 10) !default;
+
 
 // Social Media
 $facebook:    #3A5897 !default;
