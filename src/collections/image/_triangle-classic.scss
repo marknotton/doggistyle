@@ -95,7 +95,7 @@
   
   // Define all settings with strings
   
-  &#{_sudo($sudo)} {
+  &#{pseudo($sudo)} {
     content:"";
     position:absolute;    
     height:0; 

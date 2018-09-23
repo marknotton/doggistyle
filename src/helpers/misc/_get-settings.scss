@@ -9,7 +9,6 @@
 /// @author Mark Notton
 /// @access public
 /// @return {map}
-/// @todo Make deep merging optional
 /// @example
 /// @mixin myMixin($args...) {
 ///    $defaults : (
@@ -19,6 +18,7 @@
 ///      data   : ('foo':'bar')
 ///    );
 ///    $settings : get-settings($defaults, $args...);
+///    // $settings : get-settings($defaults, (deep:false, debug:true), $args...);
 ///    @debug $settings;
 /// }
 /// @include myMixin('Mark', '31', male, ('wibble':'wobble'), important);
@@ -31,35 +31,106 @@
 /// name: "Lizzie", age: "99", gender: female, data: ("foo": "bar", "wibble": "wobble"), important: null
 /// name: "Andy", age: "36", gender: male, data: ("foo": "bar"), important: null
 /// name: "unknown", age: "99", gender: null, data: ("foo": "bar"), important: !important
+// NOTE Passing a list of arguments in the keywords format will return incorrect
+// settings data if a special options map prefixes 'args...' within the Mixin.
 
-@function get-settings($defaults, $args.../*, $deep */) {
+@function get-settings($defaults, $args...) {
 
-  // Defaults
+  // ===========================================================================
+  // Initial settings
+  // ===========================================================================
+
   $important : false;
   $settings  : null;
-  $deep: if(is-empty(nth($args, -1)), false, true);
+  $defaults  : if(is-null($defaults), (), $defaults);
+  $backup    : $args;
 
-  // Checks if the keywords synatic has been used
-  @if length($args) == 0 and is-map(keywords($args)) {
-    $args : keywords($args);
-  }
+  // Special options on how to manage the arguments ----------------------------
 
-  // If no arguments were defined, just return the defaults.
-  @if is-empty($args) {
+  $options : (
+    deep      : true,
+    prefix    : 'argument',
+    important : null,
+    debug     : false
+  );
+
+  // ===========================================================================
+  //  Revert to defaults of no arguments are passed
+  // ===========================================================================
+
+  @if length($args) == 0 and length(keywords($args)) == 0 {
+
+    @if map-get($options, debug ) { @debug "NO ARGUMENTS DETECTED"; }
 
     $settings : $defaults;
 
   } @else {
+
+    // =========================================================================
+    //  Keywords
+    // =========================================================================
+    // Convert keywords into a useable map
+
+    @if length(keywords($args)) > 0 {
+
+      @if map-get($options, debug ) { @debug "KEYWORDS DETECTED"; }
+
+      $args : keywords($args);
+
+      @if map-has-key($args, options) {
+        $options : map-merge($options, map-get($args, options));
+        $args : map-remove($args, options);
+      }
+
+    }
+
+    // =========================================================================
+    //  Special Options
+    // =========================================================================
+
+    // Special options at start ------------------------------------------------
+    // Check if the fisrt args element exists, is a map, and contains any of the
+    // $options keys.If it does, assume these are bespoke options relative to
+    // the mixin that called this function.
+
+    @if not is-empty(nth($args, 1)) and is-map(nth($args, 1)) and
+        contains(map-keys(nth($args, 1)), map-keys($options)) {
+
+      @if map-get($options, debug ) { @debug 'Special options defined at start of the arguments'; }
+
+      $options : map-merge($options, nth($args, 1));
+      $args    : slice($args, 2, length($args));
+
+    }
+
+    // Special options at end -------------------------------------------------
+    // Essentially the same as above, but checks the last argument for options.
+    // This allows for a little syntax suger when passing aguments on a per-maxin call basis
+
+    @elseif not is-empty(nth($args, -1)) and is-map(nth($args, -1)) and
+            contains(map-keys(nth($args, -1)), map-keys($options)) {
+
+      @if map-get($options, debug ) { @debug 'Special options defined at end of the arguments'; }
+
+      $options : map-merge($options, nth($args, -1));
+      $args    : slice($args, 1, length($args) - 1)
+    }
+
+    // =========================================================================
+    //  Maps
+    // =========================================================================
 
     // Quick check to determine if the map was originally passed as keywords or not.
     $map : if(is-map($args), $args, nth($args, 1));
 
     @if not is-empty($map) and is-map($map) {
 
+      @if map-get($options, debug ) { @debug "MAP DETECTED"; }
+
       // First argument is a Map
 
-      @if $deep == true  {
-        // If $deep is true (default), then perform a deep merge with the defaults
+      @if map-get($options, deep) == true  {
+        // If deep is true (default), then perform a deep merge with the defaults
         $settings : map-deep-merge($defaults, $map);
       } @else {
         // Otherwise do a standard merge.
@@ -80,6 +151,12 @@
       }
 
     } @else {
+
+    // =========================================================================
+    //  List
+    // =========================================================================
+
+      @if map-get($options, debug ) { @debug "LIST DETECTED"; }
 
       // Arguments that are passed as a standard list
 
@@ -106,7 +183,7 @@
               // Passing in null, default or defaults will use the default value.
               $defaults : map-set($defaults, nth($default-keys, $i), nth($default-values, $i));
             } @elseif is-map(nth($arguments, $i)) {
-              @if $deep == true  {
+              @if map-get($options, deep) == true  {
                 // Do a deep-merge for map data
                 $defaults : map-set($defaults, nth($default-keys, $i), map-deep-merge(nth($default-values, $i), nth($arguments, $i)));
               } @else {
@@ -120,7 +197,7 @@
           } @else {
             // If there are more arguments, define a map key with "argument",
             // followed by the argument index.
-            $defaults : map-set($defaults, #{'argument' + $i}, nth($arguments, $i));
+            $defaults : map-set($defaults, #{map-get($options, prefix) + $i}, nth($arguments, $i));
           }
         }
         $settings : $defaults;
@@ -132,8 +209,17 @@
 
   }
 
+  // ===========================================================================
+  //  Return Settings
+  // ===========================================================================
+
   // Lastely, include important key and value at the end of the map.
-  $settings : map-set($settings, important, if($important, $imp, null));
+  $settings : map-set($settings, important, if($important, $imp, map-get($options, important)));
+
+  @if map-get($options, debug ) {
+    @debug #{'Settings:'} $settings;
+    @debug #{'Options:'} $options;
+  }
 
   @return $settings;
 

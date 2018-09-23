@@ -41,7 +41,7 @@
   $width  : check(first($ratio), 1);
   $height : check(second($ratio), first($ratio));
 
-  &#{_sudo($sudo)} {
+  &#{pseudo($sudo)} {
     content:"";
     display:block;
     padding-top: if(is-percentage($width), $width, percentage($height / $width));

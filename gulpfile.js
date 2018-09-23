@@ -9,7 +9,7 @@ const sassdoc  = require('sassdoc');
 notifier.defaults({ success : 'icon.png' });
 
 const src = [
-  'src/helpers/*/**.scss',
+  'src/helpers/**/*.scss',
   'src/_settings.scss',
   'src/_properties.scss',
   'src/_placeholders.scss',

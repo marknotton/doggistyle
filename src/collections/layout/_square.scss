@@ -5,7 +5,7 @@
   overflow:hidden;
   max-width:add-unit($size);
   width:100%;
-  &#{_sudo($sudo)} {
+  &#{pseudo($sudo)} {
     content: "";
     display: block;
     padding-bottom: 100%;

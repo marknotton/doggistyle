@@ -196,7 +196,7 @@ $triangle-settings: (
     $s-dasharray : if($s-dasharray, "' stroke-dasharray='" + $s-dasharray, '');
   }
 
-  &#{_sudo($sudo)} {
+  &#{pseudo($sudo)} {
     content:"";
     @include size($width $height);
     position:absolute;

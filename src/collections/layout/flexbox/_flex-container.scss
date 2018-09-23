@@ -131,6 +131,23 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
 /// }
 ///
 
+@mixin flex-container2($settings...) {
+
+  $defaults : (
+    display           : flex,
+    direction         : row,
+    wrap              : nowrap,
+    justify-content   : flex-start,
+  );
+
+  // $settings : get-settings($defaults, $args...);
+  $settings : get-settings($defaults, (debug:true), $args...);
+
+  
+
+}
+
+
 @mixin flex-container($settings...) {
 
   $important : false;

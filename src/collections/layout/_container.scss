@@ -1,19 +1,19 @@
 @mixin container($args...) {
 
   $defaults : (
-    gutter1   : var(--gutter, #{$gap2}),
-    gutter2   : var(--gutter, #{$gap1}),
-    break     : $medium,
-    max-width : $max
+    gutter-left  : var(--gutter-left, #{$gutter-left}),
+    gutter-right : var(--gutter-right, #{$gutter-right}),
+    break        : $medium,
+    max-width    : $max
   );
 
   $settings : get-settings($defaults, $args...);
 
-  $gutter1   : map-get($settings, gutter1);
-  $gutter2   : map-get($settings, gutter2);
-  $break     : map-get($settings, break);
-  $max       : map-get($settings, max-width);
-  $important : map-get($settings, important);
+  $gutter-left  : map-get($settings, gutter-left);
+  $gutter-right : map-get($settings, gutter-right);
+  $break        : map-get($settings, break);
+  $max          : map-get($settings, max-width);
+  $important    : map-get($settings, important);
 
   width:100%;
   position:relative;
@@ -21,23 +21,23 @@
   margin-left:auto; margin-right:auto;
   max-width:add-unit($max);
 
-  @if not is-null($gutter1) {
+  @if not is-null($gutter-left) {
 
-    @if is-var($gutter1) {
-      padding-left  : $gutter1 $important;
-      padding-right : $gutter1 $important;
+    @if is-var($gutter-left) {
+      padding-left  : $gutter-left $important;
+      padding-right : $gutter-right $important;
     } @else {
-      padding-left  : add-unit($gutter1) $important;
-      padding-right : add-unit($gutter1) $important;
+      padding-left  : add-unit($gutter-left) $important;
+      padding-right : add-unit($gutter-right) $important;
     }
 
   }
 
-  @if not is-var($gutter2) and not is-null($gutter2) {
+  @if not is-var($gutter-right) and not is-null($gutter-right) {
 
     @include break($break, '<') {
-      padding-left  : add-unit($gutter2) $important;
-      padding-right : add-unit($gutter2) $important;
+      padding-left  : add-unit($gutter-left) $important;
+      padding-right : add-unit($gutter-right) $important;
     }
 
   }

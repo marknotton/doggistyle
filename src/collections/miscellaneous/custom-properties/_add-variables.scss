@@ -1,6 +1,9 @@
 // Add variable to the global variables map;
 
-@mixin add-variables($map, $value:null) {
+@mixin add-variables($args...) {
+
+  $settings : get-settings(null, $args...);
+
   @if variable-exists(variables) {
     @if (not is-map($map) and not is-map($value) and not is-null($value)) {
       $variables : map-merge($variables, ($map:$value)) !global;

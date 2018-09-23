@@ -2654,7 +2654,6 @@ $sc-non-strict-defaults: (
 /// @author Mark Notton
 /// @access public
 /// @return {map}
-/// @todo Make deep merging optional
 /// @example
 /// @mixin myMixin($args...) {
 ///    $defaults : (
@@ -2664,6 +2663,7 @@ $sc-non-strict-defaults: (
 ///      data   : ('foo':'bar')
 ///    );
 ///    $settings : get-settings($defaults, $args...);
+///    // $settings : get-settings($defaults, (deep:false, debug:true), $args...);
 ///    @debug $settings;
 /// }
 /// @include myMixin('Mark', '31', male, ('wibble':'wobble'), important);
@@ -2676,35 +2676,106 @@ $sc-non-strict-defaults: (
 /// name: "Lizzie", age: "99", gender: female, data: ("foo": "bar", "wibble": "wobble"), important: null
 /// name: "Andy", age: "36", gender: male, data: ("foo": "bar"), important: null
 /// name: "unknown", age: "99", gender: null, data: ("foo": "bar"), important: !important
+// NOTE Passing a list of arguments in the keywords format will return incorrect
+// settings data if a special options map prefixes 'args...' within the Mixin.
 
-@function get-settings($defaults, $args.../*, $deep */) {
+@function get-settings($defaults, $args...) {
 
-  // Defaults
+  // ===========================================================================
+  // Initial settings
+  // ===========================================================================
+
   $important : false;
   $settings  : null;
-  $deep: if(is-empty(nth($args, -1)), false, true);
+  $defaults  : if(is-null($defaults), (), $defaults);
+  $backup    : $args;
 
-  // Checks if the keywords synatic has been used
-  @if length($args) == 0 and is-map(keywords($args)) {
-    $args : keywords($args);
-  }
+  // Special options on how to manage the arguments ----------------------------
 
-  // If no arguments were defined, just return the defaults.
-  @if is-empty($args) {
+  $options : (
+    deep      : true,
+    prefix    : 'argument',
+    important : null,
+    debug     : false
+  );
+
+  // ===========================================================================
+  //  Revert to defaults of no arguments are passed
+  // ===========================================================================
+
+  @if length($args) == 0 and length(keywords($args)) == 0 {
+
+    @if map-get($options, debug ) { @debug "NO ARGUMENTS DETECTED"; }
 
     $settings : $defaults;
 
   } @else {
+
+    // =========================================================================
+    //  Keywords
+    // =========================================================================
+    // Convert keywords into a useable map
+
+    @if length(keywords($args)) > 0 {
+
+      @if map-get($options, debug ) { @debug "KEYWORDS DETECTED"; }
+
+      $args : keywords($args);
+
+      @if map-has-key($args, options) {
+        $options : map-merge($options, map-get($args, options));
+        $args : map-remove($args, options);
+      }
+
+    }
+
+    // =========================================================================
+    //  Special Options
+    // =========================================================================
+
+    // Special options at start ------------------------------------------------
+    // Check if the fisrt args element exists, is a map, and contains any of the
+    // $options keys.If it does, assume these are bespoke options relative to
+    // the mixin that called this function.
+
+    @if not is-empty(nth($args, 1)) and is-map(nth($args, 1)) and
+        contains(map-keys(nth($args, 1)), map-keys($options)) {
+
+      @if map-get($options, debug ) { @debug 'Special options defined at start of the arguments'; }
+
+      $options : map-merge($options, nth($args, 1));
+      $args    : slice($args, 2, length($args));
+
+    }
+
+    // Special options at end -------------------------------------------------
+    // Essentially the same as above, but checks the last argument for options.
+    // This allows for a little syntax suger when passing aguments on a per-maxin call basis
+
+    @elseif not is-empty(nth($args, -1)) and is-map(nth($args, -1)) and
+            contains(map-keys(nth($args, -1)), map-keys($options)) {
+
+      @if map-get($options, debug ) { @debug 'Special options defined at end of the arguments'; }
+
+      $options : map-merge($options, nth($args, -1));
+      $args    : slice($args, 1, length($args) - 1)
+    }
+
+    // =========================================================================
+    //  Maps
+    // =========================================================================
 
     // Quick check to determine if the map was originally passed as keywords or not.
     $map : if(is-map($args), $args, nth($args, 1));
 
     @if not is-empty($map) and is-map($map) {
 
+      @if map-get($options, debug ) { @debug "MAP DETECTED"; }
+
       // First argument is a Map
 
-      @if $deep == true  {
-        // If $deep is true (default), then perform a deep merge with the defaults
+      @if map-get($options, deep) == true  {
+        // If deep is true (default), then perform a deep merge with the defaults
         $settings : map-deep-merge($defaults, $map);
       } @else {
         // Otherwise do a standard merge.
@@ -2725,6 +2796,12 @@ $sc-non-strict-defaults: (
       }
 
     } @else {
+
+    // =========================================================================
+    //  List
+    // =========================================================================
+
+      @if map-get($options, debug ) { @debug "LIST DETECTED"; }
 
       // Arguments that are passed as a standard list
 
@@ -2751,7 +2828,7 @@ $sc-non-strict-defaults: (
               // Passing in null, default or defaults will use the default value.
               $defaults : map-set($defaults, nth($default-keys, $i), nth($default-values, $i));
             } @elseif is-map(nth($arguments, $i)) {
-              @if $deep == true  {
+              @if map-get($options, deep) == true  {
                 // Do a deep-merge for map data
                 $defaults : map-set($defaults, nth($default-keys, $i), map-deep-merge(nth($default-values, $i), nth($arguments, $i)));
               } @else {
@@ -2765,7 +2842,7 @@ $sc-non-strict-defaults: (
           } @else {
             // If there are more arguments, define a map key with "argument",
             // followed by the argument index.
-            $defaults : map-set($defaults, #{'argument' + $i}, nth($arguments, $i));
+            $defaults : map-set($defaults, #{map-get($options, prefix) + $i}, nth($arguments, $i));
           }
         }
         $settings : $defaults;
@@ -2777,8 +2854,17 @@ $sc-non-strict-defaults: (
 
   }
 
+  // ===========================================================================
+  //  Return Settings
+  // ===========================================================================
+
   // Lastely, include important key and value at the end of the map.
-  $settings : map-set($settings, important, if($important, $imp, null));
+  $settings : map-set($settings, important, if($important, $imp, map-get($options, important)));
+
+  @if map-get($options, debug ) {
+    @debug #{'Settings:'} $settings;
+    @debug #{'Options:'} $options;
+  }
 
   @return $settings;
 
@@ -2858,6 +2944,25 @@ $sc-non-strict-defaults: (
 
 @function sudo($pseudo, $colon:true) {
   @return pseudo($pseudo, $colon);
+}
+
+/// Generates a clean url attribute for compressed or uncompressed svg data
+/// @param {string} $svg - Add full SVG markup or base64 compressed code.
+/// @link http://b64.io/
+/// @return {string}
+
+@function svg-url($svg) {
+  $data:if(str-index($svg, '<svg'), "data:image/svg+xml;utf8, ", "data:image/svg+xml;base64, ");
+  @return url($data + unquote($svg));
+}
+
+// Get the aspect ratio of a given symbol
+@function symbol-size-ratio($symbol) {
+
+  $width : map-deep-get($symbols, $symbol, width);
+  $height : map-deep-get($symbols, $symbol, height);
+
+  @return percentage($height / $width);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -3085,6 +3190,21 @@ $sc-non-strict-defaults: (
   @return $pointer, $result;
 }
 
+/// Generate gaps from a generic unit so help continuity of paddings, margins,
+/// gutters etc... throughout your design.
+///
+/// @param {Number} $size
+///   Enter the amount of times you want to multiply the default padding variable
+///
+/// @require {Variable} $gaps
+///
+/// @example scss - Usage
+///   margin:0 gap(3);
+/// @return {Number} with units
+@function gap($size:1) {
+  @return if($size == 0, to-number(add-unit($gaps/2, $default-unit)), to-number(add-unit($gaps*$size, $default-unit)));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Get Padding                                                     #get-padding
 ////////////////////////////////////////////////////////////////////////////////
@@ -3253,6 +3373,71 @@ $sc-non-strict-defaults: (
 
 @function strip-unit($number) {
   @return remove-unit($number);
+}
+
+/// Generate space from a generic unit to help continuity of paddings, margins,
+/// gutters etc... throughout your design.
+///
+/// @param {Number} $size
+///   Enter the amount of times you want to multiply the default padding variable
+///
+/// @param {String} $direction
+///   The unit you want the spacing to be defined as. Default is vh
+///
+/// @require {Variable} $spacing global variable
+///
+/// @example scss - Usage
+///   margin-top:space(2);
+///
+/// @return {number} with units
+
+@function space($args...) {
+
+  $defaults : (
+    size      : 1,
+    direction : vh,
+    unit      : if(variable-exists(space),$space, 5vh),
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $size      : map-get($settings, size);
+  $direction : map-get($settings, direction);
+  $unit      : map-get($settings, unit);
+
+  @if $size == 0 {
+    @return to-number(add-unit($unit/2, $direction, true));
+  } @else {
+    @return to-number(add-unit($unit*$size, $direction, true));
+  }
+
+}
+
+/// Create a spacer relative to the viewport height or width. Whilst also adding
+/// a calc method to ensure that space is always at least the size of a solid unit (px)
+/// @param {Number} $size - Enter the amount of viewport units to add. 3 = 3% of the viewport height
+/// @param {Number} $min - Enter the amount of pixels the spcaer should never go below;
+/// @param {String} $direction - The unit you want the spacing to be defined as. Default is vh
+/// @example margin-top:spacer(2, 30);
+/// @output margin-top:calc(2vh + 30px);
+/// @return {number} with units
+
+@function spacer($args...) {
+
+  $defaults : (
+    size      : $space,
+    min       : $gap,
+    direction : vh,
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $direction : map-get($settings, direction);
+
+  $size      : add-unit(map-get($settings, size), $direction);
+  $min       : add-unit(map-get($settings, min));
+
+  @return calc(#{$size} + #{$min});
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -3660,6 +3845,7 @@ $default-timing-unit : s !default;
 
 // This only works when css variable colours are defined as an RGB list, NOT Hex colours.
 $support-css-variable-alpha-colours : false !default;
+$support-css-variable-alpha-colors : $support-css-variable-alpha-colours !default;
 
 // =============================================================================
 // Normalisers                                                        #normalise
@@ -3706,6 +3892,14 @@ $gap3 : gap(3) !default;
 $gap4 : gap(4) !default;
 $gap5 : gap(5) !default;
 $gap6 : gap(6) !default;
+
+// =============================================================================
+// Gutters                                                              #gutters
+// =============================================================================
+
+$gutter-left     : $gap2!default;
+$gutter-right    : $gap2!default;
+$gutters         : $gutter-left + $gutter-right !default;
 
 // =============================================================================
 // Spacers                                                              #spacers
@@ -3802,17 +3996,59 @@ $notches : (
 // =============================================================================
 
 // Commmon
-$red:         #97080E !default;
-$orange:      #DA4B0F !default;
-$yellow:      #E9B104 !default;
-$green:       #488C13 !default;
-$blue:        #1B55C0 !default;
-$pink:        #E05D6B !default;
-$purple:      #613D5A !default;
-$grey:        #787878 !default;
-$brown:       #774F38 !default;
-$white:       #FFFFFF !default;
-$black:       #000000 !default;
+$red      : #97080E !default;
+$red1     : $red !default;
+$red2     : darken($red, 10) !default;
+$red3     : lighten($red, 10) !default;
+
+$orange   : #DA4B0F !default;
+$orange1  : $orange !default;
+$orange2  : darken($orange, 10) !default;
+$orange3  : lighten($orange, 10) !default;
+
+$yellow   : #E9B104 !default;
+$yellow1  : $yellow !default;
+$yellow2  : darken($yellow, 10) !default;
+$yellow3  : lighten($yellow, 10) !default;
+
+$green    : #488C13 !default;
+$green1   : $green !default;
+$green2   : darken($green, 10) !default;
+$green3   : lighten($green, 10) !default;
+
+$blue     : #1B55C0 !default;
+$blue1    : $blue !default;
+$blue2    : darken($blue, 10) !default;
+$blue3    : lighten($blue, 10) !default;
+
+$pink     : #E05D6B !default;
+$pink1    : $pink !default;
+$pink2    : darken($pink, 10) !default;
+$pink3    : lighten($pink, 10) !default;
+
+$purple   : #613D5A !default;
+$purple1  : $purple !default;
+$purple2  : darken($purple, 10) !default;
+$purple3  : lighten($purple, 10) !default;
+
+$grey     : #787878 !default;
+$grey1    : $grey !default;
+$grey2    : darken($grey, 10) !default;
+$grey3    : lighten($grey, 10) !default;
+
+$brown    : #774F38 !default;
+$brown1   : $brown !default;
+$brown2   : darken($brown, 10) !default;
+$brown3   : lighten($brown, 10) !default;
+
+$white    : #FFFFFF !default;
+$white1   : $white !default;
+$white2   : darken($white, 10) !default;
+
+$black    : #000000 !default;
+$black1   : $black !default;
+$black2   : lighten($black, 10) !default;
+
 
 // Social Media
 $facebook:    #3A5897 !default;
@@ -4016,6 +4252,1375 @@ $breakpoints:   () !default;
 
 %show-text {
   text-indent:0; overflow:visible; white-space:normal; user-select:all;
+}
+
+@mixin animation-jump($amount:10, $animation-name:jump) {
+  @include keyframes(#{$animation-name}) {  
+    0% { top:0 } 
+    50% { top:$amount + px } 
+    100% { top:0 } 
+  }
+}
+@mixin animation-shake($amount:10, $animation-name:shake) {
+  @include keyframes(#{$animation-name}) {
+    0% { transform:rotate(0) }
+    25% { transform:rotate(-#{$amount}deg) }
+    75% { transform:rotate(#{$amount}deg) }
+    100% { transform:rotate(0) }
+  }
+}
+
+@mixin animation-wobble($amount:10, $animation-name:wobble) {
+  @include keyframes(#{$animation-name}) { 
+    0% { left:0 } 
+    25% { left:(-$amount) + px } 
+    75% { left:($amount) + px } 
+    100% { left:0 } 
+  }
+}
+/// Create gradients
+///
+/// @author Mark Notton
+///
+/// @access private
+///
+/// @param {list} $args - Pass in the following gradient settings.
+///   [type]       - name of the graditent must be the first parameter
+///   [rule]       - Optional. If the gradient type requires it, you can add special rules. Like directions (as a string or number).
+///                  You don't need to type in 'to' for directions. This will be included automatically if necessary.
+///   [settings]   - Add a list of arguments for each colour. This can include a colour and number per argument.
+///
+/// @require {Mixin} contains
+/// @require {Mixin} prefix-values
+/// @require {Mixin} warning
+/// @require {Function} is-string
+/// @require {Function} is-number
+/// @require {Function} add-unit
+/// @require {Function} remove-nth
+/// @require {Function} replace-nth
+/// @require {Function} arglist-to-list
+///
+/// @example scss - Usage
+/// .foo {
+///   @include gradient(radial-repeat, ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+/// }
+///
+/// @example css - CSS output
+/// .foo {
+///   background: -webkit-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -moz-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -o-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -ms-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%); }
+/// }
+///
+
+@mixin _gradient($args...) {
+
+  $settings : arglist-to-list($args);
+
+  $type: nth($settings, 1);
+
+  @if contains($type, $gradient-types) {
+
+    // Aliases
+    @if $type == linear-repeat {
+      $type : repeating-linear;
+    } @elseif $type == radial-repeat {
+      $type : repeating-radial;
+    } @elseif contains($type, circle) {
+      $type : radial;
+    }
+
+    $settings : remove-nth($settings, 1);
+
+  } @else {
+
+    $type : linear;
+
+    // @error "The first parameter must be the gradient type: #{$gradient-types}";
+
+  }
+
+  @if length($settings) > 1 {
+
+    @for $i from 1 through length($settings) {
+      $setting : nth($settings, $i);
+      // @debug $setting;
+      // Special first argument checks
+      @if ($i == 1) {
+        $unit : deg;
+
+        // Loop through the initial setting and check any unitless numbers has 'deg' as a default
+
+        @if contains($type, repeating-radial radial) {
+          $unit : %;
+          @if is-number($setting) {
+            @include warning($type + " can not have a number as the first parameter, it should be a colour");
+          }
+          @if contains($setting, at) {
+            $setting : replace-nth($setting, 1, add-unit(nth($setting, 1), px));
+          }
+        }
+
+        @if is-number($setting) {
+          $settings : replace-nth($settings, 1, add-unit($setting, $unit));
+        } @elseif is-list($setting) {
+          @if contains($setting, to) {
+            $setting : remove($setting, to);
+          }
+          @for $l from 1 through length($setting) {
+            $list-setting : nth($setting, $l);
+            @if is-number($list-setting) {
+              $setting : replace-nth($setting, $l, add-unit($list-setting, $unit));
+            }
+          }
+          $settings : replace-nth($settings, 1, $setting);
+        }
+      } @else {
+
+        @if is-list($setting) {
+          @for $l from 1 through length($setting) {
+            $list-setting : nth($setting, $l);
+            @if is-number($list-setting) {
+              $setting : replace-nth($setting, $l, add-unit($list-setting, %));
+            }
+          }
+          $settings : replace-nth($settings, $i, $setting);
+        }
+
+      }
+
+    }
+
+    $new-settings : ();
+    $new-generic-settings : ();
+
+    @each $set in $settings {
+      $new-settings : append($new-settings, $set, comma);
+      // Special checks for the generic syntax that requires "to" for specific direction strings
+      @if contains($set, right bottom left top) {
+        $new-generic-settings : append($new-generic-settings, to $set, comma);
+      } @else {
+        $new-generic-settings : append($new-generic-settings, $set, comma);
+      }
+
+    }
+
+    @include prefix-values(background, #{$type}-gradient($new-settings), webkit moz o ms only);
+    background:#{$type}-gradient($new-generic-settings);
+
+  } @else {
+    @include warning("You'll need more gradient settings than that");
+  }
+
+}
+
+@mixin gradient($args...) {
+  @include _gradient($args...);
+}
+
+@mixin gradient-radial($args...) {
+  @include _gradient(radial, $args...);
+}
+@mixin radial($args...) { @include gradient-radial($args...); }
+
+@mixin gradient-right($args...) {
+  @include _gradient(linear, right, $args);
+}
+@mixin gradient-horizontal($args...) { @include gradient-right($args...); }
+
+@mixin gradient-left($args...) {
+  @include _gradient(linear, left, $args);
+}
+
+@mixin gradient-top($args...) {
+  @include _gradient(linear, top, $args);
+}
+@mixin gradient-vertical($args...) { @include gradient-top($args...); }
+
+@mixin gradient-bottom($args...) {
+  @include _gradient(linear, bottom, $args);
+}
+@mixin gradient-circle($args...) {
+  @include _gradient($args...);
+}
+
+// Add a breakpoint to a global map, which can be called on using the 'breaks' function
+@mixin add-breakpoint($args...) {
+
+  @for $i from 1 through length($args) {
+
+    $name : null;
+    $size : null;
+
+    $arg: nth($args, $i);
+
+    @each $rule in $arg {
+      @if type-of($rule) == string {
+        $name : $rule;
+      }
+      @if type-of($rule) == number {
+        $size : remove-unit($rule);
+      }
+    }
+
+    $name : if($name == null and type-of($size) == number, #{$size}, $name);
+
+    @if $name and $size {
+      $breakpoints : map-set($breakpoints, $name, $size) !global;
+    }
+  }
+  @at-root body { @include set-breakpoints(); }
+}
+
+// Breakpoint bewtween two points
+@mixin break-between($min, $max, $property:width) {
+  @media only screen and (min-#{$property}:add-unit($min)) and (max-#{$property}: add-unit($max)) {
+    @content;
+  }
+}
+@mixin breakpoint($args) {
+
+  @if (is-null($args)) {
+    @content;
+  } @else {
+    $width : null;
+    $condition : if($mobile-first, min-width, max-width);
+
+    @each $rule in $args {
+      @if is_number($rule) {
+        $width : add-unit($rule);
+      }
+      @if is_string($rule) {
+        @if $rule == 'min' or $rule == '>' {
+          $rule : 'min-width';
+        } @else if $rule == 'max' or $rule == '<' {
+          $rule : 'max-width';
+          $width : $width - 1;
+        }
+        $condition : $rule;
+      }
+    }
+
+    // @if not contains($breakpoints, $width) {
+    //   @include add-breakpoint($width);
+    // }
+    // TODO: Add one for min, minus one for max
+
+    @media (#{$condition}:add-unit($width)) {
+      @content;
+    }
+  }
+}
+
+@mixin break($args...) {
+  @include breakpoint($args) { @content };
+}
+
+// Get breakpoint from the breakpoint list, either by it's number or name
+@function get-breakpoint($break) {
+  @if is-string($break) and map-has-key($breakpoints, $break) {
+    // If a string is passed and exists in the breakpoints map as a key, return the value
+    @return map-get($breakpoints, $break);
+  } @elseif is-number($break) {
+    $number : remove-unit($break);
+    // If a number is passed and it exists in the breakpoints map, return the key
+    @if contains(map-values($breakpoints), $number) {
+      $list : null;
+      $nth : 1;
+      @each $break in map-values($breakpoints) {
+        $nth : $nth + 1;
+        @if $break == $number {
+          $list : add(nth(map-keys($breakpoints),$nth), $list);
+        }
+      }
+      @if length($list) == 1 {
+        @return nth($list, 1);
+      } @else {
+        @return $list;
+      }
+    } @else {
+      // @include warning($number + ' is not a breakpoint');
+      @return false;
+    }
+  }
+}
+
+@mixin hide-at($break) {
+  @include break($break) {
+    display:none;
+    & { @content; }
+  }
+}
+
+// Check if a breakpoint exists by it's number or name.
+@function is-breakpoint($break) {
+  // If the number is a string and exists as a key in the breakpoints map, return true
+  @if is-string($break) and map-has-key($breakpoints, $break) {
+    @return true;
+  } @else {
+    // Or if the number exists as a value anywhere in the breakpoints map, also return true
+    $number : remove-unit($break);
+    @if contains(map-values($breakpoints), $number) {
+      @return true;
+    } @else {
+      @return false;
+    }
+  }
+}
+
+// Set breakpoints for use with custom properties
+@mixin set-breakpoints($breaks:$breakpoints) {
+  $new-breakpoints : ();
+  @each $break, $value in $breakpoints {
+    $new-breakpoints : map-set( $new-breakpoints, #{breakpoint-}#{$break}, $value);
+  }
+  @include custom-property($new-breakpoints);
+}
+
+@mixin show-at($break) {
+  @include break($break) {
+    display:block;
+    & { @content; }
+  }
+}
+
+@mixin show-breakpoints($sudo : before) {
+  #{$show-breakpoints-selector}:#{$sudo} {
+    content:"\276F  #{$max}px";
+    background-color:darken($red, 20);
+    bottom:0;
+    right:0;
+    font-family:Arial;
+    padding:4px $gap0;
+    @include ani(background-color color);
+    pointer-events:none;
+    position:fixed;
+    z-index:9999;
+    font-size:12px;
+    line-height:16px;
+    color:white;
+    text-align:center;
+    @each $name, $value in $breakpoints {
+      $random-color: random-colour();
+      @include break($value) {
+        content:"#{$name} #{$value}px";
+        background-color:$random-color;
+        color:colour-contrast($random-color);
+      }
+    }
+  }
+}
+
+// The original grid mixin
+@mixin float-grid($args, $gutter:null, $bottom:true, $important:false) {
+
+  $count: nth($args, 1);
+  $gutter: if($gutter == null, if(length($args) == 2, nth($args, 2), 0), $gutter);
+
+  @if ($gutter == true) { $gutter:$gaps; }
+
+  @if ($gutter != 0 or $count == 1) {
+    @for $i from 1 through $count {
+      @include nth($i, true) {
+        clear:none; margin-right:add-unit($gutter);
+      }
+    }
+    @include nth($count, true) { margin-right:0; }
+  }
+
+  @if ($count == 1) {
+    @include nth($count, true) {
+      margin-right:0;
+    }
+  }
+
+  @if $bottom { margin-bottom:add-unit(if(is-bool($bottom), $gutter, $bottom)); }
+
+  // Checks
+  $width:     if($count  >  1, 100%/$count, 100%);
+  $remainder: if($gutter != 0, #{'+ '} add-unit($gutter/$count), null);
+  $gutter:    if($gutter != 0, #{'- '} add-unit($gutter), null);
+
+  // Output
+  float:left;
+  @if ( $gutter != null ) {
+    width:calc(#{$width} #{$gutter} #{$remainder});
+  } @else {
+    width:$width;
+  }
+
+  @content;
+
+}
+
+// Documentation: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
+
+// Container properties
+$flex-container-aliases : direction wrap flow justify items content;
+$flex-container         : display flex-direction flex-wrap flex-flow justify-content align-items align-content;
+$flex-container         : merge($flex-container, $flex-container-aliases);
+
+// Container values
+$flex-display           : flex inline-flex inline;
+$flex-direction         : row row-reverse column column-reverse inherit col; // default row
+$flex-wrap              : nowrap wrap wrap-reverse; // default no-wrap
+$flex-justify-content   : flex-start flex-end center space-between space-around start end between around; // default flex-start
+$flex-align-items       : flex-start flex-end center baseline stretch start end; // default stretch
+$flex-align-content     : flex-start flex-end center space-between space-around stretch start end between around; // default stretch
+$flex-flow              : merge($flex-direction, $flex-wrap);
+
+/// Flexbox container mixin validates and prefixes the most current Flexbox W3C working draft
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @warning Flexbox does not currently work on buttons, fieldsets or textareas
+///
+/// @warning box-orient, box-direction, box-ordinal-group, box-left, box-positive, box-pack, box-align
+///          ...and other unsupported/old flexbox values have been excluded
+///
+/// @todo Do special checks for 'flex-flow'
+///
+/// @param {Map or List} $settings - Maps require a the property or alias : value
+///                                  Lists require a list of properties or values in the same order as the list below
+///
+///   Property         Alias        Default       Values
+///   -------------------------------------------------------------------------------------------------------------------
+///   display          (-)          (flex)        flex | inline-flex | *inline
+///   flex-direction   (direction)  (row)         row | row-reverse | column | *col | column-reverse | inherit
+///   flex-wrap        (wrap)       (nowrap)      nowrap | no-wrap | wrap | wrap-reverse
+///   justify-content  (justify)    (flex-start)  flex-start | flex-end | center | space-between | space-around | *start | *end
+///   align-items      (items)      (stretch)     flex-start | flex-end | center | baseline | stretch | *start | *end
+///   align-content    (content)    (stretch)     flex-start | flex-end | center | space-between | space-around | stretch | *start | *end
+///   !flex-flow       (flow)       (-)           flex-direction & flex-wrap (This isn't implimented at all, do not use!)
+///
+///   List Settings
+///   Order            Default
+///   -------------------------------------------------------------------------------------------------------------------
+///   display          (flex)
+///   flex-direction   (row)
+///   flex-wrap        (nowrap)
+///   justify-content  (flex-start)
+///   align-items      (-)
+///   align-content    (-)
+///
+///
+/// @param {Bool} $display - If no display value is used, 'display:flex' will be defined automatically.
+///   Unless this paramater is set to 'false'
+///
+/// @require {mixin}    contains
+/// @require {mixin}    prefixer
+/// @require {function} merge
+/// @require {function} _smart_flex-container
+/// @require {function} arglist-to-list
+/// @require {function} list-undelimited-to-comma-delimited
+/// @require {function} is-bool
+/// @require {variable} flex-container-aliases
+/// @require {variable} flex-container
+/// @require {variable} flex-container
+/// @require {variable} flex-display
+/// @require {variable} flex-direction
+/// @require {variable} flex-wrap
+/// @require {variable} flex-flow
+/// @require {variable} flex-justify-content
+/// @require {variable} flex-align-items
+/// @require {variable} flex-align-content
+///
+/// @example scss - Map Usage
+/// .foo {
+///   @include flex-container((
+///     direction:row,
+///     justify-content:flex-end
+///   ));
+/// }
+///
+/// @example css - CSS Output
+/// .foo {
+///   -webkit-flex-direction: row;
+///   -moz-flex-direction: row;
+///   -ms-flex-direction: row;
+///   -o-flex-direction: row;
+///   flex-direction: row;
+///   -webkit-justify-content: flex-end;
+///   -moz-justify-content: flex-end;
+///   -ms-justify-content: flex-end;
+///   -o-justify-content: flex-end;
+///   justify-content: flex-end;
+///   -js-display: flex;
+///   display: -webkit-box;
+///   display: -moz-box;
+///   display: -webkit-flexbox;
+///   display: -ms-flexbox;
+///   display: -webkit-flex;
+///   display: flex;
+/// }
+///
+/// @example scss - List Usage
+/// .foo {
+///   @include flex-container(inline col wrap between);
+/// }
+///
+/// @example css - CSS Output
+/// .foo {
+///   -webkit-flex-direction: column;
+///   -moz-flex-direction: column;
+///   -ms-flex-direction: column;
+///   -o-flex-direction: column;
+///   flex-direction: column;
+///   -webkit-flex-wrap: wrap;
+///   -moz-flex-wrap: wrap;
+///   -ms-flex-wrap: wrap;
+///   -o-flex-wrap: wrap;
+///   flex-direction: column;
+///   -webkit-justify-content: space-between;
+///   -moz-justify-content: space-between;
+///   -ms-justify-content: space-between;
+///   -o-justify-content: space-between;
+///   justify-content: space-between;
+///   -js-display: inline-flex;
+///   display: -webkit-inline-flexbox;
+///   display: -ms-inline-flexbox;
+///   display: -webkit-inline-flex;
+///   display: inline-flex;
+/// }
+///
+
+@mixin flex-container2($settings...) {
+
+  $defaults : (
+    display           : flex,
+    direction         : row,
+    wrap              : nowrap,
+    justify-content   : flex-start,
+  );
+
+  // $settings : get-settings($defaults, $args...);
+  $settings : get-settings($defaults, (debug:true), $args...);
+
+  
+
+}
+
+
+@mixin flex-container($settings...) {
+
+  $important : false;
+
+  // Empty
+  @if $settings == null or length($settings) == 0 { $settings : (display:flex)}
+
+  // Map
+  @elseif is-map(first($settings)) {
+    @if length($settings) > 1 {
+      $important : nth($settings, 2);
+    }
+    @if length($settings) > 2  {
+      @include warning("The first flex-container paramater is a map, which means you can only add one more option. This option is reserved as for a Boolean to tell this mixin to add !important or not (false by default). However you've added too many. These are not going to be used: " + slice($settings, 3))
+    }
+    $settings : first($settings);
+  }
+  // Arglist
+  @elseif is-arglist($settings) {
+    $settings : _smart_flex-container(arglist-to-list($settings));
+  }
+
+  // Add display:flex if not display value was set
+  @if not map-has-key($settings, display) {
+    $settings : map-set($settings, display, flex);
+  }
+
+  // Add display:flex if not display value was set
+  @if map-has-key($settings, important) {
+    $important : map-get($settings, important);
+  }
+
+  // Validation checks for every value for every property
+  @each $property, $value in $settings {
+
+    $output : false;
+
+    @if contains($flex-container, $property) {
+      // Alias checks
+      @if contains($property, (content items)) {
+        $property : #{align-}$property;
+      }
+      @elseif contains($property, (direction wrap flow)) {
+        $property : #{flex-}$property;
+        // Special alias check for nowrap
+        $value : if($value == no-wrap, nowrap, $value);
+      }
+      @elseif $property == justify {
+        $property : justify-content;
+      }
+
+      @if contains($value, (start end)) {
+        $value : #{flex-}$value;
+      } @elseif contains($value, (around between)) {
+        $value : #{space-}$value;
+      } @elseif contains($value, (col)) {
+        $value : column;
+      } @elseif contains($value, (inline)) {
+        $value : inline-flex;
+      }
+
+      @if $property == display and $value != null {
+        @if $value == inline-flex {
+          display: -webkit-inline-flex is-important($important);
+          display: inline-flex is-important($important);
+        } @else {
+          -js-display: flex is-important($important); // This is for flexibility support
+          display: -webkit-box is-important($important);
+          display: -moz-box is-important($important);
+          display: -webkit-flexbox is-important($important);
+          display: -ms-flexbox is-important($important);
+          display: -webkit-flex is-important($important);
+          display: flex is-important($important);
+        }
+      }
+
+      // Check these properties against their list of valid values
+      $checks : (flex-direction: $flex-direction, flex-wrap: $flex-wrap, justify-content: $flex-justify-content, align-items: $flex-align-items, align-content: $flex-align-content);
+      @each $prop, $check in $checks {
+        @if $property == $prop and contains($check, $value){
+          $output : true;
+        }
+      }
+      // Only output and prefix everything when $output is true
+      @if $output {
+        $property:$value $important;
+      }
+
+    }
+  }
+}
+
+
+// Quick Flex Container Mixins
+
+/// @alias flex-container -
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @warning Flexbox does not currently work on buttons, fieldsets or textareas
+///
+/// @warning box-orient, box-direction, box-ordinal-group, box-left, box-positive, box-pack, box-align
+///          ...and other unsupported/old flexbox values have been excluded
+///
+/// @todo Do special checks for 'flex-flow'
+///
+/// @param {Map} $settings - flexbox container property or alias : flexbox value.
+
+@mixin flex-display($value:flex, $important:false) {
+  @include flex-container((display:$value), $important);
+}
+
+@mixin flex-direction($value, $important:false) {
+  @include flex-container((direction:$value), $important);
+}
+
+@mixin flex-wrap($value, $important:false) {
+  @include flex-container((wrap:$value), $important);
+}
+
+@mixin flex-flow($value, $important:false) {
+  @include flex-container((flow:$value), $important);
+}
+
+@mixin flex-justify-content($value, $important:false) {
+  @include flex-container((justify:$value), $important);
+}
+@mixin flex-justify($value, $important:false) {
+  @include flex-container((justify:$value), $important);
+}
+
+@mixin flex-align-items($value, $important:false) {
+  @include flex-container((items:$value), $important);
+}
+
+@mixin flex-align-content($value, $important:false) {
+  @include flex-container((content:$value), $important);
+}
+
+// Private function provide a shorthand option in the flex-container mixin
+// Defaults : display:flex, flex-direction:row, flex-wrap:nowrap, justify-content:flex-start
+// Order   : display, flex-direction, flex-wrap, justify-content, align-items, align-content
+// Optionals : display, align-items, align-content
+@function _smart_flex-container($settings) {
+
+  $defaults : (
+    direction         : row,
+    wrap              : nowrap,
+    justify-content   : flex-start,
+  );
+
+  $_defined-justify-content : false;
+  $_defined-align-items : false;
+  $_defined-align-content : false;
+
+  $settings : list-undelimited-to-comma-delimited($settings);
+
+  @each $property in $settings {
+
+    @if merge($flex-display, contains($flex-container, $property)) {
+
+      @if ( contains($flex-display, $property) ) {
+        $defaults : map-set($defaults, display, $property);
+      }
+      @elseif ( contains($flex-direction, $property) ) {
+        $defaults : map-set($defaults, direction, $property);
+      }
+      @elseif ( contains($flex-wrap, $property) ) {
+        $defaults : map-set($defaults, wrap, $property);
+      }
+      @elseif ( contains($flex-justify-content, $property) and $_defined-justify-content == false ) {
+        $_defined-justify-content : true;
+        $defaults : map-set($defaults, justify-content, $property);
+      }
+      @elseif ( contains($flex-align-items, $property) and $_defined-align-items == false ) {
+        $_defined-align-items : true;
+        $defaults : map-set($defaults, align-items, $property);
+      }
+      @elseif ( contains($flex-align-content, $property)  and $_defined-align-content == false ) {
+        $_defined-align-content : true;
+        $defaults : map-set($defaults, align-content, $property);
+      }
+      @if ( contains((important, !important), $property) or $property == true ) {
+        $defaults : map-set($defaults, important, true);
+      }
+
+    }
+
+  }
+
+ @return $defaults;
+
+}
+
+/// Quick mixin to devide a flex item using basis
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+@mixin flex-grid($count, $gutter:$gap, $bottom:true, $important:false) {
+
+  $gutter : remove-unit(to-number($gutter));
+
+  @if $count <= 1 {
+    @include flex-basis(auto, $important);
+    width:100%;
+    @if is-number($gutter) and $gutter != null $gutter > 0 {
+      margin-right:0 $imp;
+      @if $bottom { margin-bottom:add-unit(if(is-bool($bottom), $gutter, $bottom)); }
+    }
+  }
+  @elseif $count > 1 {
+    @if is-number($gutter) and $gutter != null {
+
+      @include flex-basis(calc(100% / #{$count} - #{add-unit(($gutter * ($count - 1) / $count))}), $important);
+
+      margin-right:add-unit($gutter);
+
+      @for $i from 1 through $count {
+        &:nth-of-type(#{$count + n}) {
+          margin-right:0;
+        }
+      }
+      @if $bottom {
+        margin-bottom:add-unit(if(is-bool($bottom), $gutter, $bottom));
+      }
+
+    } @else {
+      @include flex-basis(calc(100% / #{$count}), $important);
+    }
+  }
+}
+
+@mixin flex-grid-old($count, $gutter:$gap, $important:false) {
+  @if $count <= 1 {
+    @include flex-basis(auto, $important);
+  }
+  @elseif $count > 1 {
+    @if is-number($gutter) and $gutter != null and $gutter > 0 {
+      @include flex-basis(calc(100% / #{$count} - #{add-unit($gutter)} - 2px), $important);
+    } @else {
+      @include flex-basis(calc(100% / #{$count} - 2px), $important);
+    }
+  }
+}
+
+@function _get-next-breakpoint($setting) {
+  @if is_number($setting) and contains(map-values($breakpoints), $setting) {
+    // This gets the next available breakpoint from the list of breakpoints. The if-statment is a check if the last breakpoint item is queried.
+    @return if(index(map-values($breakpoints), $setting) >= length(map-values($breakpoints)), null, nth(map-values($breakpoints), (index(map-values($breakpoints), $setting) + 1)));
+  } @elseif is_string($setting) and map-has-key($breakpoints, $setting) {
+    @return map-get-next($breakpoints, $setting);
+  } @else {
+    @return $setting;
+  }
+}
+
+// 4 $gap $max, 2 0 $medium, $small
+// 4, 2,
+// @include smart-flex-grid('section', 3 $gap, 2 $gap0 $max, 1 $gap0 bottom $large);
+
+@mixin smart-flex-grid($settings...) {
+    $nth : 0;
+    $selector : null;
+
+    $settings-list : arglist-to-list($settings);
+
+    $multiple-settings : length($settings-list) > 1;
+
+    $sssbreak : null;
+
+    // @debug $multiple-settings;
+
+    @each $settings in $settings-list {
+
+      @if (length($settings) == 1 and is-string(nth($settings, 1))) {
+        // If the current element is the same one that was passed as the first param,
+        // don't bother setting the $selector variable and revert to the more generic first of every element;
+        @if last(last(to-list(&))) != $settings {
+          $selector : $settings;
+        } @else {
+          $selector : '> *';
+        }
+        @include flex-container((direction:row, wrap:wrap, justify:stretch-between));
+      } @else {
+
+        $nth : $nth + 1;
+        $count : null;
+        $gutter : null;
+        $grow : null;
+        $break : null;
+        $next-break : null;
+        $gutter-position : ();
+        $container : null;
+
+        @each $setting in $settings {
+
+          @if is_number($setting) {
+            @if is_null($count) {
+              $count : $setting;
+            } @elseif is_null($gutter) {
+              $gutter : $setting;
+            } @elseif is_null($break) {
+              // $next-break : _get-next-breakpoint($setting);
+              $break : $setting;
+            }
+          }
+          @if is_string($setting) {
+            @if contains((top bottom left right all), $setting) {
+              $gutter-position : append($gutter-position, $setting);
+            } @elseif contains((grow), $setting) {
+              $grow : true;
+            } @elseif map-has-key($breakpoints, $setting) {
+              // $next-break : _get-next-breakpoint($setting);
+              $break : map-get($breakpoints, $setting);
+            }
+          }
+          @if is_map($setting) {
+            $container : $setting;
+          }
+
+              // $next-break : _get-next-breakpoint($setting);
+          //@if is_null($break) and length($settings-list) >= 2 {
+            // $break : nth($breakpoints, $nth);
+
+            // @if $nth == 1 {
+            //   // First
+            //   $break : $max;
+            //   $sssbreak : $max;
+            // }
+
+
+
+            // @if $nth != 1 {
+            //   @debug $break;
+            //   // Other settings
+            //   $break : _get-next-breakpoint($sssbreak);
+            // }
+          //}
+          // $break : if(is_null($break) and $nth == 1, $max, $break);
+          // $next-break : if(is_null($next-break) and $multiple-settings and $nth != 1, _get-next-breakpoint($break), $next-break);
+          // $break : if(is_null($break) and $nth != 1, $next-break, $break);
+        }
+
+        // Set default gutter position if not defined
+        @if length($gutter-position) == 0 { $gutter-position : left right bottom }
+
+        @if not is-null($container) {
+          @include break($break) {
+            @include flex-container($container);
+            @debug $container;
+          }
+        }
+
+        #{if(is-null($selector), '&', $selector)} {
+
+          // max-width:100% / $count;
+
+          @include break($break) {
+
+            @if not is-null($grow) {
+              @include flex-grow(1);
+            }
+
+            @if $count <= 1 {
+              @include flex-basis(auto); @include flex-grow(1);
+            }
+            @elseif $count > 1 {
+              @if is-number($gutter) and $gutter != null and remove-unit(to-number($gutter)) > 0 {
+                @include flex-basis(calc(100% / #{$count} - #{add-unit($gutter)}));
+              } @else {
+                @include flex-basis(calc(100% / #{$count}));
+              }
+            }
+
+
+            // // Margins and their positions
+            // @if contains(left right, $gutter-position, true) {
+            //   // $gutter-position contains BOTH left and right, and nothing more
+            //   margin-left:add-unit($gutter/2);
+            //   margin-right:add-unit($gutter/2);
+            // } @elseif contains(top left, $gutter-position, true) {
+            //   // $gutter-position contains BOTH top and bottom, and nothing more
+            //   margin-top:add-unit($gutter/2);
+            //   margin-bottom:add-unit($gutter/2);
+            // } @elseif contains((left right top bottom), $gutter-position) {
+            //   // $gutter-position contains EITHER left, right, top, bottom
+            //   $gp : list-items-to-strings($gutter-position);
+
+            //   @if index($gp, 'left') and index($gp, 'right') {
+            //     margin-left:add-unit($gutter/2);
+            //     margin-right:add-unit($gutter/2);
+            //   } @else {
+            //     margin-left  :if(index($gp, 'left'),   add-unit($gutter), null);
+            //     margin-right :if(index($gp, 'right'),  add-unit($gutter), null);
+            //   }
+            //   @if index($gp, 'top') and index($gp, 'bottom') {
+            //     margin-top:add-unit($gutter/2);
+            //     margin-bottom:add-unit($gutter/2);
+            //   } @else {
+            //     margin-top:   if(index($gp, 'top'),    add-unit($gutter), null);
+            //     margin-bottom:if(index($gp, 'bottom'), add-unit($gutter), null);
+            //   }
+
+            // } @elseif contains((all), $gutter-position) {
+            //   margin:add-unit($gutter/2);
+            // }
+
+            // TODO: Fix issue of repeat CSS output. The above code is close.
+            // Margins and their positions
+            @if contains(left right, $gutter-position, true) {
+              // $gutter-position contains BOTH left and right, and nothing more
+              margin-left:add-unit($gutter/2);
+              margin-right:add-unit($gutter/2);
+            } @elseif contains(top left, $gutter-position, true) {
+              // $gutter-position contains BOTH top and bottom, and nothing more
+              margin-top:add-unit($gutter/2);
+              margin-bottom:add-unit($gutter/2);
+            } @elseif contains((left right top bottom), $gutter-position) {
+              // $gutter-position contains EITHER left, right, top, bottom
+              $gp : list-items-to-strings($gutter-position);
+              $ml : null;
+              $mr : null;
+              $mt : null;
+              $mb : null;
+
+              @if index($gp, 'left') and index($gp, 'right') {
+                $ml:add-unit($gutter/2);
+                $mr:add-unit($gutter/2);
+              }
+              @if index($gp, 'top') and index($gp, 'bottom') {
+                $mt:add-unit($gutter/2);
+                $mb:add-unit($gutter/2);
+              }
+
+              @each $g in $gp {
+                margin-left  : if(is-null($ml), if($g == 'left', add-unit($gutter), 0), $ml);
+                margin-right : if(is-null($mr), if($g == 'right', add-unit($gutter), 0), $mr);
+                margin-top   : if(is-null($mt), if($g == 'top', add-unit($gutter), 0), $mt);
+                margin-bottom: if(is-null($mb), if($g == 'bottom', add-unit($gutter), 0), $mb);
+              }
+
+            } @elseif contains((all), $gutter-position) {
+              margin:add-unit($gutter/2);
+            }
+          }
+        }
+        //}
+
+        // $next-break : map-get-next($breakpoints, $break);
+
+        // @debug "Setting: " + #{$nth};
+        // @debug "count: " + #{$count};
+        // @debug "gutter: " + #{$gutter};
+        // @debug "break: " + #{$break};
+        // @debug "next-break: " + #{$next-break};
+        // @debug "gutter-positions: " + #{$gutter-position};
+        // @debug "---";
+      }
+
+    }
+}
+
+// Item properties
+$flex-item-aliases : grow shrink basis self;
+$flex-item         : order flex-grow flex-shrink flex-basis align-self $flex-item-aliases;
+$flex-item         : merge($flex-item, $flex-item-aliases);
+
+// Item values
+$flex-order        : number;
+$flex-grow         : number;
+$flex-shrink       : number;
+$flex-basis        : number auto;
+$flex-flex         : none number; // flex-grow, flex-shrink, flex-basis
+$flex-align-self   : auto flex-start flex-end start end center baseline stretch;
+
+/// Flexbox items mixin validates and prefixes the most current Flexbox W3C working draft
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @warning Flexbox does not currently work on buttons, fieldsets or textareas
+///
+/// @warning box-orient, box-direction, box-ordinal-group, box-left, box-positive, box-pack, box-align
+///          ...and other unsupported/old flexbox values have been excluded
+///
+/// @todo Do special checks for 'flex'
+///
+/// @param {Map} $settings - flexbox item property or alias : flexbox value.
+///
+///   Property         Alias        Default       Values
+///   -------------------------------------------------------------------------------------------------------
+///   order            (-)          (-)           number
+///   flex-grow        (grow)       (0)           number
+///   flex-shrink      (shrink)     (1)           number
+///   flex-basis       (basis)      (auto)        unit | auto
+///   !flex            (-)          (-)           number | none
+///   align-self       (self)       (-)           auto | flex-start | flex-end | center | baseline | stretch
+///
+///
+/// @require {Mixin}    contains
+/// @require {Mixin}    prefixer
+/// @require {Function} merge
+/// @require {Variable} flex-item-aliases
+/// @require {Variable} flex-item
+/// @require {Variable} flex-item
+/// @require {Variable} flex-order
+/// @require {Variable} flex-grow
+/// @require {Variable} flex-shrink
+/// @require {Variable} flex-basis
+/// @require {Variable} flex-flex
+/// @require {Variable} flex-align-self
+///
+/// @example scss - Usage
+/// .bar {
+///   @include flex-items((
+///     order:1,
+///     basis:150
+///   ));
+/// }
+///
+/// @example css - CSS Output
+/// .bar {
+///   -webkit-order: 1;
+///   -moz-order: 1;
+///   -ms-order: 1;
+///   -o-order: 1;
+///   order: 1;
+///   -webkit-flex-basis: 150px;
+///   -moz-flex-basis: 150px;
+///   -ms-flex-basis: 150px;
+///   -o-flex-basis: 150px;
+///   flex-basis: 150px;
+/// }
+///
+@mixin flex-items($settings, $important:false) {
+
+  @each $property, $value in $settings {
+
+    $output : false;
+    $new-value : null;
+
+    @if contains($flex-item, $property) {
+      // Alias checks
+      @if contains($property, self) {
+        $property : #{align-}$property;
+      }
+      @elseif contains($property, (grow shrink basis)) {
+        $property : #{flex-}$property;
+      }
+
+      @if contains($value, (start end)) {
+        $value : #{flex-}$value;
+      }
+
+      // Check these properties against their list of valid values
+      @if contains($property, (order, flex-grow, flex-shrink)) {
+        $new-value : remove-unit($value);
+        $output : true;
+      }
+      @elseif $property == flex-basis {
+        $new-value : add-unit($value);
+        $output : true;
+      }
+      @elseif $property == align-self and contains($flex-align-self, $value) {
+        $new-value : $value;
+        $output : true;
+      }
+
+      // Only output and prefix everything when $output is true
+      @if $output and $new-value != null {
+        // This checks to see if any aliases have been used in the values
+        $property: $new-value $important;
+      }
+    }
+  }
+}
+
+// Quick Flex Items Mixins
+@mixin flex-order($value, $important:false) {
+  @include flex-items((order:$value), $important);
+}
+
+@mixin flex-grow($value, $important:false) {
+  @include flex-items((grow:$value), $important);
+}
+
+@mixin flex-shrink($value, $important:false) {
+  @include flex-items((flex-shrink:$value), $important);
+}
+
+@mixin flex-basis($value, $important:false) {
+  @include flex-items((flex-basis:$value), $important);
+}
+
+@mixin flex-flex($value, $important:false) {
+  @include flex-items((flex:$value), $important);
+}
+
+@mixin flex-align-self($value, $important:false) {
+  @include flex-items((self:$value), $important);
+}
+
+/// Quick mixin to remove all active flexbox properties
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+@mixin flex-remove($important:null) {
+  @if ($important == true) {
+    flex:initial !important;
+    display:initial !important;
+    flex-direction:initial !important;
+    justify-content:initial !important;
+  } @else {
+    flex:initial;
+    display:initial;
+    flex-direction:initial;
+    justify-content:initial;
+  }
+}
+
+@mixin center($horizontal: true, $vertical: true) {
+  position: absolute;
+  @if ($horizontal and $vertical) {
+    top: 50%;
+    left: 50%;
+    @include transform(y -50%, x -50%);
+  } @else if ($horizontal) {
+    left: 50%;
+    @include transform(y -50%, x 0);
+  } @else if ($vertical) {
+    top: 50%;
+    @include transform(y 0, x -50%);
+  }
+}
+
+@mixin flip($direction:vertical) {
+
+  @if contains((vertical, horizontal), $direction, true) {
+    @include transform(scaleY -1, scaleX -1);
+  } @else {
+
+    @if $direction == vertical {
+      @include scaleX(-1);
+      filter: FlipH;
+      -ms-filter: "FlipH";
+    }
+
+    @if $direction == horizontal {
+      @include scaleY(-1);
+      filter: FlipV;
+      -ms-filter: "FlipV";
+    }
+  }
+
+}
+
+//
+// Pass in a Map or List
+//
+// Lists should consist of element types, either by element, class or id (class and id's should be quoted strings)
+// @include grid-areas( nav, header, main, quick-links, blockquote, article, footer );
+
+// Maps keys should be the elements, class or id. Values should be the desired grid-area name
+// @include grid-areas((
+//   nav : '',
+//   header : header,
+//   main : main,
+//   quick-links: quick-links,
+//   blockquote : blockquote,
+//   article : article,
+//   footer : footer,
+// ));
+
+@mixin grid-areas($settings...) {
+
+  $elements : ();
+
+  @if (length($settings) > 1 and is-list( arglist-to-list($settings))) {
+    @each $element in $settings {
+      $elements : append($elements, $element, comma);
+      $area : str-replace($element, '.');
+      $area : str-replace($element, '#');
+      #{$element} { grid-area:unquote($area); }
+    }
+  } @elseif is-map($settings) {
+    @each $element, $area in $settings {
+      $elements : append($elements, $element, comma);
+      $area : if(is-empty($area), $element, $area);
+      #{$element} { grid-area:unquote($area); }
+    }
+  }
+
+  // @if content-exists() {
+  //   #{$elements} {
+  //     @content;
+  //   }
+  // }
+}
+
+// If you want to split a column up using the repeat function, you may want to devide the min and max values by the amount of columns;
+@function grid-repeat($amount, $min:$small, $max:$max) {
+  @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
+}
+
+@mixin add-custom-property($variable, $value, $scope:':root') {
+  @at-root #{$scope} { --#{$variable}:#{$value}; }
+}
+
+// Add variable to the global variables map;
+
+@mixin add-variables($args...) {
+
+  $settings : get-settings(null, $args...);
+
+  @if variable-exists(variables) {
+    @if (not is-map($map) and not is-map($value) and not is-null($value)) {
+      $variables : map-merge($variables, ($map:$value)) !global;
+    } @else {
+      $variables : map-merge($variables, $map) !global;
+    }
+  }
+}
+
+@mixin custom-property($properties, $values:null, $at-root:false) {
+
+    $map : if(type-of($properties) == map, $properties, map-zip($properties, $values));
+    @each $property, $value in $map {
+      @if $at-root {
+        @at-root(without:media) & {
+          --#{$property}:#{$value};
+        }
+      } @else {
+        --#{$property}:#{$value};
+      }
+    }
+
+}
+
+@mixin set-variables() {
+  @if variable-exists(variables) and not is-null($variables) {
+
+    $temp : $variables;
+
+    @if ($support-css-variable-alpha-colours == true) {
+      @each $variable, $value in $variables {
+        @if is-colour($value) {
+          @if is-hex($value) {
+            $temp : map-set($temp, $variable, (red($value), green($value), blue($value)));
+          } @else {
+            $temp : map-set($temp, $variable, hex-to-rgba($value));
+          }
+        }
+      }
+    }
+
+    $variables : $temp !global;
+
+    @at-root :root {
+      @each $variable, $value in $variables {
+        #{'--' + string-replace($variable, '--')}: $value;
+      }
+    }
+  }
+}
+
+@mixin set-variable($variable, $value) {
+  @at-root :root {
+    #{'--' + string-replace($variable, '--')}: $value;
+  }
+}
+
+@mixin var($args...) {
+
+  $defaults : (
+    property : null,
+    variable : primary,
+    opacity  : 1,
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $property  : map-get($settings, property);
+  $variable  : map-get($settings, variable);
+  $opacity   : map-get($settings, opacity);
+  $important : map-get($settings, important);
+
+  $variable-value : $variable;
+  $fallback-value : null;
+
+  // Allow the third param (opacity) to accept booleans.
+  // This will work in place of the $importnat param.
+  @if is-bool($opacity) and $opacity == true {
+    $important : $opacity;
+    $opacity : 1;
+  }
+
+  $value : var-value($variable, $opacity);
+  $variable-value : if(is-list($value), nth($value, 1), $value);
+  $fallback-value : if(is-list($value), nth($value, 2), null);
+
+  @if ( not is-null($fallback-value) ) {
+    #{$property} : $fallback-value $important;
+  }
+
+  @supports(--css: variables) {
+    #{$property} : $variable-value $important;
+  }
+
+
 }
 
 $browsers : ie edge safari firefox chrome opera;
@@ -4909,7 +6514,7 @@ $image-rendering-values : auto crisp-edges pixelated inherit initial unset;
   }
 }
 @mixin sudo-image($image, $size:auto, $sudo:before) {
-  &#{_sudo($sudo)} {
+  &#{pseudo($sudo)} {
     content:"";
     position:absolute;
     top:0; left:0;
@@ -5023,7 +6628,7 @@ $image-rendering-values : auto crisp-edges pixelated inherit initial unset;
   
   // Define all settings with strings
   
-  &#{_sudo($sudo)} {
+  &#{pseudo($sudo)} {
     content:"";
     position:absolute;    
     height:0; 
@@ -5294,7 +6899,7 @@ $triangle-settings: (
     $s-dasharray : if($s-dasharray, "' stroke-dasharray='" + $s-dasharray, '');
   }
 
-  &#{_sudo($sudo)} {
+  &#{pseudo($sudo)} {
     content:"";
     @include size($width $height);
     position:absolute;
@@ -5346,21 +6951,6 @@ $triangle-settings: (
   }
 }
 
-// Center vertically and horizontally
-@mixin align($axis:null, $width:null, $height:null) {
-  position:absolute;
-  @if ( $axis == vertical or $axis == v) {
-    // Vertical
-    top:50%; height:$height#{px}; margin-top:- $height/2#{px};
-  } @else if ( $axis == horizontal or $axis == h) {
-    // Horizontal
-    left:50%; width:$width#{px}; margin-left:- $width/2#{px};
-  } @else { 
-    // Both
-    @if ($height == null) { $height : $width; }
-    top:50%; left:50%; height:$height#{px}; width:$width#{px}; margin-left:- $width/2#{px}; margin-top:- $height/2#{px};
-  }
-}
 /// Create a pseudo element which will retain a parent elements' aspect ratio responsively. 
 ///
 /// @author Mark Notton
@@ -5404,7 +6994,7 @@ $triangle-settings: (
   $width  : check(first($ratio), 1);
   $height : check(second($ratio), first($ratio));
 
-  &#{_sudo($sudo)} {
+  &#{pseudo($sudo)} {
     content:"";
     display:block;
     padding-top: if(is-percentage($width), $width, percentage($height / $width));
@@ -5524,20 +7114,7 @@ $triangle-settings: (
 /// @alias transition
 @mixin radius($settings...) { @include border-radius($settings...); }
 
-@mixin bulletpoint($colour:$red, $size:8, $sudo:before) { position:relative;
-  &:#{$sudo} { content:"";
-    position:absolute;
-    display:block;
-    @include size($size);
-    @include border-radius(circle);
-    background-color:$colour;
-    left:0;
-    top:add-unit($size/2);
-    @content;
-  }
-}
-
-@mixin clear-fix {
+@mixin clearfix {
   &::after {
     clear: both;
     content: "";
@@ -5545,26 +7122,22 @@ $triangle-settings: (
   }
 }
 
-@mixin clearfix {
-  @include clear-fix;
-}
-
 @mixin container($args...) {
 
   $defaults : (
-    gutter1   : var(--gutter, #{$gap2}),
-    gutter2   : var(--gutter, #{$gap1}),
-    break     : $medium,
-    max-width : $max
+    gutter-left  : var(--gutter-left, #{$gutter-left}),
+    gutter-right : var(--gutter-right, #{$gutter-right}),
+    break        : $medium,
+    max-width    : $max
   );
 
   $settings : get-settings($defaults, $args...);
 
-  $gutter1   : map-get($settings, gutter1);
-  $gutter2   : map-get($settings, gutter2);
-  $break     : map-get($settings, break);
-  $max       : map-get($settings, max-width);
-  $important : map-get($settings, important);
+  $gutter-left  : map-get($settings, gutter-left);
+  $gutter-right : map-get($settings, gutter-right);
+  $break        : map-get($settings, break);
+  $max          : map-get($settings, max-width);
+  $important    : map-get($settings, important);
 
   width:100%;
   position:relative;
@@ -5572,23 +7145,23 @@ $triangle-settings: (
   margin-left:auto; margin-right:auto;
   max-width:add-unit($max);
 
-  @if not is-null($gutter1) {
+  @if not is-null($gutter-left) {
 
-    @if is-var($gutter1) {
-      padding-left  : $gutter1 $important;
-      padding-right : $gutter1 $important;
+    @if is-var($gutter-left) {
+      padding-left  : $gutter-left $important;
+      padding-right : $gutter-right $important;
     } @else {
-      padding-left  : add-unit($gutter1) $important;
-      padding-right : add-unit($gutter1) $important;
+      padding-left  : add-unit($gutter-left) $important;
+      padding-right : add-unit($gutter-right) $important;
     }
 
   }
 
-  @if not is-var($gutter2) and not is-null($gutter2) {
+  @if not is-var($gutter-right) and not is-null($gutter-right) {
 
     @include break($break, '<') {
-      padding-left  : add-unit($gutter2) $important;
-      padding-right : add-unit($gutter2) $important;
+      padding-left  : add-unit($gutter-left) $important;
+      padding-right : add-unit($gutter-right) $important;
     }
 
   }
@@ -5805,7 +7378,7 @@ $triangle-settings: (
   overflow:hidden;
   max-width:add-unit($size);
   width:100%;
-  &#{_sudo($sudo)} {
+  &#{pseudo($sudo)} {
     content: "";
     display: block;
     padding-bottom: 100%;
@@ -6117,86 +7690,6 @@ $triangle-settings: (
   }
 }
 
-/// Generate gaps from a generic unit so help continuity of paddings, margins,
-/// gutters etc... throughout your design.
-///
-/// @param {Number} $size
-///   Enter the amount of times you want to multiply the default padding variable
-///
-/// @require {Variable} $gaps
-///
-/// @example scss - Usage
-///   margin:0 gap(3);
-/// @return {Number} with units
-@function gap($size:1) {
-  @return if($size == 0, to-number(add-unit($gaps/2, $default-unit)), to-number(add-unit($gaps*$size, $default-unit)));
-}
-
-/// Generate space from a generic unit to help continuity of paddings, margins,
-/// gutters etc... throughout your design.
-///
-/// @param {Number} $size
-///   Enter the amount of times you want to multiply the default padding variable
-///
-/// @param {String} $direction
-///   The unit you want the spacing to be defined as. Default is vh
-///
-/// @require {Variable} $spacing global variable
-///
-/// @example scss - Usage
-///   margin-top:space(2);
-///
-/// @return {number} with units
-
-@function space($args...) {
-
-  $defaults : (
-    size      : 1,
-    direction : vh,
-    unit      : if(variable-exists(space),$space, 5vh),
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $size      : map-get($settings, size);
-  $direction : map-get($settings, direction);
-  $unit      : map-get($settings, unit);
-
-  @if $size == 0 {
-    @return to-number(add-unit($unit/2, $direction, true));
-  } @else {
-    @return to-number(add-unit($unit*$size, $direction, true));
-  }
-
-}
-
-/// Create a spacer relative to the viewport height or width. Whilst also adding
-/// a calc method to ensure that space is always at least the size of a solid unit (px)
-/// @param {Number} $size - Enter the amount of viewport units to add. 3 = 3% of the viewport height
-/// @param {Number} $min - Enter the amount of pixels the spcaer should never go below;
-/// @param {String} $direction - The unit you want the spacing to be defined as. Default is vh
-/// @example margin-top:spacer(2, 30);
-/// @output margin-top:calc(2vh + 30px);
-/// @return {number} with units
-
-@function spacer($args...) {
-
-  $defaults : (
-    size      : $space,
-    min       : $gap,
-    direction : vh,
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $direction : map-get($settings, direction);
-
-  $size      : add-unit(map-get($settings, size), $direction);
-  $min       : add-unit(map-get($settings, min));
-
-  @return calc(#{$size} + #{$min});
-}
-
 /// Box Inner Shadow
 /// @param {Size} $x [0px] - X
 /// @param {Size} $y [0px] - Y
@@ -6403,34 +7896,25 @@ $triangle-settings: (
 
 @if $normalise and $global-styling {
 
-  image-element, gallery-image, article-image {
+  featured-image {
     @extend %full;
     display:block;
+    min-width:$min;
     &[style*='background-image'] {
       background-size:cover;
       background-repeat:none;
       background-position:center 33.33%;
       background-repeat:no-repeat;
     }
-  }
-
-  featured-image {
-    @extend %full;
-    min-width:$min;
     > img {
       display:block;
       position:absolute;
-      object-fit:cover; object-position: 50% 50%;
+      object-fit:cover;
+      object-position: center 33.33%;
       width:100%; height:100%;
       max-width:100%; max-height:100%;
       top:0; left:0;
       @include browsers(ie) { display:none; }
-    }
-    &[style*='background-image'] {
-      background-size:cover;
-      background-repeat:none;
-      background-position:center 33.33%;
-      background-repeat:no-repeat;
     }
   }
 
@@ -6451,10 +7935,6 @@ $triangle-settings: (
       top:0; left:0;
       height:100% $imp; width:100% $imp;
     }
-  }
-
-  basic-container {
-    @include container(null, null)
   }
 
 }
@@ -7080,26 +8560,6 @@ $triangle-settings: (
   }
   @extend .svg-#{$class};
   @content;
-}
-
-
-/// Generates a clean url attribute for compressed or uncompressed svg data
-/// @param {string} $svg - Add full SVG markup or base64 compressed code.
-/// @link http://b64.io/
-/// @return {string}
-
-@function svg($svg) {
-  $data:if(str-index($svg, '<svg'), "data:image/svg+xml;utf8, ", "data:image/svg+xml;base64, ");
-  @return url($data + unquote($svg));
-}
-
-// Get the aspect ratio of a given symbol
-@function symbol-size-ratio($symbol) {
-
-  $width : map-deep-get($symbols, $symbol, width);
-  $height : map-deep-get($symbols, $symbol, height);
-
-  @return percentage($height / $width);
 }
 
 /// Resize an SVG element using it's original dimensions to retain it's aspect ratio using a predefined symbols map
@@ -10989,20 +12449,6 @@ $emoji-clock1230 : "🕧";
   }
 }
 
-/// @todo REVIEW
-
-@function smart-lineheight($size, $smart:true) {
-  @if $smart and not is-unit($size) {
-    @if is-percentage($size) {
-      @return add-unit(100+(remove-unit($size)), %);
-    } @else {
-      @return add-unit(((($size/50)+($size))*2) + $global-line-height-guide, %);
-    }
-  } @else {
-    @return add-unit($size);
-  }
-}
-
 /// Text Shadow
 /// @param {Size} $x [2px] - X
 /// @param {Size} $y [2px] - Y
@@ -11027,1354 +12473,5 @@ $emoji-clock1230 : "🕧";
   $important : map-get($settings, important);
 
   text-shadow: add-unit($x) add-unit($y) add-unit($blur) $color $important;
-
-}
-
-@mixin animation-jump($amount:10, $animation-name:jump) {
-  @include keyframes(#{$animation-name}) {  
-    0% { top:0 } 
-    50% { top:$amount + px } 
-    100% { top:0 } 
-  }
-}
-@mixin animation-shake($amount:10, $animation-name:shake) {
-  @include keyframes(#{$animation-name}) {
-    0% { transform:rotate(0) }
-    25% { transform:rotate(-#{$amount}deg) }
-    75% { transform:rotate(#{$amount}deg) }
-    100% { transform:rotate(0) }
-  }
-}
-
-@mixin animation-wobble($amount:10, $animation-name:wobble) {
-  @include keyframes(#{$animation-name}) { 
-    0% { left:0 } 
-    25% { left:(-$amount) + px } 
-    75% { left:($amount) + px } 
-    100% { left:0 } 
-  }
-}
-/// Create gradients
-///
-/// @author Mark Notton
-///
-/// @access private
-///
-/// @param {list} $args - Pass in the following gradient settings.
-///   [type]       - name of the graditent must be the first parameter
-///   [rule]       - Optional. If the gradient type requires it, you can add special rules. Like directions (as a string or number).
-///                  You don't need to type in 'to' for directions. This will be included automatically if necessary.
-///   [settings]   - Add a list of arguments for each colour. This can include a colour and number per argument.
-///
-/// @require {Mixin} contains
-/// @require {Mixin} prefix-values
-/// @require {Mixin} warning
-/// @require {Function} is-string
-/// @require {Function} is-number
-/// @require {Function} add-unit
-/// @require {Function} remove-nth
-/// @require {Function} replace-nth
-/// @require {Function} arglist-to-list
-///
-/// @example scss - Usage
-/// .foo {
-///   @include gradient(radial-repeat, ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-/// }
-///
-/// @example css - CSS output
-/// .foo {
-///   background: -webkit-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: -moz-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: -o-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: -ms-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%); }
-/// }
-///
-
-@mixin _gradient($args...) {
-
-  $settings : arglist-to-list($args);
-
-  $type: nth($settings, 1);
-
-  @if contains($type, $gradient-types) {
-
-    // Aliases
-    @if $type == linear-repeat {
-      $type : repeating-linear;
-    } @elseif $type == radial-repeat {
-      $type : repeating-radial;
-    } @elseif contains($type, circle) {
-      $type : radial;
-    }
-
-    $settings : remove-nth($settings, 1);
-
-  } @else {
-
-    $type : linear;
-
-    // @error "The first parameter must be the gradient type: #{$gradient-types}";
-
-  }
-
-  @if length($settings) > 1 {
-
-    @for $i from 1 through length($settings) {
-      $setting : nth($settings, $i);
-      // @debug $setting;
-      // Special first argument checks
-      @if ($i == 1) {
-        $unit : deg;
-
-        // Loop through the initial setting and check any unitless numbers has 'deg' as a default
-
-        @if contains($type, repeating-radial radial) {
-          $unit : %;
-          @if is-number($setting) {
-            @include warning($type + " can not have a number as the first parameter, it should be a colour");
-          }
-          @if contains($setting, at) {
-            $setting : replace-nth($setting, 1, add-unit(nth($setting, 1), px));
-          }
-        }
-
-        @if is-number($setting) {
-          $settings : replace-nth($settings, 1, add-unit($setting, $unit));
-        } @elseif is-list($setting) {
-          @if contains($setting, to) {
-            $setting : remove($setting, to);
-          }
-          @for $l from 1 through length($setting) {
-            $list-setting : nth($setting, $l);
-            @if is-number($list-setting) {
-              $setting : replace-nth($setting, $l, add-unit($list-setting, $unit));
-            }
-          }
-          $settings : replace-nth($settings, 1, $setting);
-        }
-      } @else {
-
-        @if is-list($setting) {
-          @for $l from 1 through length($setting) {
-            $list-setting : nth($setting, $l);
-            @if is-number($list-setting) {
-              $setting : replace-nth($setting, $l, add-unit($list-setting, %));
-            }
-          }
-          $settings : replace-nth($settings, $i, $setting);
-        }
-
-      }
-
-    }
-
-    $new-settings : ();
-    $new-generic-settings : ();
-
-    @each $set in $settings {
-      $new-settings : append($new-settings, $set, comma);
-      // Special checks for the generic syntax that requires "to" for specific direction strings
-      @if contains($set, right bottom left top) {
-        $new-generic-settings : append($new-generic-settings, to $set, comma);
-      } @else {
-        $new-generic-settings : append($new-generic-settings, $set, comma);
-      }
-
-    }
-
-    @include prefix-values(background, #{$type}-gradient($new-settings), webkit moz o ms only);
-    background:#{$type}-gradient($new-generic-settings);
-
-  } @else {
-    @include warning("You'll need more gradient settings than that");
-  }
-
-}
-
-@mixin gradient($args...) {
-  @include _gradient($args...);
-}
-
-@mixin gradient-radial($args...) {
-  @include _gradient(radial, $args...);
-}
-@mixin radial($args...) { @include gradient-radial($args...); }
-
-@mixin gradient-right($args...) {
-  @include _gradient(linear, right, $args);
-}
-@mixin gradient-horizontal($args...) { @include gradient-right($args...); }
-
-@mixin gradient-left($args...) {
-  @include _gradient(linear, left, $args);
-}
-
-@mixin gradient-top($args...) {
-  @include _gradient(linear, top, $args);
-}
-@mixin gradient-vertical($args...) { @include gradient-top($args...); }
-
-@mixin gradient-bottom($args...) {
-  @include _gradient(linear, bottom, $args);
-}
-@mixin gradient-circle($args...) {
-  @include _gradient($args...);
-}
-
-// Add a breakpoint to a global map, which can be called on using the 'breaks' function
-@mixin add-breakpoint($args...) {
-
-  @for $i from 1 through length($args) {
-
-    $name : null;
-    $size : null;
-
-    $arg: nth($args, $i);
-
-    @each $rule in $arg {
-      @if type-of($rule) == string {
-        $name : $rule;
-      }
-      @if type-of($rule) == number {
-        $size : remove-unit($rule);
-      }
-    }
-
-    $name : if($name == null and type-of($size) == number, #{$size}, $name);
-
-    @if $name and $size {
-      $breakpoints : map-set($breakpoints, $name, $size) !global;
-    }
-  }
-  @at-root body { @include set-breakpoints(); }
-}
-
-// Breakpoint bewtween two points
-@mixin break-between($min, $max, $property:width) {
-  @media only screen and (min-#{$property}:add-unit($min)) and (max-#{$property}: add-unit($max)) {
-    @content;
-  }
-}
-@mixin breakpoint($args) {
-
-  @if (is-null($args)) {
-    @content;
-  } @else {
-    $width : null;
-    $condition : if($mobile-first, min-width, max-width);
-
-    @each $rule in $args {
-      @if is_number($rule) {
-        $width : add-unit($rule);
-      }
-      @if is_string($rule) {
-        @if $rule == 'min' or $rule == '>' {
-          $rule : 'min-width';
-        } @else if $rule == 'max' or $rule == '<' {
-          $rule : 'max-width';
-          $width : $width - 1;
-        }
-        $condition : $rule;
-      }
-    }
-
-    // @if not contains($breakpoints, $width) {
-    //   @include add-breakpoint($width);
-    // }
-    // TODO: Add one for min, minus one for max
-
-    @media (#{$condition}:add-unit($width)) {
-      @content;
-    }
-  }
-}
-
-@mixin break($args...) {
-  @include breakpoint($args) { @content };
-}
-
-// Get breakpoint from the breakpoint list, either by it's number or name
-@function get-breakpoint($break) {
-  @if is-string($break) and map-has-key($breakpoints, $break) {
-    // If a string is passed and exists in the breakpoints map as a key, return the value
-    @return map-get($breakpoints, $break);
-  } @elseif is-number($break) {
-    $number : remove-unit($break);
-    // If a number is passed and it exists in the breakpoints map, return the key
-    @if contains(map-values($breakpoints), $number) {
-      $list : null;
-      $nth : 1;
-      @each $break in map-values($breakpoints) {
-        $nth : $nth + 1;
-        @if $break == $number {
-          $list : add(nth(map-keys($breakpoints),$nth), $list);
-        }
-      }
-      @if length($list) == 1 {
-        @return nth($list, 1);
-      } @else {
-        @return $list;
-      }
-    } @else {
-      // @include warning($number + ' is not a breakpoint');
-      @return false;
-    }
-  }
-}
-
-@mixin hide-at($break) {
-  @include break($break) {
-    display:none;
-    & { @content; }
-  }
-}
-
-// Check if a breakpoint exists by it's number or name.
-@function is-breakpoint($break) {
-  // If the number is a string and exists as a key in the breakpoints map, return true
-  @if is-string($break) and map-has-key($breakpoints, $break) {
-    @return true;
-  } @else {
-    // Or if the number exists as a value anywhere in the breakpoints map, also return true
-    $number : remove-unit($break);
-    @if contains(map-values($breakpoints), $number) {
-      @return true;
-    } @else {
-      @return false;
-    }
-  }
-}
-
-// Set breakpoints for use with custom properties
-@mixin set-breakpoints($breaks:$breakpoints) {
-  $new-breakpoints : ();
-  @each $break, $value in $breakpoints {
-    $new-breakpoints : map-set( $new-breakpoints, #{breakpoint-}#{$break}, $value);
-  }
-  @include custom-property($new-breakpoints);
-}
-
-@mixin show-at($break) {
-  @include break($break) {
-    display:block;
-    & { @content; }
-  }
-}
-
-@mixin show-breakpoints($sudo : before) {
-  #{$show-breakpoints-selector}:#{$sudo} {
-    content:"\276F  #{$max}px";
-    background-color:darken($red, 20);
-    bottom:0;
-    right:0;
-    font-family:Arial;
-    padding:4px $gap0;
-    @include ani(background-color color);
-    pointer-events:none;
-    position:fixed;
-    z-index:9999;
-    font-size:12px;
-    line-height:16px;
-    color:white;
-    text-align:center;
-    @each $name, $value in $breakpoints {
-      $random-color: random-colour();
-      @include break($value) {
-        content:"#{$name} #{$value}px";
-        background-color:$random-color;
-        color:colour-contrast($random-color);
-      }
-    }
-  }
-}
-
-// Documentation: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
-
-// Container properties
-$flex-container-aliases : direction wrap flow justify items content;
-$flex-container         : display flex-direction flex-wrap flex-flow justify-content align-items align-content;
-$flex-container         : merge($flex-container, $flex-container-aliases);
-
-// Container values
-$flex-display           : flex inline-flex inline;
-$flex-direction         : row row-reverse column column-reverse inherit col; // default row
-$flex-wrap              : nowrap wrap wrap-reverse; // default no-wrap
-$flex-justify-content   : flex-start flex-end center space-between space-around start end between around; // default flex-start
-$flex-align-items       : flex-start flex-end center baseline stretch start end; // default stretch
-$flex-align-content     : flex-start flex-end center space-between space-around stretch start end between around; // default stretch
-$flex-flow              : merge($flex-direction, $flex-wrap);
-
-/// Flexbox container mixin validates and prefixes the most current Flexbox W3C working draft
-///
-/// @author Mark Notton
-///
-/// @access public
-///
-/// @warning Flexbox does not currently work on buttons, fieldsets or textareas
-///
-/// @warning box-orient, box-direction, box-ordinal-group, box-left, box-positive, box-pack, box-align
-///          ...and other unsupported/old flexbox values have been excluded
-///
-/// @todo Do special checks for 'flex-flow'
-///
-/// @param {Map or List} $settings - Maps require a the property or alias : value
-///                                  Lists require a list of properties or values in the same order as the list below
-///
-///   Property         Alias        Default       Values
-///   -------------------------------------------------------------------------------------------------------------------
-///   display          (-)          (flex)        flex | inline-flex | *inline
-///   flex-direction   (direction)  (row)         row | row-reverse | column | *col | column-reverse | inherit
-///   flex-wrap        (wrap)       (nowrap)      nowrap | no-wrap | wrap | wrap-reverse
-///   justify-content  (justify)    (flex-start)  flex-start | flex-end | center | space-between | space-around | *start | *end
-///   align-items      (items)      (stretch)     flex-start | flex-end | center | baseline | stretch | *start | *end
-///   align-content    (content)    (stretch)     flex-start | flex-end | center | space-between | space-around | stretch | *start | *end
-///   !flex-flow       (flow)       (-)           flex-direction & flex-wrap (This isn't implimented at all, do not use!)
-///
-///   List Settings
-///   Order            Default
-///   -------------------------------------------------------------------------------------------------------------------
-///   display          (flex)
-///   flex-direction   (row)
-///   flex-wrap        (nowrap)
-///   justify-content  (flex-start)
-///   align-items      (-)
-///   align-content    (-)
-///
-///
-/// @param {Bool} $display - If no display value is used, 'display:flex' will be defined automatically.
-///   Unless this paramater is set to 'false'
-///
-/// @require {mixin}    contains
-/// @require {mixin}    prefixer
-/// @require {function} merge
-/// @require {function} _smart_flex-container
-/// @require {function} arglist-to-list
-/// @require {function} list-undelimited-to-comma-delimited
-/// @require {function} is-bool
-/// @require {variable} flex-container-aliases
-/// @require {variable} flex-container
-/// @require {variable} flex-container
-/// @require {variable} flex-display
-/// @require {variable} flex-direction
-/// @require {variable} flex-wrap
-/// @require {variable} flex-flow
-/// @require {variable} flex-justify-content
-/// @require {variable} flex-align-items
-/// @require {variable} flex-align-content
-///
-/// @example scss - Map Usage
-/// .foo {
-///   @include flex-container((
-///     direction:row,
-///     justify-content:flex-end
-///   ));
-/// }
-///
-/// @example css - CSS Output
-/// .foo {
-///   -webkit-flex-direction: row;
-///   -moz-flex-direction: row;
-///   -ms-flex-direction: row;
-///   -o-flex-direction: row;
-///   flex-direction: row;
-///   -webkit-justify-content: flex-end;
-///   -moz-justify-content: flex-end;
-///   -ms-justify-content: flex-end;
-///   -o-justify-content: flex-end;
-///   justify-content: flex-end;
-///   -js-display: flex;
-///   display: -webkit-box;
-///   display: -moz-box;
-///   display: -webkit-flexbox;
-///   display: -ms-flexbox;
-///   display: -webkit-flex;
-///   display: flex;
-/// }
-///
-/// @example scss - List Usage
-/// .foo {
-///   @include flex-container(inline col wrap between);
-/// }
-///
-/// @example css - CSS Output
-/// .foo {
-///   -webkit-flex-direction: column;
-///   -moz-flex-direction: column;
-///   -ms-flex-direction: column;
-///   -o-flex-direction: column;
-///   flex-direction: column;
-///   -webkit-flex-wrap: wrap;
-///   -moz-flex-wrap: wrap;
-///   -ms-flex-wrap: wrap;
-///   -o-flex-wrap: wrap;
-///   flex-direction: column;
-///   -webkit-justify-content: space-between;
-///   -moz-justify-content: space-between;
-///   -ms-justify-content: space-between;
-///   -o-justify-content: space-between;
-///   justify-content: space-between;
-///   -js-display: inline-flex;
-///   display: -webkit-inline-flexbox;
-///   display: -ms-inline-flexbox;
-///   display: -webkit-inline-flex;
-///   display: inline-flex;
-/// }
-///
-
-@mixin flex-container($settings...) {
-
-  $important : false;
-
-  // Empty
-  @if $settings == null or length($settings) == 0 { $settings : (display:flex)}
-
-  // Map
-  @elseif is-map(first($settings)) {
-    @if length($settings) > 1 {
-      $important : nth($settings, 2);
-    }
-    @if length($settings) > 2  {
-      @include warning("The first flex-container paramater is a map, which means you can only add one more option. This option is reserved as for a Boolean to tell this mixin to add !important or not (false by default). However you've added too many. These are not going to be used: " + slice($settings, 3))
-    }
-    $settings : first($settings);
-  }
-  // Arglist
-  @elseif is-arglist($settings) {
-    $settings : _smart_flex-container(arglist-to-list($settings));
-  }
-
-  // Add display:flex if not display value was set
-  @if not map-has-key($settings, display) {
-    $settings : map-set($settings, display, flex);
-  }
-
-  // Add display:flex if not display value was set
-  @if map-has-key($settings, important) {
-    $important : map-get($settings, important);
-  }
-
-  // Validation checks for every value for every property
-  @each $property, $value in $settings {
-
-    $output : false;
-
-    @if contains($flex-container, $property) {
-      // Alias checks
-      @if contains($property, (content items)) {
-        $property : #{align-}$property;
-      }
-      @elseif contains($property, (direction wrap flow)) {
-        $property : #{flex-}$property;
-        // Special alias check for nowrap
-        $value : if($value == no-wrap, nowrap, $value);
-      }
-      @elseif $property == justify {
-        $property : justify-content;
-      }
-
-      @if contains($value, (start end)) {
-        $value : #{flex-}$value;
-      } @elseif contains($value, (around between)) {
-        $value : #{space-}$value;
-      } @elseif contains($value, (col)) {
-        $value : column;
-      } @elseif contains($value, (inline)) {
-        $value : inline-flex;
-      }
-
-      @if $property == display and $value != null {
-        @if $value == inline-flex {
-          display: -webkit-inline-flex is-important($important);
-          display: inline-flex is-important($important);
-        } @else {
-          -js-display: flex is-important($important); // This is for flexibility support
-          display: -webkit-box is-important($important);
-          display: -moz-box is-important($important);
-          display: -webkit-flexbox is-important($important);
-          display: -ms-flexbox is-important($important);
-          display: -webkit-flex is-important($important);
-          display: flex is-important($important);
-        }
-      }
-
-      // Check these properties against their list of valid values
-      $checks : (flex-direction: $flex-direction, flex-wrap: $flex-wrap, justify-content: $flex-justify-content, align-items: $flex-align-items, align-content: $flex-align-content);
-      @each $prop, $check in $checks {
-        @if $property == $prop and contains($check, $value){
-          $output : true;
-        }
-      }
-      // Only output and prefix everything when $output is true
-      @if $output {
-        $property:$value $important;
-      }
-
-    }
-  }
-}
-
-
-// Quick Flex Container Mixins
-
-/// @alias flex-container -
-///
-/// @author Mark Notton
-///
-/// @access public
-///
-/// @warning Flexbox does not currently work on buttons, fieldsets or textareas
-///
-/// @warning box-orient, box-direction, box-ordinal-group, box-left, box-positive, box-pack, box-align
-///          ...and other unsupported/old flexbox values have been excluded
-///
-/// @todo Do special checks for 'flex-flow'
-///
-/// @param {Map} $settings - flexbox container property or alias : flexbox value.
-
-@mixin flex-display($value:flex, $important:false) {
-  @include flex-container((display:$value), $important);
-}
-
-@mixin flex-direction($value, $important:false) {
-  @include flex-container((direction:$value), $important);
-}
-
-@mixin flex-wrap($value, $important:false) {
-  @include flex-container((wrap:$value), $important);
-}
-
-@mixin flex-flow($value, $important:false) {
-  @include flex-container((flow:$value), $important);
-}
-
-@mixin flex-justify-content($value, $important:false) {
-  @include flex-container((justify:$value), $important);
-}
-@mixin flex-justify($value, $important:false) {
-  @include flex-container((justify:$value), $important);
-}
-
-@mixin flex-align-items($value, $important:false) {
-  @include flex-container((items:$value), $important);
-}
-
-@mixin flex-align-content($value, $important:false) {
-  @include flex-container((content:$value), $important);
-}
-
-// Private function provide a shorthand option in the flex-container mixin
-// Defaults : display:flex, flex-direction:row, flex-wrap:nowrap, justify-content:flex-start
-// Order   : display, flex-direction, flex-wrap, justify-content, align-items, align-content
-// Optionals : display, align-items, align-content
-@function _smart_flex-container($settings) {
-
-  $defaults : (
-    direction         : row,
-    wrap              : nowrap,
-    justify-content   : flex-start,
-  );
-
-  $_defined-justify-content : false;
-  $_defined-align-items : false;
-  $_defined-align-content : false;
-
-  $settings : list-undelimited-to-comma-delimited($settings);
-
-  @each $property in $settings {
-
-    @if merge($flex-display, contains($flex-container, $property)) {
-
-      @if ( contains($flex-display, $property) ) {
-        $defaults : map-set($defaults, display, $property);
-      }
-      @elseif ( contains($flex-direction, $property) ) {
-        $defaults : map-set($defaults, direction, $property);
-      }
-      @elseif ( contains($flex-wrap, $property) ) {
-        $defaults : map-set($defaults, wrap, $property);
-      }
-      @elseif ( contains($flex-justify-content, $property) and $_defined-justify-content == false ) {
-        $_defined-justify-content : true;
-        $defaults : map-set($defaults, justify-content, $property);
-      }
-      @elseif ( contains($flex-align-items, $property) and $_defined-align-items == false ) {
-        $_defined-align-items : true;
-        $defaults : map-set($defaults, align-items, $property);
-      }
-      @elseif ( contains($flex-align-content, $property)  and $_defined-align-content == false ) {
-        $_defined-align-content : true;
-        $defaults : map-set($defaults, align-content, $property);
-      }
-      @if ( contains((important, !important), $property) or $property == true ) {
-        $defaults : map-set($defaults, important, true);
-      }
-
-    }
-
-  }
-
- @return $defaults;
-
-}
-
-/// Quick mixin to devide a flex item using basis
-///
-/// @author Mark Notton
-///
-/// @access public
-///
-@mixin flex-grid($count, $gutter:$gap, $bottom:true, $important:false) {
-
-  $gutter : remove-unit(to-number($gutter));
-
-  @if $count <= 1 {
-    @include flex-basis(auto, $important);
-    width:100%;
-    @if is-number($gutter) and $gutter != null $gutter > 0 {
-      margin-right:0 $imp;
-      @if $bottom { margin-bottom:add-unit(if(is-bool($bottom), $gutter, $bottom)); }
-    }
-  }
-  @elseif $count > 1 {
-    @if is-number($gutter) and $gutter != null {
-
-      @include flex-basis(calc(100% / #{$count} - #{add-unit(($gutter * ($count - 1) / $count))}), $important);
-
-      margin-right:add-unit($gutter);
-
-      @for $i from 1 through $count {
-        &:nth-of-type(#{$count + n}) {
-          margin-right:0;
-        }
-      }
-      @if $bottom {
-        margin-bottom:add-unit(if(is-bool($bottom), $gutter, $bottom));
-      }
-
-    } @else {
-      @include flex-basis(calc(100% / #{$count}), $important);
-    }
-  }
-}
-
-@mixin flex-grid-old($count, $gutter:$gap, $important:false) {
-  @if $count <= 1 {
-    @include flex-basis(auto, $important);
-  }
-  @elseif $count > 1 {
-    @if is-number($gutter) and $gutter != null and $gutter > 0 {
-      @include flex-basis(calc(100% / #{$count} - #{add-unit($gutter)} - 2px), $important);
-    } @else {
-      @include flex-basis(calc(100% / #{$count} - 2px), $important);
-    }
-  }
-}
-
-@function _get-next-breakpoint($setting) {
-  @if is_number($setting) and contains(map-values($breakpoints), $setting) {
-    // This gets the next available breakpoint from the list of breakpoints. The if-statment is a check if the last breakpoint item is queried.
-    @return if(index(map-values($breakpoints), $setting) >= length(map-values($breakpoints)), null, nth(map-values($breakpoints), (index(map-values($breakpoints), $setting) + 1)));
-  } @elseif is_string($setting) and map-has-key($breakpoints, $setting) {
-    @return map-get-next($breakpoints, $setting);
-  } @else {
-    @return $setting;
-  }
-}
-
-// 4 $gap $max, 2 0 $medium, $small
-// 4, 2,
-// @include smart-flex-grid('section', 3 $gap, 2 $gap0 $max, 1 $gap0 bottom $large);
-
-@mixin smart-flex-grid($settings...) {
-    $nth : 0;
-    $selector : null;
-
-    $settings-list : arglist-to-list($settings);
-
-    $multiple-settings : length($settings-list) > 1;
-
-    $sssbreak : null;
-
-    // @debug $multiple-settings;
-
-    @each $settings in $settings-list {
-
-      @if (length($settings) == 1 and is-string(nth($settings, 1))) {
-        // If the current element is the same one that was passed as the first param,
-        // don't bother setting the $selector variable and revert to the more generic first of every element;
-        @if last(last(to-list(&))) != $settings {
-          $selector : $settings;
-        } @else {
-          $selector : '> *';
-        }
-        @include flex-container((direction:row, wrap:wrap, justify:stretch-between));
-      } @else {
-
-        $nth : $nth + 1;
-        $count : null;
-        $gutter : null;
-        $grow : null;
-        $break : null;
-        $next-break : null;
-        $gutter-position : ();
-        $container : null;
-
-        @each $setting in $settings {
-
-          @if is_number($setting) {
-            @if is_null($count) {
-              $count : $setting;
-            } @elseif is_null($gutter) {
-              $gutter : $setting;
-            } @elseif is_null($break) {
-              // $next-break : _get-next-breakpoint($setting);
-              $break : $setting;
-            }
-          }
-          @if is_string($setting) {
-            @if contains((top bottom left right all), $setting) {
-              $gutter-position : append($gutter-position, $setting);
-            } @elseif contains((grow), $setting) {
-              $grow : true;
-            } @elseif map-has-key($breakpoints, $setting) {
-              // $next-break : _get-next-breakpoint($setting);
-              $break : map-get($breakpoints, $setting);
-            }
-          }
-          @if is_map($setting) {
-            $container : $setting;
-          }
-
-              // $next-break : _get-next-breakpoint($setting);
-          //@if is_null($break) and length($settings-list) >= 2 {
-            // $break : nth($breakpoints, $nth);
-
-            // @if $nth == 1 {
-            //   // First
-            //   $break : $max;
-            //   $sssbreak : $max;
-            // }
-
-
-
-            // @if $nth != 1 {
-            //   @debug $break;
-            //   // Other settings
-            //   $break : _get-next-breakpoint($sssbreak);
-            // }
-          //}
-          // $break : if(is_null($break) and $nth == 1, $max, $break);
-          // $next-break : if(is_null($next-break) and $multiple-settings and $nth != 1, _get-next-breakpoint($break), $next-break);
-          // $break : if(is_null($break) and $nth != 1, $next-break, $break);
-        }
-
-        // Set default gutter position if not defined
-        @if length($gutter-position) == 0 { $gutter-position : left right bottom }
-
-        @if not is-null($container) {
-          @include break($break) {
-            @include flex-container($container);
-            @debug $container;
-          }
-        }
-
-        #{if(is-null($selector), '&', $selector)} {
-
-          // max-width:100% / $count;
-
-          @include break($break) {
-
-            @if not is-null($grow) {
-              @include flex-grow(1);
-            }
-
-            @if $count <= 1 {
-              @include flex-basis(auto); @include flex-grow(1);
-            }
-            @elseif $count > 1 {
-              @if is-number($gutter) and $gutter != null and remove-unit(to-number($gutter)) > 0 {
-                @include flex-basis(calc(100% / #{$count} - #{add-unit($gutter)}));
-              } @else {
-                @include flex-basis(calc(100% / #{$count}));
-              }
-            }
-
-
-            // // Margins and their positions
-            // @if contains(left right, $gutter-position, true) {
-            //   // $gutter-position contains BOTH left and right, and nothing more
-            //   margin-left:add-unit($gutter/2);
-            //   margin-right:add-unit($gutter/2);
-            // } @elseif contains(top left, $gutter-position, true) {
-            //   // $gutter-position contains BOTH top and bottom, and nothing more
-            //   margin-top:add-unit($gutter/2);
-            //   margin-bottom:add-unit($gutter/2);
-            // } @elseif contains((left right top bottom), $gutter-position) {
-            //   // $gutter-position contains EITHER left, right, top, bottom
-            //   $gp : list-items-to-strings($gutter-position);
-
-            //   @if index($gp, 'left') and index($gp, 'right') {
-            //     margin-left:add-unit($gutter/2);
-            //     margin-right:add-unit($gutter/2);
-            //   } @else {
-            //     margin-left  :if(index($gp, 'left'),   add-unit($gutter), null);
-            //     margin-right :if(index($gp, 'right'),  add-unit($gutter), null);
-            //   }
-            //   @if index($gp, 'top') and index($gp, 'bottom') {
-            //     margin-top:add-unit($gutter/2);
-            //     margin-bottom:add-unit($gutter/2);
-            //   } @else {
-            //     margin-top:   if(index($gp, 'top'),    add-unit($gutter), null);
-            //     margin-bottom:if(index($gp, 'bottom'), add-unit($gutter), null);
-            //   }
-
-            // } @elseif contains((all), $gutter-position) {
-            //   margin:add-unit($gutter/2);
-            // }
-
-            // TODO: Fix issue of repeat CSS output. The above code is close.
-            // Margins and their positions
-            @if contains(left right, $gutter-position, true) {
-              // $gutter-position contains BOTH left and right, and nothing more
-              margin-left:add-unit($gutter/2);
-              margin-right:add-unit($gutter/2);
-            } @elseif contains(top left, $gutter-position, true) {
-              // $gutter-position contains BOTH top and bottom, and nothing more
-              margin-top:add-unit($gutter/2);
-              margin-bottom:add-unit($gutter/2);
-            } @elseif contains((left right top bottom), $gutter-position) {
-              // $gutter-position contains EITHER left, right, top, bottom
-              $gp : list-items-to-strings($gutter-position);
-              $ml : null;
-              $mr : null;
-              $mt : null;
-              $mb : null;
-
-              @if index($gp, 'left') and index($gp, 'right') {
-                $ml:add-unit($gutter/2);
-                $mr:add-unit($gutter/2);
-              }
-              @if index($gp, 'top') and index($gp, 'bottom') {
-                $mt:add-unit($gutter/2);
-                $mb:add-unit($gutter/2);
-              }
-
-              @each $g in $gp {
-                margin-left  : if(is-null($ml), if($g == 'left', add-unit($gutter), 0), $ml);
-                margin-right : if(is-null($mr), if($g == 'right', add-unit($gutter), 0), $mr);
-                margin-top   : if(is-null($mt), if($g == 'top', add-unit($gutter), 0), $mt);
-                margin-bottom: if(is-null($mb), if($g == 'bottom', add-unit($gutter), 0), $mb);
-              }
-
-            } @elseif contains((all), $gutter-position) {
-              margin:add-unit($gutter/2);
-            }
-          }
-        }
-        //}
-
-        // $next-break : map-get-next($breakpoints, $break);
-
-        // @debug "Setting: " + #{$nth};
-        // @debug "count: " + #{$count};
-        // @debug "gutter: " + #{$gutter};
-        // @debug "break: " + #{$break};
-        // @debug "next-break: " + #{$next-break};
-        // @debug "gutter-positions: " + #{$gutter-position};
-        // @debug "---";
-      }
-
-    }
-}
-
-// Item properties
-$flex-item-aliases : grow shrink basis self;
-$flex-item         : order flex-grow flex-shrink flex-basis align-self $flex-item-aliases;
-$flex-item         : merge($flex-item, $flex-item-aliases);
-
-// Item values
-$flex-order        : number;
-$flex-grow         : number;
-$flex-shrink       : number;
-$flex-basis        : number auto;
-$flex-flex         : none number; // flex-grow, flex-shrink, flex-basis
-$flex-align-self   : auto flex-start flex-end start end center baseline stretch;
-
-/// Flexbox items mixin validates and prefixes the most current Flexbox W3C working draft
-///
-/// @author Mark Notton
-///
-/// @access public
-///
-/// @warning Flexbox does not currently work on buttons, fieldsets or textareas
-///
-/// @warning box-orient, box-direction, box-ordinal-group, box-left, box-positive, box-pack, box-align
-///          ...and other unsupported/old flexbox values have been excluded
-///
-/// @todo Do special checks for 'flex'
-///
-/// @param {Map} $settings - flexbox item property or alias : flexbox value.
-///
-///   Property         Alias        Default       Values
-///   -------------------------------------------------------------------------------------------------------
-///   order            (-)          (-)           number
-///   flex-grow        (grow)       (0)           number
-///   flex-shrink      (shrink)     (1)           number
-///   flex-basis       (basis)      (auto)        unit | auto
-///   !flex            (-)          (-)           number | none
-///   align-self       (self)       (-)           auto | flex-start | flex-end | center | baseline | stretch
-///
-///
-/// @require {Mixin}    contains
-/// @require {Mixin}    prefixer
-/// @require {Function} merge
-/// @require {Variable} flex-item-aliases
-/// @require {Variable} flex-item
-/// @require {Variable} flex-item
-/// @require {Variable} flex-order
-/// @require {Variable} flex-grow
-/// @require {Variable} flex-shrink
-/// @require {Variable} flex-basis
-/// @require {Variable} flex-flex
-/// @require {Variable} flex-align-self
-///
-/// @example scss - Usage
-/// .bar {
-///   @include flex-items((
-///     order:1,
-///     basis:150
-///   ));
-/// }
-///
-/// @example css - CSS Output
-/// .bar {
-///   -webkit-order: 1;
-///   -moz-order: 1;
-///   -ms-order: 1;
-///   -o-order: 1;
-///   order: 1;
-///   -webkit-flex-basis: 150px;
-///   -moz-flex-basis: 150px;
-///   -ms-flex-basis: 150px;
-///   -o-flex-basis: 150px;
-///   flex-basis: 150px;
-/// }
-///
-@mixin flex-items($settings, $important:false) {
-
-  @each $property, $value in $settings {
-
-    $output : false;
-    $new-value : null;
-
-    @if contains($flex-item, $property) {
-      // Alias checks
-      @if contains($property, self) {
-        $property : #{align-}$property;
-      }
-      @elseif contains($property, (grow shrink basis)) {
-        $property : #{flex-}$property;
-      }
-
-      @if contains($value, (start end)) {
-        $value : #{flex-}$value;
-      }
-
-      // Check these properties against their list of valid values
-      @if contains($property, (order, flex-grow, flex-shrink)) {
-        $new-value : remove-unit($value);
-        $output : true;
-      }
-      @elseif $property == flex-basis {
-        $new-value : add-unit($value);
-        $output : true;
-      }
-      @elseif $property == align-self and contains($flex-align-self, $value) {
-        $new-value : $value;
-        $output : true;
-      }
-
-      // Only output and prefix everything when $output is true
-      @if $output and $new-value != null {
-        // This checks to see if any aliases have been used in the values
-        $property: $new-value $important;
-      }
-    }
-  }
-}
-
-// Quick Flex Items Mixins
-@mixin flex-order($value, $important:false) {
-  @include flex-items((order:$value), $important);
-}
-
-@mixin flex-grow($value, $important:false) {
-  @include flex-items((grow:$value), $important);
-}
-
-@mixin flex-shrink($value, $important:false) {
-  @include flex-items((flex-shrink:$value), $important);
-}
-
-@mixin flex-basis($value, $important:false) {
-  @include flex-items((flex-basis:$value), $important);
-}
-
-@mixin flex-flex($value, $important:false) {
-  @include flex-items((flex:$value), $important);
-}
-
-@mixin flex-align-self($value, $important:false) {
-  @include flex-items((self:$value), $important);
-}
-
-/// Quick mixin to remove all active flexbox properties
-///
-/// @author Mark Notton
-///
-/// @access public
-///
-@mixin flex-remove($important:null) {
-  @if ($important == true) {
-    flex:initial !important;
-    display:initial !important;
-    flex-direction:initial !important;
-    justify-content:initial !important;
-  } @else {
-    flex:initial;
-    display:initial;
-    flex-direction:initial;
-    justify-content:initial;
-  }
-}
-
-// The original grid mixin
-@mixin float-grid($args, $gutter:null, $bottom:true, $important:false) {
-
-  $count: nth($args, 1);
-  $gutter: if($gutter == null, if(length($args) == 2, nth($args, 2), 0), $gutter);
-
-  @if ($gutter == true) { $gutter:$gaps; }
-
-  @if ($gutter != 0 or $count == 1) {
-    @for $i from 1 through $count {
-      @include nth($i, true) {
-        clear:none; margin-right:add-unit($gutter);
-      }
-    }
-    @include nth($count, true) { margin-right:0; }
-  }
-
-  @if ($count == 1) {
-    @include nth($count, true) {
-      margin-right:0;
-    }
-  }
-
-  @if $bottom { margin-bottom:add-unit(if(is-bool($bottom), $gutter, $bottom)); }
-
-  // Checks
-  $width:     if($count  >  1, 100%/$count, 100%);
-  $remainder: if($gutter != 0, #{'+ '} add-unit($gutter/$count), null);
-  $gutter:    if($gutter != 0, #{'- '} add-unit($gutter), null);
-
-  // Output
-  float:left;
-  @if ( $gutter != null ) {
-    width:calc(#{$width} #{$gutter} #{$remainder});
-  } @else {
-    width:$width;
-  }
-
-  @content;
-
-}
-
-@mixin center($horizontal: true, $vertical: true) {
-  position: absolute;
-  @if ($horizontal and $vertical) {
-    top: 50%;
-    left: 50%;
-    @include transform(y -50%, x -50%);
-  } @else if ($horizontal) {
-    left: 50%;
-    @include transform(y -50%, x 0);
-  } @else if ($vertical) {
-    top: 50%;
-    @include transform(y 0, x -50%);
-  }
-}
-
-@mixin flip($direction:vertical) {
-
-  @if contains((vertical, horizontal), $direction, true) {
-    @include transform(scaleY -1, scaleX -1);
-  } @else {
-
-    @if $direction == vertical {
-      @include scaleX(-1);
-      filter: FlipH;
-      -ms-filter: "FlipH";
-    }
-
-    @if $direction == horizontal {
-      @include scaleY(-1);
-      filter: FlipV;
-      -ms-filter: "FlipV";
-    }
-  }
-
-}
-
-//
-// Pass in a Map or List
-//
-// Lists should consist of element types, either by element, class or id (class and id's should be quoted strings)
-// @include grid-areas( nav, header, main, quick-links, blockquote, article, footer );
-
-// Maps keys should be the elements, class or id. Values should be the desired grid-area name
-// @include grid-areas((
-//   nav : '',
-//   header : header,
-//   main : main,
-//   quick-links: quick-links,
-//   blockquote : blockquote,
-//   article : article,
-//   footer : footer,
-// ));
-
-@mixin grid-areas($settings...) {
-
-  $elements : ();
-
-  @if (length($settings) > 1 and is-list( arglist-to-list($settings))) {
-    @each $element in $settings {
-      $elements : append($elements, $element, comma);
-      $area : str-replace($element, '.');
-      $area : str-replace($element, '#');
-      #{$element} { grid-area:unquote($area); }
-    }
-  } @elseif is-map($settings) {
-    @each $element, $area in $settings {
-      $elements : append($elements, $element, comma);
-      $area : if(is-empty($area), $element, $area);
-      #{$element} { grid-area:unquote($area); }
-    }
-  }
-
-  // @if content-exists() {
-  //   #{$elements} {
-  //     @content;
-  //   }
-  // }
-}
-
-// If you want to split a column up using the repeat function, you may want to devide the min and max values by the amount of columns;
-@function grid-repeat($amount, $min:$small, $max:$max) {
-  @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
-}
-
-@mixin add-custom-property($variable, $value, $scope:':root') {
-  @at-root #{$scope} { --#{$variable}:#{$value}; }
-}
-
-// Add variable to the global variables map;
-
-@mixin add-variables($map, $value:null) {
-  @if variable-exists(variables) {
-    @if (not is-map($map) and not is-map($value) and not is-null($value)) {
-      $variables : map-merge($variables, ($map:$value)) !global;
-    } @else {
-      $variables : map-merge($variables, $map) !global;
-    }
-  }
-}
-
-@mixin custom-property($properties, $values:null, $at-root:false) {
-
-    $map : if(type-of($properties) == map, $properties, map-zip($properties, $values));
-    @each $property, $value in $map {
-      @if $at-root {
-        @at-root(without:media) & {
-          --#{$property}:#{$value};
-        }
-      } @else {
-        --#{$property}:#{$value};
-      }
-    }
-
-}
-
-@mixin set-variables() {
-  @if variable-exists(variables) and not is-null($variables) {
-
-    $temp : $variables;
-
-    @if ($support-css-variable-alpha-colours == true) {
-      @each $variable, $value in $variables {
-        @if is-colour($value) {
-          @if is-hex($value) {
-            $temp : map-set($temp, $variable, (red($value), green($value), blue($value)));
-          } @else {
-            $temp : map-set($temp, $variable, hex-to-rgba($value));
-          }
-        }
-      }
-    }
-
-    $variables : $temp !global;
-
-    @at-root :root {
-      @each $variable, $value in $variables {
-        #{'--' + string-replace($variable, '--')}: $value;
-      }
-    }
-  }
-}
-
-@mixin set-variable($variable, $value) {
-  @at-root :root {
-    #{'--' + string-replace($variable, '--')}: $value;
-  }
-}
-
-@mixin var($args...) {
-
-  $defaults : (
-    property : null,
-    variable : primary,
-    opacity  : 1,
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $property  : map-get($settings, property);
-  $variable  : map-get($settings, variable);
-  $opacity   : map-get($settings, opacity);
-  $important : map-get($settings, important);
-
-  $variable-value : $variable;
-  $fallback-value : null;
-
-  // Allow the third param (opacity) to accept booleans.
-  // This will work in place of the $importnat param.
-  @if is-bool($opacity) and $opacity == true {
-    $important : $opacity;
-    $opacity : 1;
-  }
-
-  $value : var-value($variable, $opacity);
-  $variable-value : if(is-list($value), nth($value, 1), $value);
-  $fallback-value : if(is-list($value), nth($value, 2), null);
-
-  @if ( not is-null($fallback-value) ) {
-    #{$property} : $fallback-value $important;
-  }
-
-  @supports(--css: variables) {
-    #{$property} : $variable-value $important;
-  }
-
 
 }

@@ -1,5 +1,5 @@
 @mixin sudo-image($image, $size:auto, $sudo:before) {
-  &#{_sudo($sudo)} {
+  &#{pseudo($sudo)} {
     content:"";
     position:absolute;
     top:0; left:0;
