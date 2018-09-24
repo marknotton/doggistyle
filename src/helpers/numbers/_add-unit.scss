@@ -28,7 +28,32 @@
 ///   50%
 ///   50%
 
-@function add-unit($value, $unit:null, $replace:false) {
+@function add-unit($value, $args...) {
+
+  $defaults : (
+    unit  : if(variable-exists(default-unit), $default-unit, 'px'),
+    force : false,
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $unit  : map-get($settings, unit);
+  $force : map-get($settings, force);
+
+  @if is-var($value) {
+
+    $values : to-list($value);
+    $custom-property : nth($values, 1);
+
+    @if length($values) > 1 {
+      $values : slice($values, 2);
+      @for $val in $values {
+        @debug $val;
+
+      }
+    }
+  }
+
   @if type-of($value) == 'number' {
     @if unitless($value) {
       @return to-number($value + if($unit == null, $default-unit, $unit));

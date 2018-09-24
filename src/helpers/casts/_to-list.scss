@@ -13,6 +13,10 @@
 @function to-list($value, $keep: "both") {
   $keep: if(index("keys" "values" "both", $keep), $keep, "both");
 
+  @if is-var($value) {
+    @return string-explode(is-var($value), ', ');
+  }
+
   @if type-of($value) == "map" {
     $keys: ();
     $values: ();
