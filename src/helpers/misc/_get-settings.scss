@@ -127,7 +127,7 @@
 
       @if map-get($options, debug ) { @debug "MAP DETECTED"; }
 
-      // First argument is a Map
+    /// @todo: Check for cast type and required types
 
       @if map-get($options, deep) == true  {
         // If deep is true (default), then perform a deep merge with the defaults

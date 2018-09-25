@@ -115,7 +115,7 @@
   $max : if(is-null($max), $max, $max);
   $line-height-percent : if($line-height == true and is-null($line-height-percent), 30, $line-height-percent);
 
-  font-size: calc(#{add-unit($min-size)} + #{$max-size - $min-size} * (100vw - #{add-unit($min)}) / #{$max - $min});
+  // font-size: calc(#{add-unit($min-size)} + #{$max-size - $min-size} * (100vw - #{add-unit($min)}) / #{$max - $min});
 
   @if $line-height == true {
     line-height: calc(#{add-unit(increase-by-percentage($min-size, $line-height-percent))} + #{$max-size - $min-size} * (100vw - #{add-unit($min)}) / #{$max - $min});

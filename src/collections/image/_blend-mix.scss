@@ -1,6 +1,18 @@
-// Blend Mix
-@mixin blend-mix($blend : multiply) {
-  @if contains($blend-modes, $blend) {
-    @include prefixer(mix-blend-mode, $blend, moz webkit);
+// Blend Background
+@mixin blend-mix($args...) {
+
+  $blends : ();
+  $important : null;
+
+  @each $arg in $args {
+    @if is-important($arg) {
+      $important : !important;
+    } @elseif contains($blend-modes, $arg) {
+      $blends : append($blends, $arg, comma);
+    }
+  }
+
+  @if not is-empty($blends) {
+    mix-blend-mode: $blends $important;
   }
 }

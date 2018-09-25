@@ -1,13 +1,16 @@
 // Blend Background
-@mixin blend-background($mode : multiply) {
+@mixin blend-background($args...) {
 
   $blends : ();
+  $important : null;
 
-  @each $blend in $mode {
-    $blends : append($blends, $blend, comma);
+  @each $arg in $args {
+    @if is-important($arg) {
+      $important : !important;
+    } @elseif contains($blend-modes, $arg) {
+      $blends : append($blends, $arg, comma);
+    }
   }
 
-  @if contains($blend-modes, $blends) {
-    @include prefixer(background-blend-mode, $blends, moz webkit);
-  }
+  background-blend-mode: if(is-empty($blends), multiply, $blends) $important;
 }

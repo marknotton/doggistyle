@@ -7,7 +7,7 @@
 /// @group helpers-numbers
 /// @param {number} $value
 /// @param {string} $unit - If a value is unitless add the default unit.
-/// @param {bool} $replace - If the value already has a unit, and a different unit was specifically
+/// @param {bool} $force - If the value already has a unit, and a different unit was specifically
 ///   supplied, this boolean desides wether to forcibly replace the unit.
 /// @require {variable} default-unit
 /// @require {variable} $relative-lengths
@@ -28,7 +28,7 @@
 ///   50%
 ///   50%
 
-@function add-unit($value, $args...) {
+@function add-unit2($value, $args...) {
 
   $defaults : (
     unit  : if(variable-exists(default-unit), $default-unit, 'px'),
@@ -40,27 +40,44 @@
   $unit  : map-get($settings, unit);
   $force : map-get($settings, force);
 
-  @if is-var($value) {
-
-    $values : to-list($value);
-    $custom-property : nth($values, 1);
-
-    @if length($values) > 1 {
-      $values : slice($values, 2);
-      @for $val in $values {
-        @debug $val;
-
-      }
-    }
-  }
+  // @if is-var($value) {
+  //
+  //   $values : to-list($value);
+  //   $custom-property : nth($values, 1);
+  //
+  //   @if length($values) > 1 {
+  //     $values : slice($values, 2);
+  //     @for $val in $values {
+  //       @debug $val;
+  //
+  //     }
+  //   }
+  // }
 
   @if type-of($value) == 'number' {
     @if unitless($value) {
       @return to-number($value + if($unit == null, $default-unit, $unit));
     }
     @elseif is-unit($value) {
-      @if $replace and $unit != null {
+      @if $force and $unit != null {
         @return to-number(remove-unit($value) + $unit);
+      } @else {
+        @return to-number($value);
+      }
+    }
+  } @else {
+    @return $value;
+  }
+}
+
+@function add-unit($value, $unit:null, $replace:false) {
+  @if type-of($value) == 'number' {
+    @if unitless($value) {
+      @return to-number($value + if($unit == null, $default-unit, $unit));
+    }
+    @elseif is-unit($value) {
+      @if $replace and $unit != null {
+        @return to-number(strip($value) + $unit);
       } @else {
         @return to-number($value);
       }
