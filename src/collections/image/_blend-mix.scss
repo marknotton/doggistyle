@@ -1,8 +1,9 @@
-// Blend Background
+// Blend Mix
 @mixin blend-mix($args...) {
 
-  $blends : ();
+  $blends    : ();
   $important : null;
+  $default   : multiply;
 
   @each $arg in $args {
     @if is-important($arg) {
@@ -12,7 +13,5 @@
     }
   }
 
-  @if not is-empty($blends) {
-    mix-blend-mode: $blends $important;
-  }
+  mix-blend-mode: if(is-empty($blends), $default, $blends) $important;
 }

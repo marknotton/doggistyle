@@ -1,9 +1,0 @@
-$image-rendering-values : auto crisp-edges pixelated inherit initial unset;
-
-@mixin image-rendering($setting) {
-  @if contains($image-rendering-values, $setting) {
-    @include prefixer(image-rendering, $setting);
-  } @else {
-    @include warning('Image Rendering setting: '#{$setting}', did not match any valid values');
-  }
-}
