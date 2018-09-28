@@ -1,0 +1,38 @@
+@mixin page($args...) {
+
+	$defaults : (
+		id    : null,
+		class : null,
+    except : null,
+		root  : 'body',
+	);
+
+	$settings : get-settings($defaults, $args...);
+
+	$id     : map-get( $settings, id );
+	$class  : map-get( $settings, class );
+	$except : map-get( $settings, except );
+	$root   : map-get( $settings, root );
+
+	@if not is-null($id) and not string-starts-with($id, '#')  {
+		$id : #{'#' + $id};
+	}
+
+	@if not is-null($class) and not string-starts-with($class, '.')  {
+		$class : #{'.' + $class}
+	}
+
+  @if not is-null($except) and $except == true {
+
+    @at-root #{$root}:not(#{$id}#{$class}) {
+      @content;
+    }
+
+  } @else {
+
+  	@at-root #{$root}#{$id}#{$class} {
+  		@content;
+  	}
+  }
+
+}

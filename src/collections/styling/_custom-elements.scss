@@ -3,7 +3,6 @@
   featured-image {
     @extend %full;
     display:block;
-    min-width:$min;
     &[style*='background-image'] {
       background-size:cover;
       background-repeat:none;

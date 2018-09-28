@@ -35,3 +35,25 @@
 @mixin break($args...) {
   @include breakpoint($args) { @content };
 }
+
+@include break-in($breakpoint) {
+
+  @if is-breakpoint($breakpoint) {
+    $breakpoint : get-breakpoint($breakpoint);
+  }
+
+  @media (max-width:add-unit($breakpoint)) {
+    @content;
+  }
+}
+
+@include break-out($breakpoint) {
+
+  @if is-breakpoint($breakpoint) {
+    $breakpoint : get-breakpoint($breakpoint);
+  }
+
+  @media (min-width:add-unit($breakpoint)) {
+    @content;
+  }
+}
