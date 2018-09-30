@@ -36,7 +36,7 @@
   @include breakpoint($args) { @content };
 }
 
-@include break-in($breakpoint) {
+@mixin break-in($breakpoint) {
 
   @if is-breakpoint($breakpoint) {
     $breakpoint : get-breakpoint($breakpoint);
@@ -47,7 +47,7 @@
   }
 }
 
-@include break-out($breakpoint) {
+@mixin break-out($breakpoint) {
 
   @if is-breakpoint($breakpoint) {
     $breakpoint : get-breakpoint($breakpoint);

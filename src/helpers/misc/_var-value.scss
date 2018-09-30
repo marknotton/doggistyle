@@ -26,7 +26,7 @@
     @if is-var($variable) {
 
       // If a hardcoded 'var(--XXX)' is passed, extract the variable name and check if
-      // it's poart of the variables map. If it is, use this hardcoded colour as a fallback.
+      // it's part of the variables map. If it is, use this hardcoded colour as a fallback.
       // Add opacity is one if provided.
 
       @if $support-css-variable-alpha-colours {

@@ -40,12 +40,12 @@ $angel-types : deg rad grad turn;
 /// @access public
 /// @type string
 
-$linear         : cubic-bezier(0.250, 0.250, 0.750, 0.750);
-$ease           : cubic-bezier(0.250, 0.100, 0.250, 1.000);
+$linear            : cubic-bezier(0.250, 0.250, 0.750, 0.750);
+$ease              : cubic-bezier(0.250, 0.100, 0.250, 1.000);
 
-$ease-in        : cubic-bezier(0.420, 0.000, 1.000, 1.000);
-$ease-out       : cubic-bezier(0.000, 0.000, 0.580, 1.000);
-$ease-in-out    : cubic-bezier(0.420, 0.000, 0.580, 1.000);
+$ease-in           : cubic-bezier(0.420, 0.000, 1.000, 1.000);
+$ease-out          : cubic-bezier(0.000, 0.000, 0.580, 1.000);
+$ease-in-out       : cubic-bezier(0.420, 0.000, 0.580, 1.000);
 
 $ease-in-quad      : cubic-bezier(0.550, 0.085, 0.680, 0.530);
 $ease-in-cubic     : cubic-bezier(0.550, 0.055, 0.675, 0.190);
@@ -79,3 +79,18 @@ $ease-in-out-back  : cubic-bezier(0.680, -0.550, 0.265, 1.550);
 /// ============================================================================
 
 $breakpoints:   () !default;
+// $custom-properties:   () !default;
+@debug properties;
+@if variable-exists(custom-properties) {
+  $custom-properties: map-merge($custom-properties, (
+    gap : $gap,
+    gutters-left : $gutter-left,
+    gutters-right : $gutter-right,
+  )) !global;
+} @else {
+  $custom-properties : (
+    gap : $gap,
+    gutters-left : $gutter-left,
+    gutters-right : $gutter-right,
+  ) !global;
+}

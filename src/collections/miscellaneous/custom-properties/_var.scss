@@ -16,13 +16,6 @@
   $variable-value : $variable;
   $fallback-value : null;
 
-  // Allow the third param (opacity) to accept booleans.
-  // This will work in place of the $importnat param.
-  @if is-bool($opacity) and $opacity == true {
-    $important : $opacity;
-    $opacity : 1;
-  }
-
   $value : var-value($variable, $opacity);
   $variable-value : if(is-list($value), nth($value, 1), $value);
   $fallback-value : if(is-list($value), nth($value, 2), null);

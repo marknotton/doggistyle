@@ -2773,238 +2773,6 @@ $sc-non-strict-defaults: (
   @return $map;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Add Unit                                                           #add-unit
-////////////////////////////////////////////////////////////////////////////////
-
-/// Adds a default unit to a number if one is not used.
-/// @author Mark Notton
-/// @group helpers-numbers
-/// @param {number} $value
-/// @param {string} $unit - If a value is unitless add the default unit.
-/// @param {bool} $force - If the value already has a unit, and a different unit was specifically
-///   supplied, this boolean desides wether to forcibly replace the unit.
-/// @require {variable} default-unit
-/// @require {variable} $relative-lengths
-/// @require {variable} $abolute-lengths
-/// @require {function} is-unit
-/// @require {function} is-number
-/// @require {function} strip
-///
-/// @example scss - Usage
-///   add-unit(50)
-///   add-unit(50px)
-///   add-unit(50, %)
-///   add-unit(50px, %)
-///
-/// @output scss - Output
-///   50px
-///   50px
-///   50%
-///   50%
-
-@function add-unit2($value, $args...) {
-
-  $defaults : (
-    unit  : if(variable-exists(default-unit), $default-unit, 'px'),
-    force : false,
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $unit  : map-get($settings, unit);
-  $force : map-get($settings, force);
-
-  // @if is-var($value) {
-  //
-  //   $values : to-list($value);
-  //   $custom-property : nth($values, 1);
-  //
-  //   @if length($values) > 1 {
-  //     $values : slice($values, 2);
-  //     @for $val in $values {
-  //       @debug $val;
-  //
-  //     }
-  //   }
-  // }
-
-  @if type-of($value) == 'number' {
-    @if unitless($value) {
-      @return to-number($value + if($unit == null, $default-unit, $unit));
-    }
-    @elseif is-unit($value) {
-      @if $force and $unit != null {
-        @return to-number(remove-unit($value) + $unit);
-      } @else {
-        @return to-number($value);
-      }
-    }
-  } @else {
-    @return $value;
-  }
-}
-
-@function add-unit($value, $unit:null, $replace:false) {
-  @if type-of($value) == 'number' {
-    @if unitless($value) {
-      @return to-number($value + if($unit == null, $default-unit, $unit));
-    }
-    @elseif is-unit($value) {
-      @if $replace and $unit != null {
-        @return to-number(strip($value) + $unit);
-      } @else {
-        @return to-number($value);
-      }
-    }
-  } @else {
-    @return $value;
-  }
-}
-
-@function decrease-by-percentage($unit, $percent, $type:true) {
-
-  $unit : remove-unit($unit);
-  $percent : remove-unit($percent);
-
-  @if $type == true {
-    @return $unit / 100 * (100 - $percent);
-  } @else {
-    @return $unit / 100 * (100 - ($percent * 100));
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Find Digits                                                     #find-digits
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Finding the digits part of a stringified number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-numbers
-///
-/// @param {string} $source - string source
-///
-/// @param {number} $pointer - current pointer
-///
-/// @return {list} - new pointer, parsed number
-
-@function find-digits($source, $pointer) {
-  $source: to-lower-case($source);
-  $length: str-length($source);
-  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
-  $result: 0;
-  $runs: 1;
-
-  @while $pointer <= $length {
-    $token: str-slice($source, $pointer, $pointer);
-    $index: index($numbers, $token);
-
-    @if $token == "." {
-      // @continue;
-    }
-    @else if $index and $index > 0 {
-      $runs: $runs * 10;
-      $result: $result * 10 + ($index - 1);
-    }
-    @else {
-      @return $pointer, $result / $runs;
-    }
-
-    $pointer: $pointer + 1;
-  }
-
-  @return $pointer, $result / $runs;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Find Interger                                                  #find-integer
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Finding the digits part of a stringified number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-numbers
-///
-/// @param {string} $source  - string source
-///
-/// @param {number} $pointer - current pointer
-///
-/// @return {list} new pointer, parsed number
-
-@function find-integer($source, $pointer) {
-  $source: to-lower-case($source);
-  $length: str-length($source);
-  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
-  $result: 0;
-
-  @while $pointer <= $length {
-    $token: str-slice($source, $pointer, $pointer);
-    $index: index($numbers, $token);
-
-    @if $token == "-" {
-      // @continue;
-    }
-    @else if $index {
-      $result: $result * 10 + ($index - 1);
-    }
-    @else {
-      @return $pointer, $result;
-    }
-
-    $pointer: $pointer + 1;
-  }
-
-  @return $pointer, $result;
-}
-
-/// Strips any units from a number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/remove-unit-function/
-///
-/// @param {string} $number
-///
-/// @return {number}
-///
-/// @require {function} is-number
-/// @require {function} to-number
-///
-/// @example scss - Usage
-///   remove-unit(50px)
-///
-/// @example scss - Output
-///   50
-///
-
-@function remove-unit($number) {
-
-  @if not is-number($number) {
-    $number : to-number($number);
-  }
-
-  @if is-number($number) and not unitless($number) {
-    @return ($number / ($number * 0 + 1));
-  }
-
-  @return $number;
-}
-
-@function strip-unit($number) {
-  @return remove-unit($number);
-}
-
 /// @author Mark Notton
 /// @link http://www.w3schools.com/charsets/ref_html_utf8.asp
 /// @type variables
@@ -3210,19 +2978,19 @@ $emoji-no-mouth :                        "😶";
 // Neutral Face
 $emoji-neutral-face :                    "😐";
 
-// Expressionless
+// Expressionless ---------------------------
 $emoji-expressionless :                  "😑";
 
-// Unamused
+// Unamused ---------------------------------
 $emoji-unamused :                        "😒";
 
-// Roll Eyes
+// Roll Eyes --------------------------------
 $emoji-roll-eyes :                       "🙄";
 
-// Thinking
+// Thinking ---------------------------------
 $emoji-thinking :                        "🤔";
 
-// Lying Face
+// Lying Face -------------------------------
 $emoji-lying-face :                      "🤥";
 
 // Flushed
@@ -6525,7 +6293,7 @@ $emoji-clock1230 : "🕧";
     @if is-var($variable) {
 
       // If a hardcoded 'var(--XXX)' is passed, extract the variable name and check if
-      // it's poart of the variables map. If it is, use this hardcoded colour as a fallback.
+      // it's part of the variables map. If it is, use this hardcoded colour as a fallback.
       // Add opacity is one if provided.
 
       @if $support-css-variable-alpha-colours {
@@ -6567,6 +6335,238 @@ $emoji-clock1230 : "🕧";
 
   @return $variable-value;
 
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Add Unit                                                           #add-unit
+////////////////////////////////////////////////////////////////////////////////
+
+/// Adds a default unit to a number if one is not used.
+/// @author Mark Notton
+/// @group helpers-numbers
+/// @param {number} $value
+/// @param {string} $unit - If a value is unitless add the default unit.
+/// @param {bool} $force - If the value already has a unit, and a different unit was specifically
+///   supplied, this boolean desides wether to forcibly replace the unit.
+/// @require {variable} default-unit
+/// @require {variable} $relative-lengths
+/// @require {variable} $abolute-lengths
+/// @require {function} is-unit
+/// @require {function} is-number
+/// @require {function} strip
+///
+/// @example scss - Usage
+///   add-unit(50)
+///   add-unit(50px)
+///   add-unit(50, %)
+///   add-unit(50px, %)
+///
+/// @output scss - Output
+///   50px
+///   50px
+///   50%
+///   50%
+
+@function add-unit2($value, $args...) {
+
+  $defaults : (
+    unit  : if(variable-exists(default-unit), $default-unit, 'px'),
+    force : false,
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $unit  : map-get($settings, unit);
+  $force : map-get($settings, force);
+
+  // @if is-var($value) {
+  //
+  //   $values : to-list($value);
+  //   $custom-property : nth($values, 1);
+  //
+  //   @if length($values) > 1 {
+  //     $values : slice($values, 2);
+  //     @for $val in $values {
+  //       @debug $val;
+  //
+  //     }
+  //   }
+  // }
+
+  @if type-of($value) == 'number' {
+    @if unitless($value) {
+      @return to-number($value + if($unit == null, $default-unit, $unit));
+    }
+    @elseif is-unit($value) {
+      @if $force and $unit != null {
+        @return to-number(remove-unit($value) + $unit);
+      } @else {
+        @return to-number($value);
+      }
+    }
+  } @else {
+    @return $value;
+  }
+}
+
+@function add-unit($value, $unit:null, $replace:false) {
+  @if type-of($value) == 'number' {
+    @if unitless($value) {
+      @return to-number($value + if($unit == null, $default-unit, $unit));
+    }
+    @elseif is-unit($value) {
+      @if $replace and $unit != null {
+        @return to-number(strip($value) + $unit);
+      } @else {
+        @return to-number($value);
+      }
+    }
+  } @else {
+    @return $value;
+  }
+}
+
+@function decrease-by-percentage($unit, $percent, $type:true) {
+
+  $unit : remove-unit($unit);
+  $percent : remove-unit($percent);
+
+  @if $type == true {
+    @return $unit / 100 * (100 - $percent);
+  } @else {
+    @return $unit / 100 * (100 - ($percent * 100));
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Find Digits                                                     #find-digits
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Finding the digits part of a stringified number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-numbers
+///
+/// @param {string} $source - string source
+///
+/// @param {number} $pointer - current pointer
+///
+/// @return {list} - new pointer, parsed number
+
+@function find-digits($source, $pointer) {
+  $source: to-lower-case($source);
+  $length: str-length($source);
+  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  $result: 0;
+  $runs: 1;
+
+  @while $pointer <= $length {
+    $token: str-slice($source, $pointer, $pointer);
+    $index: index($numbers, $token);
+
+    @if $token == "." {
+      // @continue;
+    }
+    @else if $index and $index > 0 {
+      $runs: $runs * 10;
+      $result: $result * 10 + ($index - 1);
+    }
+    @else {
+      @return $pointer, $result / $runs;
+    }
+
+    $pointer: $pointer + 1;
+  }
+
+  @return $pointer, $result / $runs;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Find Interger                                                  #find-integer
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Finding the digits part of a stringified number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-numbers
+///
+/// @param {string} $source  - string source
+///
+/// @param {number} $pointer - current pointer
+///
+/// @return {list} new pointer, parsed number
+
+@function find-integer($source, $pointer) {
+  $source: to-lower-case($source);
+  $length: str-length($source);
+  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  $result: 0;
+
+  @while $pointer <= $length {
+    $token: str-slice($source, $pointer, $pointer);
+    $index: index($numbers, $token);
+
+    @if $token == "-" {
+      // @continue;
+    }
+    @else if $index {
+      $result: $result * 10 + ($index - 1);
+    }
+    @else {
+      @return $pointer, $result;
+    }
+
+    $pointer: $pointer + 1;
+  }
+
+  @return $pointer, $result;
+}
+
+/// Strips any units from a number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/remove-unit-function/
+///
+/// @param {string} $number
+///
+/// @return {number}
+///
+/// @require {function} is-number
+/// @require {function} to-number
+///
+/// @example scss - Usage
+///   remove-unit(50px)
+///
+/// @example scss - Output
+///   50
+///
+
+@function remove-unit($number) {
+
+  @if not is-number($number) {
+    $number : to-number($number);
+  }
+
+  @if is-number($number) and not unitless($number) {
+    @return ($number / ($number * 0 + 1));
+  }
+
+  @return $number;
+}
+
+@function strip-unit($number) {
+  @return remove-unit($number);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -6896,6 +6896,219 @@ $emoji-clock1230 : "🕧";
   @return $string;
 }
 
+/// Generate gaps from a generic unit so help continuity of paddings, margins,
+/// gutters etc... throughout your design.
+///
+/// @param {Number} $size
+///   Enter the amount of times you want to multiply the default padding variable
+///
+/// @require {Variable} $gaps
+///
+/// @example scss - Usage
+///   margin:0 gap(3);
+/// @return {Number} with units
+@function gap($size:1) {
+  @return if($size == 0, to-number(add-unit($gaps/2, $default-unit)), to-number(add-unit($gaps*$size, $default-unit)));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Get Padding                                                     #get-padding
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Get a specific padding list value based on it's direction.
+/// Designed so that you could get the 'left' padding of a defined list.
+/// This will figure out the fallbacks should the defined list not have the correct amount of items;
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @group helpers-numbers
+///
+/// @return {number}
+
+@function get-padding($padding, $direction) {
+
+  $length : length($padding);
+  $result : $padding;
+
+  @if $length != 1 {
+
+    // Top
+    @if $direction == top {
+      $result : nth($padding, 1);
+    }
+    // Right
+    @if $direction == right {
+      @if $length >= 2 {
+        $result : nth($padding, 2);
+      } @else {
+        $result : nth($padding, 1);
+      }
+    }
+
+    // Bottom
+    @if $direction == bottom {
+      @if $length >= 3 {
+        $result : nth($padding, 3);
+      } @else {
+        $result : nth($padding, 1);
+      }
+    }
+
+    // Left
+    @if $direction == left {
+      @if $length == 4 {
+        $result : nth($padding, 4);
+      } @elseif $length >= 2 {
+        $result : nth($padding, 2);
+      } @else {
+        $result : nth($padding, 1);
+      }
+    }
+
+  }
+
+  @return $result;
+}
+
+@function increase-by-percentage($unit, $percent, $type:true) {
+
+  $unit : remove-unit($unit);
+  $percent : remove-unit($percent);
+
+  @if $type == true {
+    @return $unit / 100 * (100 + $percent);
+  } @else {
+    @return $unit / 100 * (100 + ($percent * 100));
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Min Max Number                                               #min-max-number
+////////////////////////////////////////////////////////////////////////////////
+///
+/// If a number can only be within a certain bounds, check it and return a max, min, or acceptable value
+/// @author Mark Notton
+///
+/// @access private
+///
+/// @group helpers-numbers
+///
+/// @param {number}
+
+@function min-max-number($value, $min:1, $max:100) {
+  @if (is-number($value $min $max)) {
+    $value : if($value <= $min, $min, $value);
+    $value : if($value >= $max, $max, $value);
+  }
+  @return $value;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Percent To Decinmal                                      #percent-to-decimal
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Convert a percentage or an unit greater than 1 into a single decimal point number.
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @group helpers-numbers
+///
+/// @param {number} $number
+///
+/// @return {color}
+///
+/// @example scss - Usage
+/// opacity:_parecent-to-decimal(55);
+/// opacity:_parecent-to-decimal(100%);
+/// opacity:_parecent-to-decimal(0.5);
+///
+/// @example css - CSS output
+/// opacity:0.55;
+/// opacity:1;
+/// opacity:0.5;
+///
+
+@function percent-to-decimal($number) {
+  @if is-percentage($number) {
+    @return remove-unit($number)/100;
+  } @else {
+    @if $number > 1 {
+      @return $number/100;
+    } @else {
+      @return $number;
+    }
+  }
+}
+
+/// Generate space from a generic unit to help continuity of paddings, margins,
+/// gutters etc... throughout your design.
+///
+/// @param {Number} $size
+///   Enter the amount of times you want to multiply the default padding variable
+///
+/// @param {String} $direction
+///   The unit you want the spacing to be defined as. Default is vh
+///
+/// @require {Variable} $spacing global variable
+///
+/// @example scss - Usage
+///   margin-top:space(2);
+///
+/// @return {number} with units
+
+@function space($args...) {
+
+  $defaults : (
+    size      : 1,
+    direction : vh,
+    unit      : if(variable-exists(space),$space, 5vh),
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $size      : map-get($settings, size);
+  $direction : map-get($settings, direction);
+  $unit      : map-get($settings, unit);
+
+  @if $size == 0 {
+    @return to-number(add-unit($unit/2, $direction, true));
+  } @else {
+    @return to-number(add-unit($unit*$size, $direction, true));
+  }
+
+}
+
+/// Create a spacer relative to the viewport height or width. Whilst also adding
+/// a calc method to ensure that space is always at least the size of a solid unit (px)
+/// @param {Number} $size - Enter the amount of viewport units to add. 3 = 3% of the viewport height
+/// @param {Number} $min - Enter the amount of pixels the spcaer should never go below;
+/// @param {String} $direction - The unit you want the spacing to be defined as. Default is vh
+/// @example margin-top:spacer(2, 30);
+/// @output margin-top:calc(2vh + 30px);
+/// @return {number} with units
+
+@function spacer($args...) {
+
+  $defaults : (
+    size      : $space,
+    min       : $gap,
+    direction : vh,
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $direction : map-get($settings, direction);
+
+  $size      : add-unit(map-get($settings, size), $direction);
+  $min       : add-unit(map-get($settings, min));
+
+  @return calc(#{$size} + #{$min});
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Settings                                                            #settings
 ////////////////////////////////////////////////////////////////////////////////
@@ -7217,12 +7430,12 @@ $angel-types : deg rad grad turn;
 /// @access public
 /// @type string
 
-$linear         : cubic-bezier(0.250, 0.250, 0.750, 0.750);
-$ease           : cubic-bezier(0.250, 0.100, 0.250, 1.000);
+$linear            : cubic-bezier(0.250, 0.250, 0.750, 0.750);
+$ease              : cubic-bezier(0.250, 0.100, 0.250, 1.000);
 
-$ease-in        : cubic-bezier(0.420, 0.000, 1.000, 1.000);
-$ease-out       : cubic-bezier(0.000, 0.000, 0.580, 1.000);
-$ease-in-out    : cubic-bezier(0.420, 0.000, 0.580, 1.000);
+$ease-in           : cubic-bezier(0.420, 0.000, 1.000, 1.000);
+$ease-out          : cubic-bezier(0.000, 0.000, 0.580, 1.000);
+$ease-in-out       : cubic-bezier(0.420, 0.000, 0.580, 1.000);
 
 $ease-in-quad      : cubic-bezier(0.550, 0.085, 0.680, 0.530);
 $ease-in-cubic     : cubic-bezier(0.550, 0.055, 0.675, 0.190);
@@ -7256,6 +7469,21 @@ $ease-in-out-back  : cubic-bezier(0.680, -0.550, 0.265, 1.550);
 /// ============================================================================
 
 $breakpoints:   () !default;
+// $custom-properties:   () !default;
+@debug properties;
+@if variable-exists(custom-properties) {
+  $custom-properties: map-merge($custom-properties, (
+    gap : $gap,
+    gutters-left : $gutter-left,
+    gutters-right : $gutter-right,
+  )) !global;
+} @else {
+  $custom-properties : (
+    gap : $gap,
+    gutters-left : $gutter-left,
+    gutters-right : $gutter-right,
+  ) !global;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Placeholders                                                    #placeholders
@@ -7330,30 +7558,6 @@ $breakpoints:   () !default;
   text-indent:0; overflow:visible; white-space:normal; user-select:all;
 }
 
-@mixin animation-jump($amount:10, $animation-name:jump) {
-  @include keyframes(#{$animation-name}) {  
-    0% { top:0 } 
-    50% { top:$amount + px } 
-    100% { top:0 } 
-  }
-}
-@mixin animation-shake($amount:10, $animation-name:shake) {
-  @include keyframes(#{$animation-name}) {
-    0% { transform:rotate(0) }
-    25% { transform:rotate(-#{$amount}deg) }
-    75% { transform:rotate(#{$amount}deg) }
-    100% { transform:rotate(0) }
-  }
-}
-
-@mixin animation-wobble($amount:10, $animation-name:wobble) {
-  @include keyframes(#{$animation-name}) { 
-    0% { left:0 } 
-    25% { left:(-$amount) + px } 
-    75% { left:($amount) + px } 
-    100% { left:0 } 
-  }
-}
 /// Random colour.
 ///
 /// @author Pankaj Parashar
@@ -7433,6 +7637,30 @@ $breakpoints:   () !default;
   }
 }
 
+@mixin animation-jump($amount:10, $animation-name:jump) {
+  @include keyframes(#{$animation-name}) {  
+    0% { top:0 } 
+    50% { top:$amount + px } 
+    100% { top:0 } 
+  }
+}
+@mixin animation-shake($amount:10, $animation-name:shake) {
+  @include keyframes(#{$animation-name}) {
+    0% { transform:rotate(0) }
+    25% { transform:rotate(-#{$amount}deg) }
+    75% { transform:rotate(#{$amount}deg) }
+    100% { transform:rotate(0) }
+  }
+}
+
+@mixin animation-wobble($amount:10, $animation-name:wobble) {
+  @include keyframes(#{$animation-name}) { 
+    0% { left:0 } 
+    25% { left:(-$amount) + px } 
+    75% { left:($amount) + px } 
+    100% { left:0 } 
+  }
+}
 // Add a breakpoint to a global map, which can be called on using the 'breaks' function
 @mixin add-breakpoint($args...) {
 
@@ -7503,6 +7731,28 @@ $breakpoints:   () !default;
 
 @mixin break($args...) {
   @include breakpoint($args) { @content };
+}
+
+@mixin break-in($breakpoint) {
+
+  @if is-breakpoint($breakpoint) {
+    $breakpoint : get-breakpoint($breakpoint);
+  }
+
+  @media (max-width:add-unit($breakpoint)) {
+    @content;
+  }
+}
+
+@mixin break-out($breakpoint) {
+
+  @if is-breakpoint($breakpoint) {
+    $breakpoint : get-breakpoint($breakpoint);
+  }
+
+  @media (min-width:add-unit($breakpoint)) {
+    @content;
+  }
 }
 
 // Get breakpoint from the breakpoint list, either by it's number or name
@@ -7598,48 +7848,6 @@ $breakpoints:   () !default;
       }
     }
   }
-}
-
-// The original grid mixin
-@mixin float-grid($args, $gutter:null, $bottom:true, $important:false) {
-
-  $count: nth($args, 1);
-  $gutter: if($gutter == null, if(length($args) == 2, nth($args, 2), 0), $gutter);
-
-  @if ($gutter == true) { $gutter:$gaps; }
-
-  @if ($gutter != 0 or $count == 1) {
-    @for $i from 1 through $count {
-      @include nth($i, true) {
-        clear:none; margin-right:add-unit($gutter);
-      }
-    }
-    @include nth($count, true) { margin-right:0; }
-  }
-
-  @if ($count == 1) {
-    @include nth($count, true) {
-      margin-right:0;
-    }
-  }
-
-  @if $bottom { margin-bottom:add-unit(if(is-bool($bottom), $gutter, $bottom)); }
-
-  // Checks
-  $width:     if($count  >  1, 100%/$count, 100%);
-  $remainder: if($gutter != 0, #{'+ '} add-unit($gutter/$count), null);
-  $gutter:    if($gutter != 0, #{'- '} add-unit($gutter), null);
-
-  // Output
-  float:left;
-  @if ( $gutter != null ) {
-    width:calc(#{$width} #{$gutter} #{$remainder});
-  } @else {
-    width:$width;
-  }
-
-  @content;
-
 }
 
 // Documentation: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
@@ -8419,6 +8627,48 @@ $flex-align-self   : auto flex-start flex-end start end center baseline stretch;
   }
 }
 
+// The original grid mixin
+@mixin float-grid($args, $gutter:null, $bottom:true, $important:false) {
+
+  $count: nth($args, 1);
+  $gutter: if($gutter == null, if(length($args) == 2, nth($args, 2), 0), $gutter);
+
+  @if ($gutter == true) { $gutter:$gaps; }
+
+  @if ($gutter != 0 or $count == 1) {
+    @for $i from 1 through $count {
+      @include nth($i, true) {
+        clear:none; margin-right:add-unit($gutter);
+      }
+    }
+    @include nth($count, true) { margin-right:0; }
+  }
+
+  @if ($count == 1) {
+    @include nth($count, true) {
+      margin-right:0;
+    }
+  }
+
+  @if $bottom { margin-bottom:add-unit(if(is-bool($bottom), $gutter, $bottom)); }
+
+  // Checks
+  $width:     if($count  >  1, 100%/$count, 100%);
+  $remainder: if($gutter != 0, #{'+ '} add-unit($gutter/$count), null);
+  $gutter:    if($gutter != 0, #{'- '} add-unit($gutter), null);
+
+  // Output
+  float:left;
+  @if ( $gutter != null ) {
+    width:calc(#{$width} #{$gutter} #{$remainder});
+  } @else {
+    width:$width;
+  }
+
+  @content;
+
+}
+
 //
 // Pass in a Map or List
 //
@@ -8721,46 +8971,6 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
   @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
 }
 
-@mixin center($horizontal: true, $vertical: true) {
-  position: absolute;
-  @if ($horizontal and $vertical) {
-    top: 50%;
-    left: 50%;
-    @include transform(y -50%, x -50%);
-  } @else if ($horizontal) {
-    left: 50%;
-    @include transform(y -50%, x 0);
-  } @else if ($vertical) {
-    top: 50%;
-    @include transform(y 0, x -50%);
-  }
-}
-
-@mixin flip($direction:vertical) {
-
-  @if contains((vertical, horizontal), $direction, true) {
-    @include transform(scaleY -1, scaleX -1);
-  } @else {
-
-    @if $direction == vertical {
-      @include scaleX(-1);
-      filter: FlipH;
-      -ms-filter: "FlipH";
-    }
-
-    @if $direction == horizontal {
-      @include scaleY(-1);
-      filter: FlipV;
-      -ms-filter: "FlipV";
-    }
-  }
-
-}
-
-@mixin add-custom-property($variable, $value, $scope:':root') {
-  @at-root #{$scope} { --#{$variable}:#{$value}; }
-}
-
 // Add variable to the global variables map;
 
 @mixin add-variables($args...) {
@@ -8842,13 +9052,6 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
   $variable-value : $variable;
   $fallback-value : null;
 
-  // Allow the third param (opacity) to accept booleans.
-  // This will work in place of the $importnat param.
-  @if is-bool($opacity) and $opacity == true {
-    $important : $opacity;
-    $opacity : 1;
-  }
-
   $value : var-value($variable, $opacity);
   $variable-value : if(is-list($value), nth($value, 1), $value);
   $fallback-value : if(is-list($value), nth($value, 2), null);
@@ -8861,6 +9064,42 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
     #{$property} : $variable-value $important;
   }
 
+
+}
+
+@mixin center($horizontal: true, $vertical: true) {
+  position: absolute;
+  @if ($horizontal and $vertical) {
+    top: 50%;
+    left: 50%;
+    @include transform(y -50%, x -50%);
+  } @else if ($horizontal) {
+    left: 50%;
+    @include transform(y -50%, x 0);
+  } @else if ($vertical) {
+    top: 50%;
+    @include transform(y 0, x -50%);
+  }
+}
+
+@mixin flip($direction:vertical) {
+
+  @if contains((vertical, horizontal), $direction, true) {
+    @include transform(scaleY -1, scaleX -1);
+  } @else {
+
+    @if $direction == vertical {
+      @include scaleX(-1);
+      filter: FlipH;
+      -ms-filter: "FlipH";
+    }
+
+    @if $direction == horizontal {
+      @include scaleY(-1);
+      filter: FlipV;
+      -ms-filter: "FlipV";
+    }
+  }
 
 }
 
@@ -8881,219 +9120,6 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
   $height : map-deep-get($symbols, $symbol, height);
 
   @return percentage($height / $width);
-}
-
-/// Generate gaps from a generic unit so help continuity of paddings, margins,
-/// gutters etc... throughout your design.
-///
-/// @param {Number} $size
-///   Enter the amount of times you want to multiply the default padding variable
-///
-/// @require {Variable} $gaps
-///
-/// @example scss - Usage
-///   margin:0 gap(3);
-/// @return {Number} with units
-@function gap($size:1) {
-  @return if($size == 0, to-number(add-unit($gaps/2, $default-unit)), to-number(add-unit($gaps*$size, $default-unit)));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Get Padding                                                     #get-padding
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Get a specific padding list value based on it's direction.
-/// Designed so that you could get the 'left' padding of a defined list.
-/// This will figure out the fallbacks should the defined list not have the correct amount of items;
-///
-/// @author Mark Notton
-///
-/// @access public
-///
-/// @group helpers-numbers
-///
-/// @return {number}
-
-@function get-padding($padding, $direction) {
-
-  $length : length($padding);
-  $result : $padding;
-
-  @if $length != 1 {
-
-    // Top
-    @if $direction == top {
-      $result : nth($padding, 1);
-    }
-    // Right
-    @if $direction == right {
-      @if $length >= 2 {
-        $result : nth($padding, 2);
-      } @else {
-        $result : nth($padding, 1);
-      }
-    }
-
-    // Bottom
-    @if $direction == bottom {
-      @if $length >= 3 {
-        $result : nth($padding, 3);
-      } @else {
-        $result : nth($padding, 1);
-      }
-    }
-
-    // Left
-    @if $direction == left {
-      @if $length == 4 {
-        $result : nth($padding, 4);
-      } @elseif $length >= 2 {
-        $result : nth($padding, 2);
-      } @else {
-        $result : nth($padding, 1);
-      }
-    }
-
-  }
-
-  @return $result;
-}
-
-@function increase-by-percentage($unit, $percent, $type:true) {
-
-  $unit : remove-unit($unit);
-  $percent : remove-unit($percent);
-
-  @if $type == true {
-    @return $unit / 100 * (100 + $percent);
-  } @else {
-    @return $unit / 100 * (100 + ($percent * 100));
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Min Max Number                                               #min-max-number
-////////////////////////////////////////////////////////////////////////////////
-///
-/// If a number can only be within a certain bounds, check it and return a max, min, or acceptable value
-/// @author Mark Notton
-///
-/// @access private
-///
-/// @group helpers-numbers
-///
-/// @param {number}
-
-@function min-max-number($value, $min:1, $max:100) {
-  @if (is-number($value $min $max)) {
-    $value : if($value <= $min, $min, $value);
-    $value : if($value >= $max, $max, $value);
-  }
-  @return $value;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Percent To Decinmal                                      #percent-to-decimal
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Convert a percentage or an unit greater than 1 into a single decimal point number.
-///
-/// @author Mark Notton
-///
-/// @access public
-///
-/// @group helpers-numbers
-///
-/// @param {number} $number
-///
-/// @return {color}
-///
-/// @example scss - Usage
-/// opacity:_parecent-to-decimal(55);
-/// opacity:_parecent-to-decimal(100%);
-/// opacity:_parecent-to-decimal(0.5);
-///
-/// @example css - CSS output
-/// opacity:0.55;
-/// opacity:1;
-/// opacity:0.5;
-///
-
-@function percent-to-decimal($number) {
-  @if is-percentage($number) {
-    @return remove-unit($number)/100;
-  } @else {
-    @if $number > 1 {
-      @return $number/100;
-    } @else {
-      @return $number;
-    }
-  }
-}
-
-/// Generate space from a generic unit to help continuity of paddings, margins,
-/// gutters etc... throughout your design.
-///
-/// @param {Number} $size
-///   Enter the amount of times you want to multiply the default padding variable
-///
-/// @param {String} $direction
-///   The unit you want the spacing to be defined as. Default is vh
-///
-/// @require {Variable} $spacing global variable
-///
-/// @example scss - Usage
-///   margin-top:space(2);
-///
-/// @return {number} with units
-
-@function space($args...) {
-
-  $defaults : (
-    size      : 1,
-    direction : vh,
-    unit      : if(variable-exists(space),$space, 5vh),
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $size      : map-get($settings, size);
-  $direction : map-get($settings, direction);
-  $unit      : map-get($settings, unit);
-
-  @if $size == 0 {
-    @return to-number(add-unit($unit/2, $direction, true));
-  } @else {
-    @return to-number(add-unit($unit*$size, $direction, true));
-  }
-
-}
-
-/// Create a spacer relative to the viewport height or width. Whilst also adding
-/// a calc method to ensure that space is always at least the size of a solid unit (px)
-/// @param {Number} $size - Enter the amount of viewport units to add. 3 = 3% of the viewport height
-/// @param {Number} $min - Enter the amount of pixels the spcaer should never go below;
-/// @param {String} $direction - The unit you want the spacing to be defined as. Default is vh
-/// @example margin-top:spacer(2, 30);
-/// @output margin-top:calc(2vh + 30px);
-/// @return {number} with units
-
-@function spacer($args...) {
-
-  $defaults : (
-    size      : $space,
-    min       : $gap,
-    direction : vh,
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $direction : map-get($settings, direction);
-
-  $size      : add-unit(map-get($settings, size), $direction);
-  $min       : add-unit(map-get($settings, min));
-
-  @return calc(#{$size} + #{$min});
 }
 
 $browsers : ie edge safari firefox chrome opera;
@@ -11342,7 +11368,6 @@ $triangle-settings: (
   featured-image {
     @extend %full;
     display:block;
-    min-width:$min;
     &[style*='background-image'] {
       background-size:cover;
       background-repeat:none;
