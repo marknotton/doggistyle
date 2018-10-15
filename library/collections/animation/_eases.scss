@@ -44,3 +44,34 @@ $easeInOutSine  : cubic-bezier(0.445, 0.050, 0.550, 0.950);
 $easeInOutExpo  : cubic-bezier(1.000, 0.000, 0.000, 1.000);
 $easeInOutCirc  : cubic-bezier(0.785, 0.135, 0.150, 0.860);
 $easeInOutBack  : cubic-bezier(0.680, -0.550, 0.265, 1.550);
+
+$ease-in           : $easeIn;
+$ease-out          : $easeOut;
+$ease-in-out       : $easeInOut;
+
+$ease-in-quad      : $easeInQuad;
+$ease-in-cubic     : $easeInCubic;
+$ease-in-quart     : $easeInQuart;
+$ease-in-quint     : $easeInQuint;
+$ease-in-sine      : $easeInSine;
+$ease-in-expo      : $easeInExpo;
+$ease-in-circ      : $easeInCirc;
+$ease-in-back      : $easeInBack;
+
+$ease-out-quad     : $easeOutQuad;
+$ease-out-cubic    : $easeOutCubic;
+$ease-out-quart    : $easeOutQuart;
+$ease-out-quintt   : $easeOutQuint;
+$ease-out-sine     : $easeOutSine;
+$ease-out-expo     : $easeOutExpo;
+$ease-out-circ     : $easeOutCirc;
+$ease-out-back     : $easeOutBack;
+
+$ease-in-out-quad  : $easeInOutQuad;
+$ease-in-out-cubic : $easeInOutCubic;
+$ease-in-out-quart : $easeInOutQuart;
+$ease-in-out-quint : $easeInOutQuint;
+$ease-in-out-sine  : $easeInOutSine;
+$ease-in-out-expo  : $easeInOutExpo;
+$ease-in-out-circ  : $easeInOutCirc;
+$ease-in-out-back  : $easeInOutBack;

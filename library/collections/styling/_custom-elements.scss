@@ -18,6 +18,10 @@
   }
 }
 
+@mixin container($args...) {
+  @include smart-container($args...);
+}
+
 @if $reset {
 
   // main-wrapper {essential}
@@ -56,7 +60,7 @@
     @extend %full;
     background-position:center 33%;
     background-size:cover;
-    min-width:$min + px; 
+    min-width:$min + px;
     > img { display:block; position:absolute; object-fit:cover; object-position: 50% 50%; width:100%; top:0; left:0; height:100%; max-width:100%; max-height:100%;
       @include browsers(ie, edge) { display:none; }
     }
