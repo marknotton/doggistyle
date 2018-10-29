@@ -1,0 +1,56 @@
+////////////////////////////////////////////////////////////////////////////////
+// Experiments
+////////////////////////////////////////////////////////////////////////////////
+
+// ========================================================================== //
+// Page
+// ========================================================================== //
+
+@mixin page($page) {
+  @at-root body##{$page} {
+    @content;
+  }
+}
+
+@include page(support) {
+  background-color:red;
+  @include break($large, '<') {
+    background-color:$green;
+  }
+}
+
+// ========================================================================== //
+// Scrollbar Experiment
+// ========================================================================== //
+
+body {
+  -ms-overflow-style: none;
+  overflow: -moz-scrollbars-none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  scroll-bar {
+    @at-root body {
+      --scrollbar-width:10px;
+    }
+    display:block;
+    position:fixed;
+    top:0; right:0;
+    height:100vh;
+    width:var(--scrollbar-width, 0);
+    background-color:$grey;
+    z-index:9999;
+    &:after {
+      $scroll-height : 10vh;
+      content:"";
+      position:absolute;
+      width:calc(#{var(--scrollbar-width, 0)} - 2px);
+      height:$scroll-height;
+      @include var(background-color);
+      margin-top:1px;
+      @include transition(top 0 0.1 $easeOut)
+      left:1px; top:calc(#{$scroll-height} + (var(--scroll-position, 0) - #{$scroll-height*2}));
+      @include radius(20);
+    }
+  }
+}
