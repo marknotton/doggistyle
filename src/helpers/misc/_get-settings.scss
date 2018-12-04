@@ -217,8 +217,8 @@
   $settings : map-set($settings, important, if($important, $imp, map-get($options, important)));
 
   @if map-get($options, debug ) {
-    @debug #{'Settings:'} $settings;
-    @debug #{'Options:'} $options;
+    // @debug #{'Settings:'} $settings;
+    // @debug #{'Options:'} $options;
   }
 
   @return $settings;

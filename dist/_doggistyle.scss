@@ -14,6 +14,9 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+$doggistyle : true;
+$ds : $doggistyle;
+
 @charset "UTF-8";
 
 @mixin prefixer($args...) {
@@ -6131,8 +6134,8 @@ $emoji-clock1230 : "🕧";
   $settings : map-set($settings, important, if($important, $imp, map-get($options, important)));
 
   @if map-get($options, debug ) {
-    @debug #{'Settings:'} $settings;
-    @debug #{'Options:'} $options;
+    // @debug #{'Settings:'} $settings;
+    // @debug #{'Options:'} $options;
   }
 
   @return $settings;
@@ -7124,7 +7127,7 @@ $warnings : true !default;
 $global-styling : true !default;
 
 // Default border radius
-$border-radius : 10 !default;
+$border-radius : 10px !default;
 
 // Default units
 $default-unit : px !default;
@@ -7189,8 +7192,8 @@ $gap6 : gap(6) !default;
 // Gutters                                                              #gutters
 // =============================================================================
 
-$gutter-left     : $gap2!default;
-$gutter-right    : $gap2!default;
+$gutter-left     : $gap2 !default;
+$gutter-right    : $gap2 !default;
 $gutters         : $gutter-left + $gutter-right !default;
 
 // =============================================================================
@@ -7469,20 +7472,27 @@ $ease-in-out-back  : cubic-bezier(0.680, -0.550, 0.265, 1.550);
 /// ============================================================================
 
 $breakpoints:   () !default;
-// $custom-properties:   () !default;
-@debug properties;
+
+$_custom-properties : (
+  gap                : add-unit($gap),
+  vertical-spacing   : add-unit($vertical-spacing, vh),
+  horizontal-spacing : add-unit($horizontal-spacing, vw),
+  gutters-left       : add-unit($gutter-left),
+  gutters-right      : add-unit($gutter-right),
+  border-radius      : add-unit($border-radius),
+  font-size          : $font-size,
+  min                : add-unit($min, px, true),
+  small              : add-unit($small, px, true),
+  small-medium       : add-unit($small-medium, px, true),
+  medium             : add-unit($medium, px, true),
+  large              : add-unit($large, px, true),
+  max                : add-unit($max, px, true),
+);
+
 @if variable-exists(custom-properties) {
-  $custom-properties: map-merge($custom-properties, (
-    gap : $gap,
-    gutters-left : $gutter-left,
-    gutters-right : $gutter-right,
-  )) !global;
+  $custom-properties: map-merge($custom-properties, $_custom-properties) !global;
 } @else {
-  $custom-properties : (
-    gap : $gap,
-    gutters-left : $gutter-left,
-    gutters-right : $gutter-right,
-  ) !global;
+  $custom-properties : $_custom-properties !global;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -7661,195 +7671,6 @@ $breakpoints:   () !default;
     100% { left:0 } 
   }
 }
-// Add a breakpoint to a global map, which can be called on using the 'breaks' function
-@mixin add-breakpoint($args...) {
-
-  @for $i from 1 through length($args) {
-
-    $name : null;
-    $size : null;
-
-    $arg: nth($args, $i);
-
-    @each $rule in $arg {
-      @if type-of($rule) == string {
-        $name : $rule;
-      }
-      @if type-of($rule) == number {
-        $size : remove-unit($rule);
-      }
-    }
-
-    $name : if($name == null and type-of($size) == number, #{$size}, $name);
-
-    @if $name and $size {
-      $breakpoints : map-set($breakpoints, $name, $size) !global;
-    }
-  }
-  @at-root body { @include set-breakpoints(); }
-}
-
-// Breakpoint bewtween two points
-@mixin break-between($min, $max, $property:width) {
-  @media only screen and (min-#{$property}:add-unit($min)) and (max-#{$property}: add-unit($max)) {
-    @content;
-  }
-}
-@mixin breakpoint($args) {
-
-  @if (is-null($args)) {
-    @content;
-  } @else {
-    $width : null;
-    $condition : if($mobile-first, min-width, max-width);
-
-    @each $rule in $args {
-      @if is_number($rule) {
-        $width : add-unit($rule);
-      }
-      @if is_string($rule) {
-        @if $rule == 'min' or $rule == '>' {
-          $rule : 'min-width';
-        } @else if $rule == 'max' or $rule == '<' {
-          $rule : 'max-width';
-          $width : $width - 1;
-        }
-        $condition : $rule;
-      }
-    }
-
-    // @if not contains($breakpoints, $width) {
-    //   @include add-breakpoint($width);
-    // }
-    // TODO: Add one for min, minus one for max
-
-    @media (#{$condition}:add-unit($width)) {
-      @content;
-    }
-  }
-}
-
-@mixin break($args...) {
-  @include breakpoint($args) { @content };
-}
-
-@mixin break-in($breakpoint) {
-
-  @if is-breakpoint($breakpoint) {
-    $breakpoint : get-breakpoint($breakpoint);
-  }
-
-  @media (max-width:add-unit($breakpoint)) {
-    @content;
-  }
-}
-
-@mixin break-out($breakpoint) {
-
-  @if is-breakpoint($breakpoint) {
-    $breakpoint : get-breakpoint($breakpoint);
-  }
-
-  @media (min-width:add-unit($breakpoint)) {
-    @content;
-  }
-}
-
-// Get breakpoint from the breakpoint list, either by it's number or name
-@function get-breakpoint($break) {
-  @if is-string($break) and map-has-key($breakpoints, $break) {
-    // If a string is passed and exists in the breakpoints map as a key, return the value
-    @return map-get($breakpoints, $break);
-  } @elseif is-number($break) {
-    $number : remove-unit($break);
-    // If a number is passed and it exists in the breakpoints map, return the key
-    @if contains(map-values($breakpoints), $number) {
-      $list : null;
-      $nth : 1;
-      @each $break in map-values($breakpoints) {
-        $nth : $nth + 1;
-        @if $break == $number {
-          $list : add(nth(map-keys($breakpoints),$nth), $list);
-        }
-      }
-      @if length($list) == 1 {
-        @return nth($list, 1);
-      } @else {
-        @return $list;
-      }
-    } @else {
-      // @include warning($number + ' is not a breakpoint');
-      @return false;
-    }
-  }
-}
-
-@mixin hide-at($break) {
-  @include break($break) {
-    display:none;
-    & { @content; }
-  }
-}
-
-// Check if a breakpoint exists by it's number or name.
-@function is-breakpoint($break) {
-  // If the number is a string and exists as a key in the breakpoints map, return true
-  @if is-string($break) and map-has-key($breakpoints, $break) {
-    @return true;
-  } @else {
-    // Or if the number exists as a value anywhere in the breakpoints map, also return true
-    $number : remove-unit($break);
-    @if contains(map-values($breakpoints), $number) {
-      @return true;
-    } @else {
-      @return false;
-    }
-  }
-}
-
-// Set breakpoints for use with custom properties
-@mixin set-breakpoints($breaks:$breakpoints) {
-  $new-breakpoints : ();
-  @each $break, $value in $breakpoints {
-    $new-breakpoints : map-set( $new-breakpoints, #{breakpoint-}#{$break}, $value);
-  }
-  @include custom-property($new-breakpoints);
-}
-
-@mixin show-at($break) {
-  @include break($break) {
-    display:block;
-    & { @content; }
-  }
-}
-
-@mixin show-breakpoints($sudo : before) {
-  #{$show-breakpoints-selector}:#{$sudo} {
-    content:"\276F  #{$max}px";
-    background-color:darken($red, 20);
-    bottom:0;
-    right:0;
-    font-family:Arial;
-    padding:4px $gap0;
-    @include ani(background-color color);
-    pointer-events:none;
-    position:fixed;
-    z-index:9999;
-    font-size:12px;
-    line-height:16px;
-    color:white;
-    text-align:center;
-    @each $name, $value in $breakpoints {
-      $random-color: random-colour();
-      @include break($value) {
-        content:"#{$name} #{$value}px";
-        background-color:$random-color;
-        color:colour-contrast($random-color);
-      }
-    }
-  }
-}
-
 // Documentation: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
 
 // Container properties
@@ -8353,7 +8174,7 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
         @if not is-null($container) {
           @include break($break) {
             @include flex-container($container);
-            @debug $container;
+            // @debug $container;
           }
         }
 
@@ -8971,6 +8792,231 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
   @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
 }
 
+// Add a breakpoint to a global map, which can be called on using the 'breaks' function
+@mixin add-breakpoint($args...) {
+
+  @for $i from 1 through length($args) {
+
+    $name : null;
+    $size : null;
+
+    $arg: nth($args, $i);
+
+    @each $rule in $arg {
+      @if type-of($rule) == string {
+        $name : $rule;
+      }
+      @if type-of($rule) == number {
+        $size : remove-unit($rule);
+      }
+    }
+
+    $name : if($name == null and type-of($size) == number, #{$size}, $name);
+
+    @if $name and $size {
+      $breakpoints : map-set($breakpoints, $name, $size) !global;
+    }
+  }
+  @at-root body { @include set-breakpoints(); }
+}
+
+// Breakpoint bewtween two points
+@mixin break-between($min, $max, $property:width) {
+  @media only screen and (min-#{$property}:add-unit($min)) and (max-#{$property}: add-unit($max)) {
+    @content;
+  }
+}
+@mixin breakpoint($args) {
+
+  @if (is-null($args)) {
+    @content;
+  } @else {
+    $width : null;
+    $condition : if($mobile-first, min-width, max-width);
+
+    @each $rule in $args {
+      @if is_number($rule) {
+        $width : add-unit($rule);
+      }
+      @if is_string($rule) {
+        @if $rule == 'min' or $rule == '>' {
+          $rule : 'min-width';
+        } @else if $rule == 'max' or $rule == '<' {
+          $rule : 'max-width';
+          $width : $width - 1;
+        }
+        $condition : $rule;
+      }
+    }
+
+    // @if not contains($breakpoints, $width) {
+    //   @include add-breakpoint($width);
+    // }
+    // TODO: Add one for min, minus one for max
+
+    @media (#{$condition}:add-unit($width)) {
+      @content;
+    }
+  }
+}
+
+@mixin break($args...) {
+  @include breakpoint($args) { @content };
+}
+
+@mixin break-in($breakpoint) {
+
+  @if is-breakpoint($breakpoint) {
+    $breakpoint : get-breakpoint($breakpoint);
+  }
+
+  @media (max-width:add-unit($breakpoint)) {
+    @content;
+  }
+}
+
+@mixin break-out($breakpoint) {
+
+  @if is-breakpoint($breakpoint) {
+    $breakpoint : get-breakpoint($breakpoint);
+  }
+
+  @media (min-width:add-unit($breakpoint)) {
+    @content;
+  }
+}
+
+// Get breakpoint from the breakpoint list, either by it's number or name
+@function get-breakpoint($break) {
+  @if is-string($break) and map-has-key($breakpoints, $break) {
+    // If a string is passed and exists in the breakpoints map as a key, return the value
+    @return map-get($breakpoints, $break);
+  } @elseif is-number($break) {
+    $number : remove-unit($break);
+    // If a number is passed and it exists in the breakpoints map, return the key
+    @if contains(map-values($breakpoints), $number) {
+      $list : null;
+      $nth : 1;
+      @each $break in map-values($breakpoints) {
+        $nth : $nth + 1;
+        @if $break == $number {
+          $list : add(nth(map-keys($breakpoints),$nth), $list);
+        }
+      }
+      @if length($list) == 1 {
+        @return nth($list, 1);
+      } @else {
+        @return $list;
+      }
+    } @else {
+      // @include warning($number + ' is not a breakpoint');
+      @return false;
+    }
+  }
+}
+
+@mixin hide-at($break) {
+  @include break($break) {
+    display:none;
+    & { @content; }
+  }
+}
+
+// Check if a breakpoint exists by it's number or name.
+@function is-breakpoint($break) {
+  // If the number is a string and exists as a key in the breakpoints map, return true
+  @if is-string($break) and map-has-key($breakpoints, $break) {
+    @return true;
+  } @else {
+    // Or if the number exists as a value anywhere in the breakpoints map, also return true
+    $number : remove-unit($break);
+    @if contains(map-values($breakpoints), $number) {
+      @return true;
+    } @else {
+      @return false;
+    }
+  }
+}
+
+// Set breakpoints for use with custom properties
+@mixin set-breakpoints($breaks:$breakpoints) {
+  $new-breakpoints : ();
+  @each $break, $value in $breakpoints {
+    $new-breakpoints : map-set( $new-breakpoints, #{breakpoint-}#{$break}, $value);
+  }
+  @include custom-property($new-breakpoints);
+}
+
+@mixin show-at($break) {
+  @include break($break) {
+    display:block;
+    & { @content; }
+  }
+}
+
+@mixin show-breakpoints($sudo : before) {
+  #{$show-breakpoints-selector}:#{$sudo} {
+    content:"\276F  #{$max}px";
+    background-color:darken($red, 20);
+    bottom:0;
+    right:0;
+    font-family:Arial;
+    padding:4px $gap0;
+    @include ani(background-color color);
+    pointer-events:none;
+    position:fixed;
+    z-index:9999;
+    font-size:12px;
+    line-height:16px;
+    color:white;
+    text-align:center;
+    @each $name, $value in $breakpoints {
+      $random-color: random-colour();
+      @include break($value) {
+        content:"#{$name} #{$value}px";
+        background-color:$random-color;
+        color:colour-contrast($random-color);
+      }
+    }
+  }
+}
+
+@mixin center($horizontal: true, $vertical: true) {
+  position: absolute;
+  @if ($horizontal and $vertical) {
+    top: 50%;
+    left: 50%;
+    @include transform(y -50%, x -50%);
+  } @else if ($horizontal) {
+    left: 50%;
+    @include transform(y -50%, x 0);
+  } @else if ($vertical) {
+    top: 50%;
+    @include transform(y 0, x -50%);
+  }
+}
+
+@mixin flip($direction:vertical) {
+
+  @if contains((vertical, horizontal), $direction, true) {
+    @include transform(scaleY -1, scaleX -1);
+  } @else {
+
+    @if $direction == vertical {
+      @include scaleX(-1);
+      filter: FlipH;
+      -ms-filter: "FlipH";
+    }
+
+    @if $direction == horizontal {
+      @include scaleY(-1);
+      filter: FlipV;
+      -ms-filter: "FlipV";
+    }
+  }
+
+}
+
 // Add variable to the global variables map;
 
 @mixin add-variables($args...) {
@@ -9064,42 +9110,6 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
     #{$property} : $variable-value $important;
   }
 
-
-}
-
-@mixin center($horizontal: true, $vertical: true) {
-  position: absolute;
-  @if ($horizontal and $vertical) {
-    top: 50%;
-    left: 50%;
-    @include transform(y -50%, x -50%);
-  } @else if ($horizontal) {
-    left: 50%;
-    @include transform(y -50%, x 0);
-  } @else if ($vertical) {
-    top: 50%;
-    @include transform(y 0, x -50%);
-  }
-}
-
-@mixin flip($direction:vertical) {
-
-  @if contains((vertical, horizontal), $direction, true) {
-    @include transform(scaleY -1, scaleX -1);
-  } @else {
-
-    @if $direction == vertical {
-      @include scaleX(-1);
-      filter: FlipH;
-      -ms-filter: "FlipH";
-    }
-
-    @if $direction == horizontal {
-      @include scaleY(-1);
-      filter: FlipV;
-      -ms-filter: "FlipV";
-    }
-  }
 
 }
 

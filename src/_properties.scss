@@ -79,18 +79,25 @@ $ease-in-out-back  : cubic-bezier(0.680, -0.550, 0.265, 1.550);
 /// ============================================================================
 
 $breakpoints:   () !default;
-// $custom-properties:   () !default;
-@debug properties;
+
+$_custom-properties : (
+  gap                : add-unit($gap),
+  vertical-spacing   : add-unit($vertical-spacing, vh),
+  horizontal-spacing : add-unit($horizontal-spacing, vw),
+  gutters-left       : add-unit($gutter-left),
+  gutters-right      : add-unit($gutter-right),
+  border-radius      : add-unit($border-radius),
+  font-size          : $font-size,
+  min                : add-unit($min, px, true),
+  small              : add-unit($small, px, true),
+  small-medium       : add-unit($small-medium, px, true),
+  medium             : add-unit($medium, px, true),
+  large              : add-unit($large, px, true),
+  max                : add-unit($max, px, true),
+);
+
 @if variable-exists(custom-properties) {
-  $custom-properties: map-merge($custom-properties, (
-    gap : $gap,
-    gutters-left : $gutter-left,
-    gutters-right : $gutter-right,
-  )) !global;
+  $custom-properties: map-merge($custom-properties, $_custom-properties) !global;
 } @else {
-  $custom-properties : (
-    gap : $gap,
-    gutters-left : $gutter-left,
-    gutters-right : $gutter-right,
-  ) !global;
+  $custom-properties : $_custom-properties !global;
 }

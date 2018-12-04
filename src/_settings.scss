@@ -13,7 +13,7 @@ $warnings : true !default;
 $global-styling : true !default;
 
 // Default border radius
-$border-radius : 10 !default;
+$border-radius : 10px !default;
 
 // Default units
 $default-unit : px !default;
@@ -78,8 +78,8 @@ $gap6 : gap(6) !default;
 // Gutters                                                              #gutters
 // =============================================================================
 
-$gutter-left     : $gap2!default;
-$gutter-right    : $gap2!default;
+$gutter-left     : $gap2 !default;
+$gutter-right    : $gap2 !default;
 $gutters         : $gutter-left + $gutter-right !default;
 
 // =============================================================================
