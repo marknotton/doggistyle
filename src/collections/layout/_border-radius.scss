@@ -1,30 +1,30 @@
 /// 10px on each corner. Call also use the string "all"
-/// @include border-radius(10) 
-/// @include border-radius(all 10) 
+/// @include border-radius(10)
+/// @include border-radius(all 10)
 
 /// 10 top left, 20 top right, 0 bottom right, 0 bottom left
-/// @include border-radius(10 20) 
+/// @include border-radius(10 20)
 
 /// 10 top left, 20 top right, 30 bottom right, 0 bottom left
-/// @include border-radius(10 20 30) 
+/// @include border-radius(10 20 30)
 
 /// 10 top left, 20 top right, 30 bottom right, 40 bottom left
-/// @include border-radius(10 20 30 40) 
+/// @include border-radius(10 20 30 40)
 
 /// 10 top left, 10 top right, 0 bottom right, 0 bottom left
-/// @include border-radius(10 top) 
+/// @include border-radius(10 top)
 
 /// 0 top left, 10 top right, 10 bottom right, 0 bottom left
-/// @include border-radius(10 right) 
+/// @include border-radius(10 right)
 
 /// 0 top left, 0 top right, 10 bottom right, 10 bottom left
-/// @include border-radius(10 bottom) 
+/// @include border-radius(10 bottom)
 
 /// 10 top left, 0 top right, 0 bottom right, 10 bottom left
-/// @include border-radius(10 left) 
+/// @include border-radius(10 left)
 
 /// 10 top left, 0 top right, 30 bottom right, 0 bottom left
-/// @include border-radius(10 top-left, 30 bottom-right) 
+/// @include border-radius(10 top-left, 30 bottom-right)
 
 @mixin border-radius($args...) {
   $corners : ();
@@ -33,7 +33,7 @@
 
   $args: if(length($args) > 0, $args, null);
 
-  @for $i from 1 through length($args) {    
+  @for $i from 1 through length($args) {
 
     @each $rad in nth($args, $i) {
       @if type-of($rad) == number and length($corners) < 4 {
@@ -52,27 +52,27 @@
       }
     }
   }
-  
+
   @if $excess-units > 0 {
     @include warning("You can't have more than 4 units per argument. You have added '#{$excess-units}' number"+ if($excess-units != 1, 's', '') +" too many. Squares don't work that way.");
   }
-  
+
   $corners : if(length($corners) == 0, $border-radius, $corners);
   $corner-count : length($corners);
-  
+
   @if length($directions) == 0 {
     $directions : if($corner-count == 1, all, slice((top-left top-right bottom-right bottom-left), 1, $corner-count));
   }
 
   $direction-count : length($directions);
 
-  @for $i from 1 through $direction-count {    
+  @for $i from 1 through $direction-count {
     $direction : nth($directions, $i);
     $radius : 0;
     @if $corner-count == $direction-count {
       $radius: nth($corners, $i);
     } @else {
-      @if $corner-count > $direction-count and $i == $direction-count { 
+      @if $corner-count > $direction-count and $i == $direction-count {
         $radius: nth($corners, $i);
         @include warning('You have entered more units than directions. Reverting back to the first numbers you entered');
       } @else {
@@ -80,23 +80,27 @@
       }
     }
 
-    @if $direction == all { 
-      @include prefixer(border-radius, add-unit($radius));
+    @if $direction == all {
+      border-radius : add-unit($radius);
     }
     @elseif $direction == top {
-      @include prefixer(border-top-left-radius border-top-right-radius, add-unit($radius));
+      border-top-left-radius : add-unit($radius);
+			border-top-right-radius : add-unit($radius);
     }
     @elseif $direction == right {
-      @include prefixer(border-top-right-radius border-bottom-right-radius, add-unit($radius));
+      border-top-right-radius : add-unit($radius);
+			border-bottom-right-radius : add-unit($radius);
     }
     @elseif $direction == bottom {
-      @include prefixer(border-bottom-left-radius border-bottom-right-radius, add-unit($radius));
+      border-bottom-left-radius : add-unit($radius);
+			border-bottom-right-radius : add-unit($radius);
     }
     @elseif $direction == left {
-      @include prefixer(border-top-left-radius border-bottom-left-radius, add-unit($radius));      
+      border-top-left-radius : add-unit($radius);
+			border-bottom-left-radius : add-unit($radius);
     }
     @else {
-      @include prefixer(border-#{$direction}-radius, add-unit($radius));
+      border-#{$direction}-radius : add-unit($radius);
     }
   }
 }

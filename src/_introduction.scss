@@ -14,11 +14,25 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-$doggistyle : true;
-$ds : $doggistyle;
-
 @charset "UTF-8";
 
-@mixin prefixer($args...) {
+@mixin doggistyle{
 
+	// Global Settings -----------------------------------------------------------
+
+	@include settings;
+
+	@include set-custom-properties;
+
+	// Normalisers ---------------------------------------------------------------
+
+	@if ( $normalise ) {
+		@include normalise;
+	} @elseif ( $normalise-emailers ) {
+		@include normalise-emailers;
+	}
 }
+
+// Doggistyle alias for the easily offended ------------------------------------
+
+@mixin d-style { @include doggistyle() }

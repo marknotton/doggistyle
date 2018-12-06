@@ -14,14 +14,28 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-$doggistyle : true;
-$ds : $doggistyle;
-
 @charset "UTF-8";
 
-@mixin prefixer($args...) {
+@mixin doggistyle{
 
+	// Global Settings -----------------------------------------------------------
+
+	@include settings;
+
+	@include set-custom-properties;
+
+	// Normalisers ---------------------------------------------------------------
+
+	@if ( $normalise ) {
+		@include normalise;
+	} @elseif ( $normalise-emailers ) {
+		@include normalise-emailers;
+	}
 }
+
+// Doggistyle alias for the easily offended ------------------------------------
+
+@mixin d-style { @include doggistyle() }
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Cast to boolean                                                     #to-bool
@@ -395,6 +409,378 @@ $sc-non-strict-defaults: (
 
 @function to-string($value) {
   @return if(type-of($value) != string, inspect($value), $value);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Brightness                                                       #brightness
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Calculates a colours brightness
+///
+/// @author David Halford
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
+///
+/// @return {number}
+
+@function brightness($colour) {
+  @return abs(round((red($colour) * 299) + (green($colour) * 587) + (blue($colour) * 114) / 1000));
+}
+
+/// Compares contrast of a given colour and returns the most appropriate given colour that contrasts it.
+///
+/// @author David Halford
+///
+/// @access public
+///
+/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
+///
+/// @param {color} $colour - Define a colour that you want to check is dark or light
+///
+/// @param {list | colour} - Define up to two seperate colours. Each one will be checked for their lightness or darkness
+///    If one of the colours is not dark enough it will revert to black;
+///    If the other colour is not light enough it will revert to white;
+///
+/// @require {function} is-colour
+/// @require {function} is-dark
+/// @require {function} is-light
+/// @require {function} brightness
+/// @require {function} lightness
+///
+/// @return {number}
+///
+/// @example {scss} - Usage
+///   color : colour-contrast(red, purple yellow);
+///
+/// @example {scss} - Output
+///   color : yellow;
+
+@function colour-contrast($colour, $text-colours:null) {
+
+  $dark-text : black;
+  $light-text : white;
+
+  $colour : get-variable-colour-value($colour);
+
+  @if is-colour($colour) {
+
+    @each $setting in $text-colours {
+      @if is-colour($setting) {
+        @if $dark-text == black {
+          $dark-text: $setting;
+        }
+        @elseif $light-text == white {
+          $light-text: $setting;
+        }
+      }
+    }
+
+    $dark-text : if(is-dark($dark-text), $dark-text, black);
+    $light-text : if(is-light($light-text), $light-text, white);
+
+    @return if(brightness($colour) <  lightness(), $light-text, $dark-text);
+
+  } @else {
+
+    @return $dark-text;
+  }
+}
+
+/// @alias contrasting-colour
+///
+/// @access public
+///
+/// @require {function} contrasting-colour
+///
+/// @return {color}
+
+@function color-contrast($colour, $light:white, $dark:dark) {
+  @return colour-contrast($colour, $light, $dark);
+}
+
+/// An alternative to the native rgba function. With a few extra checks.
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @param {color} Hex colour
+///
+/// @require {function} percent-to-decimal
+///
+/// @param {opacity} $opacity
+///   This can be as a percentage or a standard single decimal unit.
+///
+/// @return {color}
+///
+
+@function colour($colour:random-colour(), $opacity:1) {
+
+  @if str-index(#{$colour}, 'rgba') {
+    @return $colour;
+  }
+  @else {
+    @return rgba($colour, percent-to-decimal($opacity));
+  }
+}
+
+/// @alias colour
+///
+/// @access public
+///
+/// @require {function} colour
+///
+/// @return {bool}colour
+
+@function color($colour:random-colour(), $opacity:1) {
+  @return colour($colour, $opacity);
+}
+
+
+/// @alias colour
+///
+/// @access public
+///
+/// @require {function} colour
+///
+/// @return {bool}
+
+@function col($colour:random-colour(), $opacity:1) {
+  @return colour($colour, $opacity);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Get Colour Value                                           #get-colour-value
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Cast a stringified number / stringified percentage into number type
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @param {string} $string - string
+///
+/// @return {number} - unitless number or percentage
+///
+/// @require {function} to-number
+
+@function get-colour-value($string) {
+  $first: str-slice($string, 1, 1);
+
+  @if $first == '.' {
+    $string: '0' + $string;
+  }
+
+  $last: str-slice($string, -1, -1);
+
+  @return if($last == '%', to-number(str-slice($string, 1, -2), 2) * 1%, to-number($string));
+}
+
+/// Get Color Value =========================================== #get-color-value
+///
+/// @alias get-colour-value
+///
+/// @access public
+///
+/// @group helpers-colours
+///
+/// @require {function} get-colour-value
+///
+/// @return {colour}
+
+@function get-color-value($string) {
+  @return get-colour-value($string);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Get Variable Colour Value                         #get-variable-colour-value
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @access public
+///
+/// @group helpers-colours
+///
+/// @require {function} get-variable-colour-value
+///
+/// @return {colour}
+
+@function get-variable-colour-value($colour, $opacity:1) {
+
+  @if not is-colour($colour) and variable-exists(variables) {
+
+    $value : map-get($variables, get-var-variable($colour));
+
+    @if not is-null($value) {
+
+      @if is-list($value) {
+        $red:   nth($value, 1);
+        $green: nth($value, 2);
+        $blue:  nth($value, 3);
+        $value : rgba($red, $green, $blue, $opacity);
+      }
+
+      $colour : $value;
+    }
+
+  }
+
+  @return $colour;
+
+}
+
+///  Get Variable Color Value ======================== #get-variable-color-value
+///
+/// @alias get-variable-colour-value
+///
+/// @access public
+///
+/// @group helpers-colours
+///
+/// @require {function} get-variable-colour-value
+///
+/// @return {colour}
+
+@function get-variable-color-value($colour, $opacity:1) {
+  @return get-variable-colour-value($colour, $opacity);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Gradient Properties                                     #gradient-properties
+////////////////////////////////////////////////////////////////////////////////
+///
+// Add each argument into a single comma delimited list
+///
+/// @group helpers-colours
+///
+
+@function gradient-properties($args...) {
+  $properties : ();
+
+  $args: if(length($args) > 0, $args, null);
+
+  @for $i from 1 through length($args) {
+    $properties : append($properties, nth($args, $i), comma);
+  }
+
+  @return $properties;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Hash Fix                                                           #hash-fix
+////////////////////////////////////////////////////////////////////////////////
+///
+/// For reasons specific to Firefox (currently version 45),
+/// SVG's require all hash symbols to be replaced with '%23'. This includes hex
+/// colours and <use> xlinks This function will find and replace that hash
+/// symbol with the appropriate new string (which also works in other browsers)
+///
+/// @author Mark Notton
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @link http://stackoverflow.com/questions/28588050/how-to-use-a-hex-value-for-svg-in-firefox#answer-28588194
+///
+/// @return {string} - Without "#" as the first character
+
+@function hash-fix($string) {
+  @if get-var-value($string) {
+    @return str-replace(to-string(get-var-value($string)), '#', '%23');
+  } @else {
+    @return if(is-first-character($string, '#'), str-replace(#{$string}, '#', '%23'), $string);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Hexadecimal to Decimal                                           #hex-to-dec
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Convert an hexadecimal number to a decimal number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @param {string} $string - string
+///
+/// @param {string} $string - hexadecimal value
+///
+/// @return {number} - decimal number
+
+@function hex-to-dec($string){
+  $hex: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f";
+  $string: to-lower-case($string);
+  $length: str-length($string);
+
+  $dec: 0;
+  @for $i from 1 through $length {
+    $factor: 1 + ( 15 * ( $length - $i ));
+    $index: index($hex, str-slice($string, $i, $i));
+    $dec: $dec + $factor * ($index - 1);
+  }
+
+  @return $dec;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Hexadecimal to RGBA                                             #hex-to-rgba
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @group helpers-colours
+///
+
+@function hex-to-rgba($colour, $opacity:1) {
+
+  @if is-hex($colour) {
+
+    $red:   red($colour);
+    $green: green($colour);
+    $blue:  blue($colour);
+
+    @return unquote("rgba(#{$red}, #{$green}, #{$blue}, #{$opacity})");
+
+  } @else {
+
+    @return $colour;
+
+  }
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Lightness                                                         #lightness
+////////////////////////////////////////////////////////////////////////////////
+///
+/// A smart calculation to what lightness is
+///
+/// @notice This could just be a variable, but for potential future minipulation I've left it as a function
+///
+/// @author David Halford
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
+///
+/// @return {number}
+
+@function lightness() {
+  @return round((red(#ffffff) * 299) + (green(#ffffff) * 587) + (blue(#ffffff) * 114) / 1000)/2;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1262,378 +1648,6 @@ $sc-non-strict-defaults: (
 
   }
 
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Brightness                                                       #brightness
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Calculates a colours brightness
-///
-/// @author David Halford
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
-///
-/// @return {number}
-
-@function brightness($colour) {
-  @return abs(round((red($colour) * 299) + (green($colour) * 587) + (blue($colour) * 114) / 1000));
-}
-
-/// Compares contrast of a given colour and returns the most appropriate given colour that contrasts it.
-///
-/// @author David Halford
-///
-/// @access public
-///
-/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
-///
-/// @param {color} $colour - Define a colour that you want to check is dark or light
-///
-/// @param {list | colour} - Define up to two seperate colours. Each one will be checked for their lightness or darkness
-///    If one of the colours is not dark enough it will revert to black;
-///    If the other colour is not light enough it will revert to white;
-///
-/// @require {function} is-colour
-/// @require {function} is-dark
-/// @require {function} is-light
-/// @require {function} brightness
-/// @require {function} lightness
-///
-/// @return {number}
-///
-/// @example {scss} - Usage
-///   color : colour-contrast(red, purple yellow);
-///
-/// @example {scss} - Output
-///   color : yellow;
-
-@function colour-contrast($colour, $text-colours:null) {
-
-  $dark-text : black;
-  $light-text : white;
-
-  $colour : get-variable-colour-value($colour);
-
-  @if is-colour($colour) {
-
-    @each $setting in $text-colours {
-      @if is-colour($setting) {
-        @if $dark-text == black {
-          $dark-text: $setting;
-        }
-        @elseif $light-text == white {
-          $light-text: $setting;
-        }
-      }
-    }
-
-    $dark-text : if(is-dark($dark-text), $dark-text, black);
-    $light-text : if(is-light($light-text), $light-text, white);
-
-    @return if(brightness($colour) <  lightness(), $light-text, $dark-text);
-
-  } @else {
-
-    @return $dark-text;
-  }
-}
-
-/// @alias contrasting-colour
-///
-/// @access public
-///
-/// @require {function} contrasting-colour
-///
-/// @return {color}
-
-@function color-contrast($colour, $light:white, $dark:dark) {
-  @return colour-contrast($colour, $light, $dark);
-}
-
-/// An alternative to the native rgba function. With a few extra checks.
-///
-/// @author Mark Notton
-///
-/// @access public
-///
-/// @param {color} Hex colour
-///
-/// @require {function} percent-to-decimal
-///
-/// @param {opacity} $opacity
-///   This can be as a percentage or a standard single decimal unit.
-///
-/// @return {color}
-///
-
-@function colour($colour:random-colour(), $opacity:1) {
-
-  @if str-index(#{$colour}, 'rgba') {
-    @return $colour;
-  }
-  @else {
-    @return rgba($colour, percent-to-decimal($opacity));
-  }
-}
-
-/// @alias colour
-///
-/// @access public
-///
-/// @require {function} colour
-///
-/// @return {bool}colour
-
-@function color($colour:random-colour(), $opacity:1) {
-  @return colour($colour, $opacity);
-}
-
-
-/// @alias colour
-///
-/// @access public
-///
-/// @require {function} colour
-///
-/// @return {bool}
-
-@function col($colour:random-colour(), $opacity:1) {
-  @return colour($colour, $opacity);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Get Colour Value                                           #get-colour-value
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Cast a stringified number / stringified percentage into number type
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @param {string} $string - string
-///
-/// @return {number} - unitless number or percentage
-///
-/// @require {function} to-number
-
-@function get-colour-value($string) {
-  $first: str-slice($string, 1, 1);
-
-  @if $first == '.' {
-    $string: '0' + $string;
-  }
-
-  $last: str-slice($string, -1, -1);
-
-  @return if($last == '%', to-number(str-slice($string, 1, -2), 2) * 1%, to-number($string));
-}
-
-/// Get Color Value =========================================== #get-color-value
-///
-/// @alias get-colour-value
-///
-/// @access public
-///
-/// @group helpers-colours
-///
-/// @require {function} get-colour-value
-///
-/// @return {colour}
-
-@function get-color-value($string) {
-  @return get-colour-value($string);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Get Variable Colour Value                         #get-variable-colour-value
-////////////////////////////////////////////////////////////////////////////////
-///
-/// @access public
-///
-/// @group helpers-colours
-///
-/// @require {function} get-variable-colour-value
-///
-/// @return {colour}
-
-@function get-variable-colour-value($colour, $opacity:1) {
-
-  @if not is-colour($colour) and variable-exists(variables) {
-
-    $value : map-get($variables, get-var-variable($colour));
-
-    @if not is-null($value) {
-
-      @if is-list($value) {
-        $red:   nth($value, 1);
-        $green: nth($value, 2);
-        $blue:  nth($value, 3);
-        $value : rgba($red, $green, $blue, $opacity);
-      }
-
-      $colour : $value;
-    }
-
-  }
-
-  @return $colour;
-
-}
-
-///  Get Variable Color Value ======================== #get-variable-color-value
-///
-/// @alias get-variable-colour-value
-///
-/// @access public
-///
-/// @group helpers-colours
-///
-/// @require {function} get-variable-colour-value
-///
-/// @return {colour}
-
-@function get-variable-color-value($colour, $opacity:1) {
-  @return get-variable-colour-value($colour, $opacity);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Gradient Properties                                     #gradient-properties
-////////////////////////////////////////////////////////////////////////////////
-///
-// Add each argument into a single comma delimited list
-///
-/// @group helpers-colours
-///
-
-@function gradient-properties($args...) {
-  $properties : ();
-
-  $args: if(length($args) > 0, $args, null);
-
-  @for $i from 1 through length($args) {
-    $properties : append($properties, nth($args, $i), comma);
-  }
-
-  @return $properties;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Hash Fix                                                           #hash-fix
-////////////////////////////////////////////////////////////////////////////////
-///
-/// For reasons specific to Firefox (currently version 45),
-/// SVG's require all hash symbols to be replaced with '%23'. This includes hex
-/// colours and <use> xlinks This function will find and replace that hash
-/// symbol with the appropriate new string (which also works in other browsers)
-///
-/// @author Mark Notton
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @link http://stackoverflow.com/questions/28588050/how-to-use-a-hex-value-for-svg-in-firefox#answer-28588194
-///
-/// @return {string} - Without "#" as the first character
-
-@function hash-fix($string) {
-  @if get-var-value($string) {
-    @return str-replace(to-string(get-var-value($string)), '#', '%23');
-  } @else {
-    @return if(is-first-character($string, '#'), str-replace(#{$string}, '#', '%23'), $string);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Hexadecimal to Decimal                                           #hex-to-dec
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Convert an hexadecimal number to a decimal number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @param {string} $string - string
-///
-/// @param {string} $string - hexadecimal value
-///
-/// @return {number} - decimal number
-
-@function hex-to-dec($string){
-  $hex: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f";
-  $string: to-lower-case($string);
-  $length: str-length($string);
-
-  $dec: 0;
-  @for $i from 1 through $length {
-    $factor: 1 + ( 15 * ( $length - $i ));
-    $index: index($hex, str-slice($string, $i, $i));
-    $dec: $dec + $factor * ($index - 1);
-  }
-
-  @return $dec;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Hexadecimal to RGBA                                             #hex-to-rgba
-////////////////////////////////////////////////////////////////////////////////
-///
-/// @group helpers-colours
-///
-
-@function hex-to-rgba($colour, $opacity:1) {
-
-  @if is-hex($colour) {
-
-    $red:   red($colour);
-    $green: green($colour);
-    $blue:  blue($colour);
-
-    @return unquote("rgba(#{$red}, #{$green}, #{$blue}, #{$opacity})");
-
-  } @else {
-
-    @return $colour;
-
-  }
-
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Lightness                                                         #lightness
-////////////////////////////////////////////////////////////////////////////////
-///
-/// A smart calculation to what lightness is
-///
-/// @notice This could just be a variable, but for potential future minipulation I've left it as a function
-///
-/// @author David Halford
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
-///
-/// @return {number}
-
-@function lightness() {
-  @return round((red(#ffffff) * 299) + (green(#ffffff) * 587) + (blue(#ffffff) * 114) / 1000)/2;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -7116,280 +7130,313 @@ $emoji-clock1230 : "🕧";
 // Settings                                                            #settings
 ////////////////////////////////////////////////////////////////////////////////
 
-// =============================================================================
-// Options                                                              #options
-// =============================================================================
+@mixin settings() {
 
-// Show warnings
-$warnings : true !default;
+	// =============================================================================
+	// Options                                                              #options
+	// =============================================================================
 
-// Include a variety of custom-element and markup styling
-$global-styling : true !default;
+	// Show warnings
+	$warnings : true !default !global;
 
-// Default border radius
-$border-radius : 10px !default;
+	// Include a variety of custom-element and markup styling
+	$global-styling : true !default !global;
 
-// Default units
-$default-unit : px !default;
+	// Default border radius
+	$border-radius : 10px !default !global;
 
-// Default units for fonts and line-heights
-$default-font-unit : px !default;
+	// Default units
+	$default-unit : px !default !global;
 
-// Default units for timings
-$default-timing-unit : s !default;
+	// Default units for fonts and line-heights
+	$default-font-unit : px !default !global;
 
-// This only works when css variable colours are defined as an RGB list, NOT Hex colours.
-$support-css-variable-alpha-colours : false !default;
-$support-css-variable-alpha-colors : $support-css-variable-alpha-colours !default;
+	// Default units for timings
+	$default-timing-unit : s !default !global;
 
-// =============================================================================
-// Normalisers                                                        #normalise
-// =============================================================================
+	// This only works when css variable colours are defined as an RGB list, NOT Hex colours.
+	$support-css-variable-alpha-colours : false !default !global;
+	$support-css-variable-alpha-colors : $support-css-variable-alpha-colours !default !global;
 
-$normalise                   : true  !default;
-$normalise-section-elements  : true  !default;
-$normalise-header-elements   : true  !default;
-$normalise-grouping-elements : true  !default;
-$normalise-table-elements    : true  !default;
-$normalise-form-elements     : true  !default;
-$normalise-embedded-elements : true  !default;
-$normalise-text-elements     : true  !default;
-$normalise-emailers          : false !default;
+	// =============================================================================
+	// Normalisers                                                        #normalise
+	// =============================================================================
 
-// =============================================================================
-// Aspect Ratios                                                  #aspect-ratios
-// =============================================================================
+	$normalise                   : true  !default !global;
+	$normalise-section-elements  : true  !default !global;
+	$normalise-header-elements   : true  !default !global;
+	$normalise-grouping-elements : true  !default !global;
+	$normalise-table-elements    : true  !default !global;
+	$normalise-form-elements     : true  !default !global;
+	$normalise-embedded-elements : true  !default !global;
+	$normalise-text-elements     : true  !default !global;
+	$normalise-emailers          : false !default !global;
 
-$aspect-ratios : (
-  4x3   : 75%,
-  16x9  : 56.25%,
-  16x10 : 62.5%,
-) !default;
+	// =============================================================================
+	// Aspect Ratios                                                  #aspect-ratios
+	// =============================================================================
 
-// =============================================================================
-// Directories                                                      #directories
-// =============================================================================
+	$aspect-ratios : (
+	  4x3   : 75%,
+	  16x9  : 56.25%,
+	  16x10 : 62.5%,
+	) !default !global;
 
-$images  : "/assets/images/" !default;
-$sprites : "/assets/images/sprites/" !default;
-$fonts   : "/assets/fonts/" !default;
+	// =============================================================================
+	// Directories                                                      #directories
+	// =============================================================================
 
-// =============================================================================
-// Gaps                                                                    #gaps
-// =============================================================================
+	$images  : "/assets/images/"         !default !global;
+	$sprites : "/assets/images/sprites/" !default !global;
+	$fonts   : "/assets/fonts/"          !default !global;
 
-$gaps : 16 !default;
-$gap  : gap(1) !default;
-$gap0 : gap(0) !default;
-$gap1 : add-unit($gap) !default;
-$gap2 : gap(2) !default;
-$gap3 : gap(3) !default;
-$gap4 : gap(4) !default;
-$gap5 : gap(5) !default;
-$gap6 : gap(6) !default;
+	// =============================================================================
+	// Gaps                                                                    #gaps
+	// =============================================================================
 
-// =============================================================================
-// Gutters                                                              #gutters
-// =============================================================================
+	$gaps : 16     !default !global;
+	$gap  : gap(1) !default !global;
+	$gap0 : gap(0) !default !global;
+	$gap1 : add-unit($gap) !default !global;
+	$gap2 : gap(2) !default !global;
+	$gap3 : gap(3) !default !global;
+	$gap4 : gap(4) !default !global;
+	$gap5 : gap(5) !default !global;
+	$gap6 : gap(6) !default !global;
 
-$gutter-left     : $gap2 !default;
-$gutter-right    : $gap2 !default;
-$gutters         : $gutter-left + $gutter-right !default;
+	// =============================================================================
+	// Gutters                                                              #gutters
+	// =============================================================================
 
-// =============================================================================
-// Spacers                                                              #spacers
-// =============================================================================
+	$gutter-left     : $gap2 !default !global;
+	$gutter-right    : $gap2 !default !global;
+	$gutters         : add-unit($gutter-left + $gutter-right) !default !global;
 
-$spacing:            5 !default;
-$vertical-spacing:   $spacing !default;
-$horizontal-spacing: $spacing !default;
+	// =============================================================================
+	// Spacers                                                              #spacers
+	// =============================================================================
 
-// Horizontal Spacers
-$hspace:  space(1, vw, $horizontal-spacing) !default;
-$hspace1: $hspace  !default;
-$hspace0: space(0, vw, $horizontal-spacing) !default;
-$hspace2: space(2, vw, $horizontal-spacing) !default;
-$hspace3: space(3, vw, $horizontal-spacing) !default;
-$hspace4: space(4, vw, $horizontal-spacing) !default;
-$hspace5: space(5, vw, $horizontal-spacing) !default;
+	$spacing:            5 !default !global;
+	$vertical-spacing:   $spacing !default !global;
+	$horizontal-spacing: $spacing !default !global;
 
-// Vertical Spacers
-$vspace:  space(1, vh, $vertical-spacing) !default;
-$vspace1: $vspace  !default;
-$vspace0: space(0, vh, $vertical-spacing) !default;
-$vspace2: space(2, vh, $vertical-spacing) !default;
-$vspace3: space(3, vh, $vertical-spacing) !default;
-$vspace4: space(4, vh, $vertical-spacing) !default;
-$vspace5: space(5, vh, $vertical-spacing) !default;
+	// Horizontal Spacers
+	$hspace:  space(1, vw, $horizontal-spacing) !default !global;
+	$hspace1: $hspace !default !global;
+	$hspace0: space(0, vw, $horizontal-spacing) !default !global;
+	$hspace2: space(2, vw, $horizontal-spacing) !default !global;
+	$hspace3: space(3, vw, $horizontal-spacing) !default !global;
+	$hspace4: space(4, vw, $horizontal-spacing) !default !global;
+	$hspace5: space(5, vw, $horizontal-spacing) !default !global;
 
-// As this is likely to be used more often, these are aliased to the vspace variables
-$space:  $vspace !default;
-$space1: $vspace1 !default;
-$space0: $vspace0 !default;
-$space2: $vspace2 !default;
-$space3: $vspace3 !default;
-$space4: $vspace4 !default;
-$space5: $vspace5 !default;
+	// Vertical Spacers
+	$vspace:  space(1, vh, $vertical-spacing) !default !global;
+	$vspace1: $vspace !default !global;
+	$vspace0: space(0, vh, $vertical-spacing) !default !global;
+	$vspace2: space(2, vh, $vertical-spacing) !default !global;
+	$vspace3: space(3, vh, $vertical-spacing) !default !global;
+	$vspace4: space(4, vh, $vertical-spacing) !default !global;
+	$vspace5: space(5, vh, $vertical-spacing) !default !global;
 
-// =============================================================================
-// Miscellaneous
-// =============================================================================
+	// As this is likely to be used more often, these are aliased to the vspace variables
+	$space:  $vspace  !default !global;
+	$space1: $vspace1 !default !global;
+	$space0: $vspace0 !default !global;
+	$space2: $vspace2 !default !global;
+	$space3: $vspace3 !default !global;
+	$space4: $vspace4 !default !global;
+	$space5: $vspace5 !default !global;
 
-// Shorthand for !important (for the lazy)
-$imp : !important;
+	// =============================================================================
+	// Miscellaneous
+	// =============================================================================
 
-// =============================================================================
-// Media Quries & Breakpoints                                     #media-queries
-// =============================================================================
+	// Shorthand for !important (for the lazy)
+	$imp : !important !default !global;
 
-$mobile-first:  false !default;
+	// =============================================================================
+	// Media Quries & Breakpoints                                     #media-queries
+	// =============================================================================
 
-$max:           1440px !default;
-$min:           320px  !default;
-$small:         480px  !default;
-$large:         1200px !default;
-$medium:        (($large - $small) / 2) + $small !default; // 780px
-$small-medium:  (($medium - $small) / 2) + $small !default; // 630px
+	$mobile-first:  false !default !global;
 
-$show-breakpoints : false !default;
-$show-breakpoints-selector : 'body.dev-environment' !default;
+	$max:           1440px !default !global;
+	$min:           320px  !default !global;
+	$small:         480px  !default !global;
+	$large:         1200px !default !global;
+	$medium:        (($large - $small) / 2) + $small !default !global; // 780px
+	$small-medium:  (($medium - $small) / 2) + $small !default !global; // 630px
 
-// =============================================================================
-// Notches                                                              #notches
-// =============================================================================
+	$show-breakpoints : false !default !global;
+	$show-breakpoints-selector : 'body.dev-environment' !default !global;
 
-$support-notches : false !default;
+	// =============================================================================
+	// Notches                                                              #notches
+	// =============================================================================
 
-$notches : (
-  iphoneX : 30pt 209pt,
-) !default;
+	$support-notches : false !default !global;
 
-// =============================================================================
-// Text
-// =============================================================================
+	$notches : (
+	  iphoneX : 30pt 209pt,
+	) !default !global;
 
-@if $default-font-unit == 'rem' {
-  $font-size: add-unit(1.6, $default-font-unit) !global !default;
-  $h1: add-unit(remove-unit($font-size)*2.5,                                     $default-font-unit) !global !default; // 4.0em
-  $h2: add-unit((($h1 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !global !default; // 2.8em
-  $h3: add-unit((($h2 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !global !default; // 2.2em
-  $h4: add-unit((($h3 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !global !default; // 1.9em
-  $h5: add-unit((($h4 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !global !default; // 1.75em
-  $h6: add-unit((($h5 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !global !default; // 1.675em
-} @else {
-  $font-size: add-unit(16, $default-font-unit) !global !default;
-  $h1: add-unit(ceil((remove-unit($font-size)*2.5)),                                   $default-font-unit) !global !default; // 40px
-  $h2: add-unit(ceil((($h1 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !global !default; // 28px
-  $h3: add-unit(ceil((($h2 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !global !default; // 22px
-  $h4: add-unit(ceil((($h3 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !global !default; // 19px
-  $h5: add-unit(ceil((($h4 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !global !default; // 17px
-  $h6: add-unit(ceil((($h5 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !global !default; // 16px
+	// =============================================================================
+	// Text
+	// =============================================================================
+
+	@if $default-font-unit == 'rem' {
+	  $font-size: add-unit(1.6, $default-font-unit) !default !global;
+	  $h1: add-unit(remove-unit($font-size)*2.5,                                     $default-font-unit) !default !global; // 4.0em
+	  $h2: add-unit((($h1 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !default !global; // 2.8em
+	  $h3: add-unit((($h2 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !default !global; // 2.2em
+	  $h4: add-unit((($h3 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !default !global; // 1.9em
+	  $h5: add-unit((($h4 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !default !global; // 1.75em
+	  $h6: add-unit((($h5 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !default !global; // 1.675em
+	} @else {
+	  $font-size: add-unit(16, $default-font-unit) !default !global;
+	  $h1: add-unit(ceil((remove-unit($font-size)*2.5)),                                   $default-font-unit) !default !global; // 40px
+	  $h2: add-unit(ceil((($h1 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !default !global; // 28px
+	  $h3: add-unit(ceil((($h2 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !default !global; // 22px
+	  $h4: add-unit(ceil((($h3 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !default !global; // 19px
+	  $h5: add-unit(ceil((($h4 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !default !global; // 17px
+	  $h6: add-unit(ceil((($h5 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !default !global; // 16px
+	}
+
+	// ===========================================================================
+	// Colours
+	// ===========================================================================
+
+	// Commmon
+	$red      : #97080E           !default !global;
+	$red1     : $red              !default !global;
+	$red2     : darken($red, 10)  !default !global;
+	$red3     : lighten($red, 10) !default !global;
+
+	$orange   : #DA4B0F              !default !global;
+	$orange1  : $orange              !default !global;
+	$orange2  : darken($orange, 10)  !default !global;
+	$orange3  : lighten($orange, 10) !default !global;
+
+	$yellow   : #E9B104              !default !global;
+	$yellow1  : $yellow              !default !global;
+	$yellow2  : darken($yellow, 10)  !default !global;
+	$yellow3  : lighten($yellow, 10) !default !global;
+
+	$green    : #488C13             !default !global;
+	$green1   : $green              !default !global;
+	$green2   : darken($green, 10)  !default !global;
+	$green3   : lighten($green, 10) !default !global;
+
+	$blue     : #1B55C0            !default !global;
+	$blue1    : $blue              !default !global;
+	$blue2    : darken($blue, 10)  !default !global;
+	$blue3    : lighten($blue, 10) !default !global;
+
+	$pink     : #E05D6B            !default !global;
+	$pink1    : $pink              !default !global;
+	$pink2    : darken($pink, 10)  !default !global;
+	$pink3    : lighten($pink, 10) !default !global;
+
+	$purple   : #613D5A              !default !global;
+	$purple1  : $purple              !default !global;
+	$purple2  : darken($purple, 10)  !default !global;
+	$purple3  : lighten($purple, 10) !default !global;
+
+	$grey     : #787878            !default !global;
+	$grey1    : $grey              !default !global;
+	$grey2    : darken($grey, 10)  !default !global;
+	$grey3    : lighten($grey, 10) !default !global;
+
+	$brown    : #774F38             !default !global;
+	$brown1   : $brown              !default !global;
+	$brown2   : darken($brown, 10)  !default !global;
+	$brown3   : lighten($brown, 10) !default !global;
+
+	$white    : #FFFFFF             !default !global;
+	$white1   : $white              !default !global;
+	$white2   : darken($white, 10)  !default !global;
+
+	$black    : #000000 !default !global;
+	$black1   : $black !default !global;
+	$black2   : lighten($black, 10) !default !global;
+
+
+	// Social Media
+	$facebook:    #3A5897 !default !global;
+	$twitter:     #00aced !default !global;
+	$google:      #df5146 !default !global;
+	$youtube:     #CD1F1F !default !global;
+	$linkedin:    #1D77B5 !default !global;
+	$instagram:   #E33F5E !default !global;
+	$pinterest:   #BC071D !default !global;
+	$dailymotion: #0066DC !default !global;
+	$vine:        #14B487 !default !global;
+	$snapchat:    #FCFB00 !default !global;
+	$flickr:      #EB1D82 !default !global;
+	$vimeo:       #aad450 !default !global;
+	$wordpress:   #20759A !default !global;
+	$blogger:     #F4811E !default !global;
+	$thumbler:    #36465C !default !global;
+	$reddit :     #FC4501 !default !global;
+	$ello :       #221F1F !default !global;
+
+	$social-media-colours : (
+	  facebook:   $facebook,
+	  twitter:    $twitter,
+	  google:     $google,
+	  googleplus: $google,
+	  youtube:    $youtube,
+	  linkedin:   $linkedin,
+	  instagram:  $instagram,
+	  pinterest:  $pinterest,
+	  dailymotion:$dailymotion,
+	  vine:       $vine,
+	  snapchat:   $snapchat,
+	  flickr:     $flickr,
+	  vimeo:      $vimeo,
+	  wordpress:  $wordpress,
+	  blogger:    $blogger,
+	  thumbler:   $thumbler,
+	  reddit :    $reddit ,
+	  ello :      $ello
+	) !default !global;
+
+	// Special Colours
+	$yello:       #FFCB08      !default !global;
+	$selection:   #B2D3FA      !default !global;
+	$text-colour: $black       !default !global;
+	$text:        $text-colour !default !global;
+
+	// ===========================================================================
+	// Custom Properties
+	// ===========================================================================
+
+	$breakpoints:   () !default !global;
+
+	$_custom-properties : (
+	  gap                : add-unit($gap),
+	  vertical-spacing   : add-unit($vertical-spacing, vh),
+	  horizontal-spacing : add-unit($horizontal-spacing, vw),
+	  gutters            : add-unit($gutters),
+	  gutter-left        : add-unit($gutter-left),
+	  gutter-right       : add-unit($gutter-right),
+	  border-radius      : add-unit($border-radius),
+	  font-size          : $font-size,
+	  min                : add-unit($min, px, true),
+	  small              : add-unit($small, px, true),
+	  small-medium       : add-unit($small-medium, px, true),
+	  medium             : add-unit($medium, px, true),
+	  large              : add-unit($large, px, true),
+	  max                : add-unit($max, px, true),
+	) !default !global;
+
+	@if variable-exists(custom-properties) {
+	  $custom-properties: map-merge($custom-properties, $_custom-properties) !global;
+	} @else {
+	  $custom-properties : $_custom-properties !global;
+	}
+
 }
-
-// =============================================================================
-// Colours
-// =============================================================================
-
-// Commmon
-$red      : #97080E !default;
-$red1     : $red !default;
-$red2     : darken($red, 10) !default;
-$red3     : lighten($red, 10) !default;
-
-$orange   : #DA4B0F !default;
-$orange1  : $orange !default;
-$orange2  : darken($orange, 10) !default;
-$orange3  : lighten($orange, 10) !default;
-
-$yellow   : #E9B104 !default;
-$yellow1  : $yellow !default;
-$yellow2  : darken($yellow, 10) !default;
-$yellow3  : lighten($yellow, 10) !default;
-
-$green    : #488C13 !default;
-$green1   : $green !default;
-$green2   : darken($green, 10) !default;
-$green3   : lighten($green, 10) !default;
-
-$blue     : #1B55C0 !default;
-$blue1    : $blue !default;
-$blue2    : darken($blue, 10) !default;
-$blue3    : lighten($blue, 10) !default;
-
-$pink     : #E05D6B !default;
-$pink1    : $pink !default;
-$pink2    : darken($pink, 10) !default;
-$pink3    : lighten($pink, 10) !default;
-
-$purple   : #613D5A !default;
-$purple1  : $purple !default;
-$purple2  : darken($purple, 10) !default;
-$purple3  : lighten($purple, 10) !default;
-
-$grey     : #787878 !default;
-$grey1    : $grey !default;
-$grey2    : darken($grey, 10) !default;
-$grey3    : lighten($grey, 10) !default;
-
-$brown    : #774F38 !default;
-$brown1   : $brown !default;
-$brown2   : darken($brown, 10) !default;
-$brown3   : lighten($brown, 10) !default;
-
-$white    : #FFFFFF !default;
-$white1   : $white !default;
-$white2   : darken($white, 10) !default;
-
-$black    : #000000 !default;
-$black1   : $black !default;
-$black2   : lighten($black, 10) !default;
-
-
-// Social Media
-$facebook:    #3A5897 !default;
-$twitter:     #00aced !default;
-$google:      #df5146 !default;
-$youtube:     #CD1F1F !default;
-$linkedin:    #1D77B5 !default;
-$instagram:   #E33F5E !default;
-$pinterest:   #BC071D !default;
-$dailymotion: #0066DC !default;
-$vine:        #14B487 !default;
-$snapchat:    #FCFB00 !default;
-$flickr:      #EB1D82 !default;
-$vimeo:       #aad450 !default;
-$wordpress:   #20759A !default;
-$blogger:     #F4811E !default;
-$thumbler:    #36465C !default;
-$reddit :     #FC4501 !default;
-$ello :       #221F1F !default;
-
-$social-media-colours : (
-  facebook:   $facebook,
-  twitter:    $twitter,
-  google:     $google,
-  googleplus: $google,
-  youtube:    $youtube,
-  linkedin:   $linkedin,
-  instagram:  $instagram,
-  pinterest:  $pinterest,
-  dailymotion:$dailymotion,
-  vine:       $vine,
-  snapchat:   $snapchat,
-  flickr:     $flickr,
-  vimeo:      $vimeo,
-  wordpress:  $wordpress,
-  blogger:    $blogger,
-  thumbler:   $thumbler,
-  reddit :    $reddit ,
-  ello :      $ello
-) !default;
-
-// Special Colours
-$yello:       #FFCB08      !default;
-$selection:   #B2D3FA      !default;
-$text-colour: $black       !default;
-$text:        $text-colour !default;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Properties                                                       #properties
@@ -7467,34 +7514,6 @@ $ease-in-out-expo  : cubic-bezier(1.000, 0.000, 0.000, 1.000);
 $ease-in-out-circ  : cubic-bezier(0.785, 0.135, 0.150, 0.860);
 $ease-in-out-back  : cubic-bezier(0.680, -0.550, 0.265, 1.550);
 
-/// ============================================================================
-/// Misc
-/// ============================================================================
-
-$breakpoints:   () !default;
-
-$_custom-properties : (
-  gap                : add-unit($gap),
-  vertical-spacing   : add-unit($vertical-spacing, vh),
-  horizontal-spacing : add-unit($horizontal-spacing, vw),
-  gutters-left       : add-unit($gutter-left),
-  gutters-right      : add-unit($gutter-right),
-  border-radius      : add-unit($border-radius),
-  font-size          : $font-size,
-  min                : add-unit($min, px, true),
-  small              : add-unit($small, px, true),
-  small-medium       : add-unit($small-medium, px, true),
-  medium             : add-unit($medium, px, true),
-  large              : add-unit($large, px, true),
-  max                : add-unit($max, px, true),
-);
-
-@if variable-exists(custom-properties) {
-  $custom-properties: map-merge($custom-properties, $_custom-properties) !global;
-} @else {
-  $custom-properties : $_custom-properties !global;
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // Placeholders                                                    #placeholders
 ////////////////////////////////////////////////////////////////////////////////
@@ -7568,85 +7587,6 @@ $_custom-properties : (
   text-indent:0; overflow:visible; white-space:normal; user-select:all;
 }
 
-/// Random colour.
-///
-/// @author Pankaj Parashar
-///
-/// @access public
-///
-/// @author https://pankajparashar.com/posts/random-colors-sass/
-///
-/// @param {number} $opacity - Amend the opacity of the colour that is returned. Default is 1
-///
-/// @example scss - Usage
-///   random-colour(0.5);
-///
-/// @example css - Output
-///   rgba(38, 153, 180, 0.5);
-///
-/// @return {color}
-
-@function random-colour($opacity:1) {
-  @return rgba(random(256) - 1, random(256) - 1, random(256) - 1, $opacity);
-}
-
-
-/// @alias random-colour
-///
-/// @access public
-///
-/// @require {function} random-colour
-///
-/// @return {color}
-
-@function random-color($opacity:0.3) {
-  @return random-colour($opacity);
-}
-
-
-/// @alias random-colour
-///
-/// @access public
-///
-/// @require {function} random-colour
-///
-/// @return {color}
-
-@function rc($opacity:0.3) {
-  @return random-colour($opacity);
-}
-
-
-/// Random colours on a range of elements. Ideal for developers wanting to visually see elements quickly
-///
-/// @author Mark Notton
-///
-/// @access public
-///
-/// @param {number} $amount - How many items are there. Default is 10
-///
-/// @param {string} $target - Add any child elements you want to target
-///
-/// @param {number} $opacity - The opacity strength. Default is 0.5
-///
-/// @example scss - Usage
-///   li { random-colours(5, '.link'); }
-///
-/// @example css - Output
-///   li:nth-child(1) .link { background-color: rgba(166, 213, 186, 0.5); }
-///   li:nth-child(2) .link { background-color: rgba(118, 134, 177, 0.5); }
-///   li:nth-child(3) .link { background-color: rgba(223, 47, 35, 0.5); }
-///   li:nth-child(4) .link { background-color: rgba(175, 255, 1, 0.5); }
-///   li:nth-child(5) .link { background-color: rgba(100, 108, 80, 0.5); }
-///
-/// @return {*}
-
-@mixin random-colours($amount:10, $target:null, $opacity:0.5) {
-  @for $i from 1 through $amount {
-    &:nth-child(#{$i}) #{$target} { background-color:random-colour($opacity); }
-  }
-}
-
 @mixin animation-jump($amount:10, $animation-name:jump) {
   @include keyframes(#{$animation-name}) {  
     0% { top:0 } 
@@ -7671,6 +7611,497 @@ $_custom-properties : (
     100% { left:0 } 
   }
 }
+// Add a breakpoint to a global map, which can be called on using the 'breaks' function
+@mixin add-breakpoint($args...) {
+
+  @for $i from 1 through length($args) {
+
+    $name : null;
+    $size : null;
+
+    $arg: nth($args, $i);
+
+    @each $rule in $arg {
+      @if type-of($rule) == string {
+        $name : $rule;
+      }
+      @if type-of($rule) == number {
+        $size : remove-unit($rule);
+      }
+    }
+
+    $name : if($name == null and type-of($size) == number, #{$size}, $name);
+
+    @if $name and $size {
+      $breakpoints : map-set($breakpoints, $name, $size) !global;
+    }
+  }
+  @at-root body { @include set-breakpoints(); }
+}
+
+// Breakpoint bewtween two points
+@mixin break-between($min, $max, $property:width) {
+  @media only screen and (min-#{$property}:add-unit($min)) and (max-#{$property}: add-unit($max)) {
+    @content;
+  }
+}
+@mixin breakpoint($args) {
+
+  @if (is-null($args)) {
+    @content;
+  } @else {
+    $width : null;
+    $condition : if($mobile-first, min-width, max-width);
+
+    @each $rule in $args {
+      @if is_number($rule) {
+        $width : add-unit($rule);
+      }
+      @if is_string($rule) {
+        @if $rule == 'min' or $rule == '>' {
+          $rule : 'min-width';
+        } @else if $rule == 'max' or $rule == '<' {
+          $rule : 'max-width';
+          $width : $width - 1;
+        }
+        $condition : $rule;
+      }
+    }
+
+    // @if not contains($breakpoints, $width) {
+    //   @include add-breakpoint($width);
+    // }
+    // TODO: Add one for min, minus one for max
+
+    @media (#{$condition}:add-unit($width)) {
+      @content;
+    }
+  }
+}
+
+@mixin break($args...) {
+  @include breakpoint($args) { @content };
+}
+
+@mixin break-in($breakpoint) {
+
+  @if is-breakpoint($breakpoint) {
+    $breakpoint : get-breakpoint($breakpoint);
+  }
+
+  @media (max-width:add-unit($breakpoint)) {
+    @content;
+  }
+}
+
+@mixin break-out($breakpoint) {
+
+  @if is-breakpoint($breakpoint) {
+    $breakpoint : get-breakpoint($breakpoint);
+  }
+
+  @media (min-width:add-unit($breakpoint)) {
+    @content;
+  }
+}
+
+// Get breakpoint from the breakpoint list, either by it's number or name
+@function get-breakpoint($break) {
+  @if is-string($break) and map-has-key($breakpoints, $break) {
+    // If a string is passed and exists in the breakpoints map as a key, return the value
+    @return map-get($breakpoints, $break);
+  } @elseif is-number($break) {
+    $number : remove-unit($break);
+    // If a number is passed and it exists in the breakpoints map, return the key
+    @if contains(map-values($breakpoints), $number) {
+      $list : null;
+      $nth : 1;
+      @each $break in map-values($breakpoints) {
+        $nth : $nth + 1;
+        @if $break == $number {
+          $list : add(nth(map-keys($breakpoints),$nth), $list);
+        }
+      }
+      @if length($list) == 1 {
+        @return nth($list, 1);
+      } @else {
+        @return $list;
+      }
+    } @else {
+      // @include warning($number + ' is not a breakpoint');
+      @return false;
+    }
+  }
+}
+
+@mixin hide-at($break) {
+  @include break($break) {
+    display:none;
+    & { @content; }
+  }
+}
+
+// Check if a breakpoint exists by it's number or name.
+@function is-breakpoint($break) {
+  // If the number is a string and exists as a key in the breakpoints map, return true
+  @if is-string($break) and map-has-key($breakpoints, $break) {
+    @return true;
+  } @else {
+    // Or if the number exists as a value anywhere in the breakpoints map, also return true
+    $number : remove-unit($break);
+    @if contains(map-values($breakpoints), $number) {
+      @return true;
+    } @else {
+      @return false;
+    }
+  }
+}
+
+// Set breakpoints for use with custom properties
+@mixin set-breakpoints($breaks:$breakpoints) {
+  $new-breakpoints : ();
+  @each $break, $value in $breakpoints {
+    $new-breakpoints : map-set( $new-breakpoints, #{breakpoint-}#{$break}, $value);
+  }
+  @include custom-property($new-breakpoints);
+}
+
+@mixin show-at($break) {
+  @include break($break) {
+    display:block;
+    & { @content; }
+  }
+}
+
+@mixin show-breakpoints($sudo : before) {
+  #{$show-breakpoints-selector}:#{$sudo} {
+    content:"\276F  #{$max}px";
+    background-color:darken($red, 20);
+    bottom:0;
+    right:0;
+    font-family:Arial;
+    padding:4px $gap0;
+    @include ani(background-color color);
+    pointer-events:none;
+    position:fixed;
+    z-index:9999;
+    font-size:12px;
+    line-height:16px;
+    color:white;
+    text-align:center;
+    @each $name, $value in $breakpoints {
+      $random-color: random-colour();
+      @include break($value) {
+        content:"#{$name} #{$value}px";
+        background-color:$random-color;
+        color:colour-contrast($random-color);
+      }
+    }
+  }
+}
+
+//
+// Pass in a Map or List
+//
+// Lists should consist of element types, either by element, class or id (class and id's should be quoted strings)
+// @include grid-areas( nav, header, main, quick-links, blockquote, article, footer );
+
+// Maps keys should be the elements, class or id. Values should be the desired grid-area name
+// @include grid-areas((
+//   nav : '',
+//   header : header,
+//   main : main,
+//   quick-links: quick-links,
+//   blockquote : blockquote,
+//   article : article,
+//   footer : footer,
+// ));
+
+@mixin grid-areas($settings...) {
+
+  $elements : ();
+
+  @if (length($settings) > 1 and is-list( arglist-to-list($settings))) {
+    @each $element in $settings {
+      $elements : append($elements, $element, comma);
+      $area : str-replace($element, '.');
+      $area : str-replace($element, '#');
+      #{$element} { grid-area:unquote($area); }
+    }
+  } @elseif is-map($settings) {
+    @each $element, $area in $settings {
+      $elements : append($elements, $element, comma);
+      $area : if(is-empty($area), $element, $area);
+      #{$element} { grid-area:unquote($area); }
+    }
+  }
+
+  // @if content-exists() {
+  //   #{$elements} {
+  //     @content;
+  //   }
+  // }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Grid Layouts                                                   #grid-layouts
+////////////////////////////////////////////////////////////////////////////////
+
+// =============================================================================
+// 2x Blocks
+// =============================================================================
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+$grid-template-2-blocks-1x2: "block1 block2";
+
+// =============================================================================
+// 3x Blocks
+// =============================================================================
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘└───┘└───┘
+$grid-template-3-blocks-1x3: "block1 block2 block3";
+
+// -----------------------------------------------------------------------------
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+// ┍────────────┐
+// │  3         │
+// └────────────┘
+$grid-template-3-blocks-1x2-3x3: "block1 block2" "block3 block3";
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  3  │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x2-1x3: "block1 block2" "block1 block3";
+
+// ┍────────────┐
+// │  1         │
+// └────────────┘
+// ┍─────┐┍─────┐
+// │  2  ││  3  │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x1-2x3: "block1 block1" "block2 block3";
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  3  ││     │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x2-3x2: "block1 block2" "block3 block2";
+
+// =============================================================================
+// 4x Blocks
+// =============================================================================
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+// ┍─────┐┍─────┐
+// │  3  ││  4  │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-3x4: "block1 block2" "block3 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  3  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  4  │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-1x3-1x4: "block1 block2" "block1 block3" "block1 block4";
+
+// ┍─────────────┐
+// │ 1           │
+// └─────────────┘
+// ┍───┐┍───┐┍───┐
+// │ 2 ││ 3 ││ 4 │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x1x1-2x3x4: "block1 block1 block1" "block2 block3 block4";
+
+// ┍─────┐┍─────┐
+// │  1  ││  4  │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  2  ││     │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  3  ││     │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-2x4-3x4: "block1 block2" "block2 block4" "block3 block4";
+
+// 270 Degrees
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘└───┘└───┘
+// ┍─────────────┐
+// │ 4           │
+// └─────────────┘
+$grid-template-4-blocks-1x2x3-4x4x4: "block1 block2 block3" "block4 block4 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   │└───┘│   │
+// │   │┍───┐│   │
+// │   ││ 4 ││   │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-1x3x3: "block1 block2 block3" "block1 block3 block3";
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// | 1  || 2  |
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x1-2x3-4x4: "block1 block1" "block2 block3" "block4 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍──────────┐
+// | 2        |
+// └──────────┘
+// ┍────┐┍────┐
+// | 3  || 4  |
+// └────┘└────┘
+$grid-template-4-blocks-1x1-2x2-3x4: "block1 block1" "block2 block2" "block3 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘│   ││   │
+// ┍───┐│   ││   │
+// │ 4 ││   ││   │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-4x2x3: "block1 block2 block3" "block4 block2 block3";
+
+// ┍────┐┍────┐
+// | 1  || 2  |
+// └────┘└────┘
+// ┍──────────┐
+// | 3        |
+// └──────────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-3x3-4x4: "block1 block2" "block3 block3" "block4 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   ││   │└───┘
+// │   ││   │┍───┐
+// │   ││   ││ 4 │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-1x2x4: "block1 block2 block3" "block1 block2 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// │ 3  ││  2 │
+// └────┘│    │
+// ┍────┐│    │
+// │ 4  ││    │
+// └────┘└────┘
+$grid-template-4-blocks-1x1-3x2-4x2: "block1 block1" "block3 block2" "block4 block2";
+
+// ┍────┐┍────┐┍────┐
+// │ 1  ││ 2  ││ 3  │
+// └────┘└────┘│    │
+// ┍──────────┐│    |
+// │ 4        ││    │
+// └──────────┘└────┘
+$grid-template-4-blocks-1x2x3-4x4x3: "block1 block2 block3" "block4 block4 block3";
+
+// ┍────┐┍────┐
+// │ 1  ││ 2  │
+// │    │└────┘
+// │    │┍────┐
+// │    ││ 3  │
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-1x3-4x4: "block1 block2" "block1 block3" "block4 block4";
+
+// ┍────┐┍──────────┐
+// │ 1  ││ 2        │
+// │    │└──────────┘
+// │    │┍────┐┍────┐
+// │    ││ 3  ││ 4  │
+// └────┘└────┘└────┘
+$grid-template-4-blocks-1x2x2-1x3x4: "block1 block2 block2" "block1 block3 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// │ 2  ││ 3  │
+// │    │└────┘
+// │    │┍────┐
+// │    ││ 4  │
+// └────┘└────┘
+$grid-template-4-blocks-1x1-2x3-2x4: "block1 block1" "block2 block3" "block2 block4";
+
+// ┍──────────┐┍────┐
+// │ 1        ││ 4  │
+// └──────────┘│    │
+// ┍────┐┍────┐│    │
+// │ 2  ││ 3  ││    │
+// └────┘└────┘└────┘
+$grid-template-4-blocks-1x1x4-2x3x4: "block1 block1 block4" "block2 block3 block4";
+
+// ┍────┐┍────┐
+// │ 1  ││ 2  │
+// └────┘│    │
+// ┍────┐│    │
+// │ 3  ││    │
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-3x2-4x4: "block1 block2" "block3 block2" "block4 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   │└───┘└───┘
+// │   |┍────────┐
+// │   ││ 4      |
+// └───┘└────────┘
+$grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block4";
+
+// =============================================================================
+// 5x Blocks
+// =============================================================================
+
+// If you want to split a column up using the repeat function, you may want to devide the min and max values by the amount of columns;
+@function grid-repeat($amount, $min:$small, $max:$max) {
+  @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
+}
+
 // Documentation: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
 
 // Container properties
@@ -7728,7 +8159,6 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
 ///   Unless this paramater is set to 'false'
 ///
 /// @require {mixin}    contains
-/// @require {mixin}    prefixer
 /// @require {function} merge
 /// @require {function} _smart_flex-container
 /// @require {function} arglist-to-list
@@ -7816,7 +8246,7 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
   // $settings : get-settings($defaults, $args...);
   $settings : get-settings($defaults, (debug:true), $args...);
 
-  
+
 
 }
 
@@ -8326,7 +8756,6 @@ $flex-align-self   : auto flex-start flex-end start end center baseline stretch;
 ///
 ///
 /// @require {Mixin}    contains
-/// @require {Mixin}    prefixer
 /// @require {Function} merge
 /// @require {Variable} flex-item-aliases
 /// @require {Variable} flex-item
@@ -8490,497 +8919,6 @@ $flex-align-self   : auto flex-start flex-end start end center baseline stretch;
 
 }
 
-//
-// Pass in a Map or List
-//
-// Lists should consist of element types, either by element, class or id (class and id's should be quoted strings)
-// @include grid-areas( nav, header, main, quick-links, blockquote, article, footer );
-
-// Maps keys should be the elements, class or id. Values should be the desired grid-area name
-// @include grid-areas((
-//   nav : '',
-//   header : header,
-//   main : main,
-//   quick-links: quick-links,
-//   blockquote : blockquote,
-//   article : article,
-//   footer : footer,
-// ));
-
-@mixin grid-areas($settings...) {
-
-  $elements : ();
-
-  @if (length($settings) > 1 and is-list( arglist-to-list($settings))) {
-    @each $element in $settings {
-      $elements : append($elements, $element, comma);
-      $area : str-replace($element, '.');
-      $area : str-replace($element, '#');
-      #{$element} { grid-area:unquote($area); }
-    }
-  } @elseif is-map($settings) {
-    @each $element, $area in $settings {
-      $elements : append($elements, $element, comma);
-      $area : if(is-empty($area), $element, $area);
-      #{$element} { grid-area:unquote($area); }
-    }
-  }
-
-  // @if content-exists() {
-  //   #{$elements} {
-  //     @content;
-  //   }
-  // }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Grid Layouts                                                   #grid-layouts
-////////////////////////////////////////////////////////////////////////////////
-
-// =============================================================================
-// 2x Blocks
-// =============================================================================
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-$grid-template-2-blocks-1x2: "block1 block2";
-
-// =============================================================================
-// 3x Blocks
-// =============================================================================
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘└───┘└───┘
-$grid-template-3-blocks-1x3: "block1 block2 block3";
-
-// -----------------------------------------------------------------------------
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-// ┍────────────┐
-// │  3         │
-// └────────────┘
-$grid-template-3-blocks-1x2-3x3: "block1 block2" "block3 block3";
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  3  │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x2-1x3: "block1 block2" "block1 block3";
-
-// ┍────────────┐
-// │  1         │
-// └────────────┘
-// ┍─────┐┍─────┐
-// │  2  ││  3  │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x1-2x3: "block1 block1" "block2 block3";
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  3  ││     │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x2-3x2: "block1 block2" "block3 block2";
-
-// =============================================================================
-// 4x Blocks
-// =============================================================================
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-// ┍─────┐┍─────┐
-// │  3  ││  4  │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-3x4: "block1 block2" "block3 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  3  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  4  │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-1x3-1x4: "block1 block2" "block1 block3" "block1 block4";
-
-// ┍─────────────┐
-// │ 1           │
-// └─────────────┘
-// ┍───┐┍───┐┍───┐
-// │ 2 ││ 3 ││ 4 │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x1x1-2x3x4: "block1 block1 block1" "block2 block3 block4";
-
-// ┍─────┐┍─────┐
-// │  1  ││  4  │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  2  ││     │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  3  ││     │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-2x4-3x4: "block1 block2" "block2 block4" "block3 block4";
-
-// 270 Degrees
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘└───┘└───┘
-// ┍─────────────┐
-// │ 4           │
-// └─────────────┘
-$grid-template-4-blocks-1x2x3-4x4x4: "block1 block2 block3" "block4 block4 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   │└───┘│   │
-// │   │┍───┐│   │
-// │   ││ 4 ││   │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-1x3x3: "block1 block2 block3" "block1 block3 block3";
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// | 1  || 2  |
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x1-2x3-4x4: "block1 block1" "block2 block3" "block4 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍──────────┐
-// | 2        |
-// └──────────┘
-// ┍────┐┍────┐
-// | 3  || 4  |
-// └────┘└────┘
-$grid-template-4-blocks-1x1-2x2-3x4: "block1 block1" "block2 block2" "block3 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘│   ││   │
-// ┍───┐│   ││   │
-// │ 4 ││   ││   │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-4x2x3: "block1 block2 block3" "block4 block2 block3";
-
-// ┍────┐┍────┐
-// | 1  || 2  |
-// └────┘└────┘
-// ┍──────────┐
-// | 3        |
-// └──────────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-3x3-4x4: "block1 block2" "block3 block3" "block4 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   ││   │└───┘
-// │   ││   │┍───┐
-// │   ││   ││ 4 │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-1x2x4: "block1 block2 block3" "block1 block2 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// │ 3  ││  2 │
-// └────┘│    │
-// ┍────┐│    │
-// │ 4  ││    │
-// └────┘└────┘
-$grid-template-4-blocks-1x1-3x2-4x2: "block1 block1" "block3 block2" "block4 block2";
-
-// ┍────┐┍────┐┍────┐
-// │ 1  ││ 2  ││ 3  │
-// └────┘└────┘│    │
-// ┍──────────┐│    |
-// │ 4        ││    │
-// └──────────┘└────┘
-$grid-template-4-blocks-1x2x3-4x4x3: "block1 block2 block3" "block4 block4 block3";
-
-// ┍────┐┍────┐
-// │ 1  ││ 2  │
-// │    │└────┘
-// │    │┍────┐
-// │    ││ 3  │
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-1x3-4x4: "block1 block2" "block1 block3" "block4 block4";
-
-// ┍────┐┍──────────┐
-// │ 1  ││ 2        │
-// │    │└──────────┘
-// │    │┍────┐┍────┐
-// │    ││ 3  ││ 4  │
-// └────┘└────┘└────┘
-$grid-template-4-blocks-1x2x2-1x3x4: "block1 block2 block2" "block1 block3 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// │ 2  ││ 3  │
-// │    │└────┘
-// │    │┍────┐
-// │    ││ 4  │
-// └────┘└────┘
-$grid-template-4-blocks-1x1-2x3-2x4: "block1 block1" "block2 block3" "block2 block4";
-
-// ┍──────────┐┍────┐
-// │ 1        ││ 4  │
-// └──────────┘│    │
-// ┍────┐┍────┐│    │
-// │ 2  ││ 3  ││    │
-// └────┘└────┘└────┘
-$grid-template-4-blocks-1x1x4-2x3x4: "block1 block1 block4" "block2 block3 block4";
-
-// ┍────┐┍────┐
-// │ 1  ││ 2  │
-// └────┘│    │
-// ┍────┐│    │
-// │ 3  ││    │
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-3x2-4x4: "block1 block2" "block3 block2" "block4 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   │└───┘└───┘
-// │   |┍────────┐
-// │   ││ 4      |
-// └───┘└────────┘
-$grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block4";
-
-// =============================================================================
-// 5x Blocks
-// =============================================================================
-
-// If you want to split a column up using the repeat function, you may want to devide the min and max values by the amount of columns;
-@function grid-repeat($amount, $min:$small, $max:$max) {
-  @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
-}
-
-// Add a breakpoint to a global map, which can be called on using the 'breaks' function
-@mixin add-breakpoint($args...) {
-
-  @for $i from 1 through length($args) {
-
-    $name : null;
-    $size : null;
-
-    $arg: nth($args, $i);
-
-    @each $rule in $arg {
-      @if type-of($rule) == string {
-        $name : $rule;
-      }
-      @if type-of($rule) == number {
-        $size : remove-unit($rule);
-      }
-    }
-
-    $name : if($name == null and type-of($size) == number, #{$size}, $name);
-
-    @if $name and $size {
-      $breakpoints : map-set($breakpoints, $name, $size) !global;
-    }
-  }
-  @at-root body { @include set-breakpoints(); }
-}
-
-// Breakpoint bewtween two points
-@mixin break-between($min, $max, $property:width) {
-  @media only screen and (min-#{$property}:add-unit($min)) and (max-#{$property}: add-unit($max)) {
-    @content;
-  }
-}
-@mixin breakpoint($args) {
-
-  @if (is-null($args)) {
-    @content;
-  } @else {
-    $width : null;
-    $condition : if($mobile-first, min-width, max-width);
-
-    @each $rule in $args {
-      @if is_number($rule) {
-        $width : add-unit($rule);
-      }
-      @if is_string($rule) {
-        @if $rule == 'min' or $rule == '>' {
-          $rule : 'min-width';
-        } @else if $rule == 'max' or $rule == '<' {
-          $rule : 'max-width';
-          $width : $width - 1;
-        }
-        $condition : $rule;
-      }
-    }
-
-    // @if not contains($breakpoints, $width) {
-    //   @include add-breakpoint($width);
-    // }
-    // TODO: Add one for min, minus one for max
-
-    @media (#{$condition}:add-unit($width)) {
-      @content;
-    }
-  }
-}
-
-@mixin break($args...) {
-  @include breakpoint($args) { @content };
-}
-
-@mixin break-in($breakpoint) {
-
-  @if is-breakpoint($breakpoint) {
-    $breakpoint : get-breakpoint($breakpoint);
-  }
-
-  @media (max-width:add-unit($breakpoint)) {
-    @content;
-  }
-}
-
-@mixin break-out($breakpoint) {
-
-  @if is-breakpoint($breakpoint) {
-    $breakpoint : get-breakpoint($breakpoint);
-  }
-
-  @media (min-width:add-unit($breakpoint)) {
-    @content;
-  }
-}
-
-// Get breakpoint from the breakpoint list, either by it's number or name
-@function get-breakpoint($break) {
-  @if is-string($break) and map-has-key($breakpoints, $break) {
-    // If a string is passed and exists in the breakpoints map as a key, return the value
-    @return map-get($breakpoints, $break);
-  } @elseif is-number($break) {
-    $number : remove-unit($break);
-    // If a number is passed and it exists in the breakpoints map, return the key
-    @if contains(map-values($breakpoints), $number) {
-      $list : null;
-      $nth : 1;
-      @each $break in map-values($breakpoints) {
-        $nth : $nth + 1;
-        @if $break == $number {
-          $list : add(nth(map-keys($breakpoints),$nth), $list);
-        }
-      }
-      @if length($list) == 1 {
-        @return nth($list, 1);
-      } @else {
-        @return $list;
-      }
-    } @else {
-      // @include warning($number + ' is not a breakpoint');
-      @return false;
-    }
-  }
-}
-
-@mixin hide-at($break) {
-  @include break($break) {
-    display:none;
-    & { @content; }
-  }
-}
-
-// Check if a breakpoint exists by it's number or name.
-@function is-breakpoint($break) {
-  // If the number is a string and exists as a key in the breakpoints map, return true
-  @if is-string($break) and map-has-key($breakpoints, $break) {
-    @return true;
-  } @else {
-    // Or if the number exists as a value anywhere in the breakpoints map, also return true
-    $number : remove-unit($break);
-    @if contains(map-values($breakpoints), $number) {
-      @return true;
-    } @else {
-      @return false;
-    }
-  }
-}
-
-// Set breakpoints for use with custom properties
-@mixin set-breakpoints($breaks:$breakpoints) {
-  $new-breakpoints : ();
-  @each $break, $value in $breakpoints {
-    $new-breakpoints : map-set( $new-breakpoints, #{breakpoint-}#{$break}, $value);
-  }
-  @include custom-property($new-breakpoints);
-}
-
-@mixin show-at($break) {
-  @include break($break) {
-    display:block;
-    & { @content; }
-  }
-}
-
-@mixin show-breakpoints($sudo : before) {
-  #{$show-breakpoints-selector}:#{$sudo} {
-    content:"\276F  #{$max}px";
-    background-color:darken($red, 20);
-    bottom:0;
-    right:0;
-    font-family:Arial;
-    padding:4px $gap0;
-    @include ani(background-color color);
-    pointer-events:none;
-    position:fixed;
-    z-index:9999;
-    font-size:12px;
-    line-height:16px;
-    color:white;
-    text-align:center;
-    @each $name, $value in $breakpoints {
-      $random-color: random-colour();
-      @include break($value) {
-        content:"#{$name} #{$value}px";
-        background-color:$random-color;
-        color:colour-contrast($random-color);
-      }
-    }
-  }
-}
-
 @mixin center($horizontal: true, $vertical: true) {
   position: absolute;
   @if ($horizontal and $vertical) {
@@ -9047,34 +8985,31 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
 
 }
 
-@mixin set-variables() {
-  @if variable-exists(variables) and not is-null($variables) {
+@mixin set-custom-properties($variables : $custom-properties) {
 
-    $temp : $variables;
+  $temp : $variables;
 
-    @if ($support-css-variable-alpha-colours == true) {
-      @each $variable, $value in $variables {
-        @if is-colour($value) {
-          @if is-hex($value) {
-            $temp : map-set($temp, $variable, (red($value), green($value), blue($value)));
-          } @else {
-            $temp : map-set($temp, $variable, hex-to-rgba($value));
-          }
+
+  @if ($support-css-variable-alpha-colours == true) {
+    @each $variable, $value in $variables {
+      @if is-colour($value) {
+        @if is-hex($value) {
+          $temp : map-set($temp, $variable, (red($value), green($value), blue($value)));
+        } @else {
+          $temp : map-set($temp, $variable, hex-to-rgba($value));
         }
       }
     }
+  }
 
-    $variables : $temp !global;
-
-    @at-root :root {
-      @each $variable, $value in $variables {
-        #{'--' + string-replace($variable, '--')}: $value;
-      }
+  @at-root :root {
+    @each $variable, $value in $variables {
+      #{'--' + string-replace($variable, '--')}: $value;
     }
   }
 }
 
-@mixin set-variable($variable, $value) {
+@mixin set-custom-property($variable, $value) {
   @at-root :root {
     #{'--' + string-replace($variable, '--')}: $value;
   }
@@ -9111,6 +9046,85 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
   }
 
 
+}
+
+/// Random colour.
+///
+/// @author Pankaj Parashar
+///
+/// @access public
+///
+/// @author https://pankajparashar.com/posts/random-colors-sass/
+///
+/// @param {number} $opacity - Amend the opacity of the colour that is returned. Default is 1
+///
+/// @example scss - Usage
+///   random-colour(0.5);
+///
+/// @example css - Output
+///   rgba(38, 153, 180, 0.5);
+///
+/// @return {color}
+
+@function random-colour($opacity:1) {
+  @return rgba(random(256) - 1, random(256) - 1, random(256) - 1, $opacity);
+}
+
+
+/// @alias random-colour
+///
+/// @access public
+///
+/// @require {function} random-colour
+///
+/// @return {color}
+
+@function random-color($opacity:0.3) {
+  @return random-colour($opacity);
+}
+
+
+/// @alias random-colour
+///
+/// @access public
+///
+/// @require {function} random-colour
+///
+/// @return {color}
+
+@function rc($opacity:0.3) {
+  @return random-colour($opacity);
+}
+
+
+/// Random colours on a range of elements. Ideal for developers wanting to visually see elements quickly
+///
+/// @author Mark Notton
+///
+/// @access public
+///
+/// @param {number} $amount - How many items are there. Default is 10
+///
+/// @param {string} $target - Add any child elements you want to target
+///
+/// @param {number} $opacity - The opacity strength. Default is 0.5
+///
+/// @example scss - Usage
+///   li { random-colours(5, '.link'); }
+///
+/// @example css - Output
+///   li:nth-child(1) .link { background-color: rgba(166, 213, 186, 0.5); }
+///   li:nth-child(2) .link { background-color: rgba(118, 134, 177, 0.5); }
+///   li:nth-child(3) .link { background-color: rgba(223, 47, 35, 0.5); }
+///   li:nth-child(4) .link { background-color: rgba(175, 255, 1, 0.5); }
+///   li:nth-child(5) .link { background-color: rgba(100, 108, 80, 0.5); }
+///
+/// @return {*}
+
+@mixin random-colours($amount:10, $target:null, $opacity:0.5) {
+  @for $i from 1 through $amount {
+    &:nth-child(#{$i}) #{$target} { background-color:random-colour($opacity); }
+  }
 }
 
 /// Generates a clean url attribute for compressed or uncompressed svg data
@@ -9403,7 +9417,6 @@ $devices : mobile tablet desktop;
 ///   [state](null)        - pause/play the animation.
 ///
 /// @require {Mixin} contains
-/// @require {Mixin} prefixer
 /// @require {Function} is-string
 /// @require {Function} is-number
 /// @require {Function} is-null
@@ -9522,7 +9535,7 @@ $devices : mobile tablet desktop;
 	@include keyframes($unique-name) { @content; }
 
   @if ( not is-null($animations)) {
-    @include prefixer(animation, $animations);
+    animation : $animations;
   }
 
 }
@@ -9536,15 +9549,15 @@ $devices : mobile tablet desktop;
 	@each $time in $times {
 		$times-list: append( $times-list, add-unit($time, s), comma);
 	}
-  @include prefixer(animation-delay, $times-list, webkit);
+  animation-delay : $times-list;
 }
 
 @mixin animation-timing-function($ease) {
-	@include prefixer(animation-timing-function, $ease, webkit);
+	animation-timing-function : $ease;
 }
 
 @mixin animation-state($state:pause) {
-  @include prefixer(animation-play-state, $state, webkit);
+  animation-play-state : $state;
 }
 
 @mixin animation-ease($ease) {
@@ -9606,7 +9619,6 @@ $devices : mobile tablet desktop;
 ///
 /// @require {Mixin} contains
 /// @require {Mixin} prepend
-/// @require {Mixin} prefixer
 /// @require {Variables} eases - optional
 ///
 /// @example scss - Usage
@@ -9739,11 +9751,8 @@ $devices : mobile tablet desktop;
 
 }
 
-/// @alias transition
-@mixin ani($settings...) { @include transition($settings...); }
-
 @mixin transition-timing-function($ease:ease-in-out) {
-  @include prefixer(transition-timing-function, $ease, webkit);
+  transition-timing-function : $ease;
 }
 
 @mixin transition-easing($ease:ease-in-out) {
@@ -10281,32 +10290,32 @@ $triangle-settings: (
 }
 
 /// 10px on each corner. Call also use the string "all"
-/// @include border-radius(10) 
-/// @include border-radius(all 10) 
+/// @include border-radius(10)
+/// @include border-radius(all 10)
 
 /// 10 top left, 20 top right, 0 bottom right, 0 bottom left
-/// @include border-radius(10 20) 
+/// @include border-radius(10 20)
 
 /// 10 top left, 20 top right, 30 bottom right, 0 bottom left
-/// @include border-radius(10 20 30) 
+/// @include border-radius(10 20 30)
 
 /// 10 top left, 20 top right, 30 bottom right, 40 bottom left
-/// @include border-radius(10 20 30 40) 
+/// @include border-radius(10 20 30 40)
 
 /// 10 top left, 10 top right, 0 bottom right, 0 bottom left
-/// @include border-radius(10 top) 
+/// @include border-radius(10 top)
 
 /// 0 top left, 10 top right, 10 bottom right, 0 bottom left
-/// @include border-radius(10 right) 
+/// @include border-radius(10 right)
 
 /// 0 top left, 0 top right, 10 bottom right, 10 bottom left
-/// @include border-radius(10 bottom) 
+/// @include border-radius(10 bottom)
 
 /// 10 top left, 0 top right, 0 bottom right, 10 bottom left
-/// @include border-radius(10 left) 
+/// @include border-radius(10 left)
 
 /// 10 top left, 0 top right, 30 bottom right, 0 bottom left
-/// @include border-radius(10 top-left, 30 bottom-right) 
+/// @include border-radius(10 top-left, 30 bottom-right)
 
 @mixin border-radius($args...) {
   $corners : ();
@@ -10315,7 +10324,7 @@ $triangle-settings: (
 
   $args: if(length($args) > 0, $args, null);
 
-  @for $i from 1 through length($args) {    
+  @for $i from 1 through length($args) {
 
     @each $rad in nth($args, $i) {
       @if type-of($rad) == number and length($corners) < 4 {
@@ -10334,27 +10343,27 @@ $triangle-settings: (
       }
     }
   }
-  
+
   @if $excess-units > 0 {
     @include warning("You can't have more than 4 units per argument. You have added '#{$excess-units}' number"+ if($excess-units != 1, 's', '') +" too many. Squares don't work that way.");
   }
-  
+
   $corners : if(length($corners) == 0, $border-radius, $corners);
   $corner-count : length($corners);
-  
+
   @if length($directions) == 0 {
     $directions : if($corner-count == 1, all, slice((top-left top-right bottom-right bottom-left), 1, $corner-count));
   }
 
   $direction-count : length($directions);
 
-  @for $i from 1 through $direction-count {    
+  @for $i from 1 through $direction-count {
     $direction : nth($directions, $i);
     $radius : 0;
     @if $corner-count == $direction-count {
       $radius: nth($corners, $i);
     } @else {
-      @if $corner-count > $direction-count and $i == $direction-count { 
+      @if $corner-count > $direction-count and $i == $direction-count {
         $radius: nth($corners, $i);
         @include warning('You have entered more units than directions. Reverting back to the first numbers you entered');
       } @else {
@@ -10362,23 +10371,27 @@ $triangle-settings: (
       }
     }
 
-    @if $direction == all { 
-      @include prefixer(border-radius, add-unit($radius));
+    @if $direction == all {
+      border-radius : add-unit($radius);
     }
     @elseif $direction == top {
-      @include prefixer(border-top-left-radius border-top-right-radius, add-unit($radius));
+      border-top-left-radius : add-unit($radius);
+			border-top-right-radius : add-unit($radius);
     }
     @elseif $direction == right {
-      @include prefixer(border-top-right-radius border-bottom-right-radius, add-unit($radius));
+      border-top-right-radius : add-unit($radius);
+			border-bottom-right-radius : add-unit($radius);
     }
     @elseif $direction == bottom {
-      @include prefixer(border-bottom-left-radius border-bottom-right-radius, add-unit($radius));
+      border-bottom-left-radius : add-unit($radius);
+			border-bottom-right-radius : add-unit($radius);
     }
     @elseif $direction == left {
-      @include prefixer(border-top-left-radius border-bottom-left-radius, add-unit($radius));      
+      border-top-left-radius : add-unit($radius);
+			border-bottom-left-radius : add-unit($radius);
     }
     @else {
-      @include prefixer(border-#{$direction}-radius, add-unit($radius));
+      border-#{$direction}-radius : add-unit($radius);
     }
   }
 }
@@ -10397,19 +10410,17 @@ $triangle-settings: (
 @mixin container($args...) {
 
   $defaults : (
-    gutter-left  : var(--gutter-left, #{$gutter-left}),
-    gutter-right : var(--gutter-right, #{$gutter-right}),
-    break        : $medium,
-    max-width    : $max
+    gutters    : $gutters,
+    break      : $medium,
+    max-width  : $max
   );
 
   $settings : get-settings($defaults, $args...);
 
-  $gutter-left  : map-get($settings, gutter-left);
-  $gutter-right : map-get($settings, gutter-right);
-  $break        : map-get($settings, break);
-  $max          : map-get($settings, max-width);
-  $important    : map-get($settings, important);
+  $gutters    : map-get($settings, gutters);
+  $break      : map-get($settings, break);
+  $max        : map-get($settings, max-width);
+  $important  : map-get($settings, important);
 
   width:100%;
   position:relative;
@@ -10417,26 +10428,8 @@ $triangle-settings: (
   margin-left:auto; margin-right:auto;
   max-width:add-unit($max);
 
-  @if not is-null($gutter-left) {
-
-    @if is-var($gutter-left) {
-      padding-left  : $gutter-left $important;
-      padding-right : $gutter-right $important;
-    } @else {
-      padding-left  : add-unit($gutter-left) $important;
-      padding-right : add-unit($gutter-right) $important;
-    }
-
-  }
-
-  @if not is-var($gutter-right) and not is-null($gutter-right) {
-
-    @include break($break, '<') {
-      padding-left  : add-unit($gutter-left) $important;
-      padding-right : add-unit($gutter-right) $important;
-    }
-
-  }
+	padding-left  : var(--gutters, add-unit($gutters)) $important;
+	padding-right : var(--gutters, add-unit($gutters)) $important;
 
 }
 
@@ -10454,7 +10447,6 @@ $triangle-settings: (
 /// @require {function} contains
 /// @require {function} is-function
 /// @require {function} is-string
-/// @require {mixin} prefixer
 ///
 /// @example scss - Usage
 ///   Doggy Style Syntax
@@ -10561,7 +10553,7 @@ $triangle-settings: (
   }
   // @debug $filters;
   // @debug $important;
-  @include prefixer(filter, $filters, webkit moz, $important);
+  filter : $filters $important;
 
 }
 
@@ -10671,7 +10663,6 @@ $triangle-settings: (
 /// @require {function} contains
 /// @require {function} is-function
 /// @require {function} is-string
-/// @require {mixin} prefixer
 ///
 /// @example scss - Usage
 ///   Doggy Style Syntax
@@ -11373,50 +11364,6 @@ $triangle-settings: (
 
 }
 
-@if $normalise and $global-styling {
-
-  featured-image {
-    @extend %full;
-    display:block;
-    &[style*='background-image'] {
-      background-size:cover;
-      background-repeat:none;
-      background-position:center 33.33%;
-      background-repeat:no-repeat;
-    }
-    > img {
-      display:block;
-      position:absolute;
-      object-fit:cover;
-      object-position: center 33.33%;
-      width:100%; height:100%;
-      max-width:100%; max-height:100%;
-      top:0; left:0;
-      @include browsers(ie) { display:none; }
-    }
-  }
-
-  video-container {
-    padding-bottom:map-get($aspect-ratios, 16x10);
-    display:block;
-    position:relative;
-    width:100%; height:auto;
-    &[style*='background-image'] {
-      background-position:center center;
-      background-size: cover;
-      background-repeat:no-repeat;
-      background-color:black;
-    }
-    iframe, canvas {
-      position:absolute;
-      display:block;
-      top:0; left:0;
-      height:100% $imp; width:100% $imp;
-    }
-  }
-
-}
-
 // Add horizontal lines eitherside some text
 @mixin horizontal-lines($args...) {
 
@@ -11455,7 +11402,7 @@ $triangle-settings: (
   &:after { margin-left:$line-spacing; }
 }
 
-@if $normalise and not $normalise-emailers {
+@mixin normalise() {
 
 	/// @author Nicolas Gallagher & Mark Notton
 	/// @see github.com/necolas/normalize.css
@@ -11804,11 +11751,13 @@ $triangle-settings: (
 
 	}
 
-} @else if $normalise-emailers {
+}
 
-	// ------------------------------------------------------------------------ //
-	// Emailers
-	// ------------------------------------------------------------------------ //
+// ------------------------------------------------------------------------ //
+// Emailers
+// ------------------------------------------------------------------------ //
+
+@mixin normalise-emailers {
 
 	body {
     margin:0; padding:0;

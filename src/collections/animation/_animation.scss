@@ -15,7 +15,6 @@
 ///   [state](null)        - pause/play the animation.
 ///
 /// @require {Mixin} contains
-/// @require {Mixin} prefixer
 /// @require {Function} is-string
 /// @require {Function} is-number
 /// @require {Function} is-null
@@ -134,7 +133,7 @@
 	@include keyframes($unique-name) { @content; }
 
   @if ( not is-null($animations)) {
-    @include prefixer(animation, $animations);
+    animation : $animations;
   }
 
 }
@@ -148,15 +147,15 @@
 	@each $time in $times {
 		$times-list: append( $times-list, add-unit($time, s), comma);
 	}
-  @include prefixer(animation-delay, $times-list, webkit);
+  animation-delay : $times-list;
 }
 
 @mixin animation-timing-function($ease) {
-	@include prefixer(animation-timing-function, $ease, webkit);
+	animation-timing-function : $ease;
 }
 
 @mixin animation-state($state:pause) {
-  @include prefixer(animation-play-state, $state, webkit);
+  animation-play-state : $state;
 }
 
 @mixin animation-ease($ease) {

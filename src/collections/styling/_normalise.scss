@@ -1,4 +1,4 @@
-@if $normalise and not $normalise-emailers {
+@mixin normalise() {
 
 	/// @author Nicolas Gallagher & Mark Notton
 	/// @see github.com/necolas/normalize.css
@@ -347,11 +347,13 @@
 
 	}
 
-} @else if $normalise-emailers {
+}
 
-	// ------------------------------------------------------------------------ //
-	// Emailers
-	// ------------------------------------------------------------------------ //
+// ------------------------------------------------------------------------ //
+// Emailers
+// ------------------------------------------------------------------------ //
+
+@mixin normalise-emailers {
 
 	body {
     margin:0; padding:0;

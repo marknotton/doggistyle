@@ -12,7 +12,6 @@
 /// @require {function} contains
 /// @require {function} is-function
 /// @require {function} is-string
-/// @require {mixin} prefixer
 ///
 /// @example scss - Usage
 ///   Doggy Style Syntax
@@ -119,7 +118,7 @@
   }
   // @debug $filters;
   // @debug $important;
-  @include prefixer(filter, $filters, webkit moz, $important);
+  filter : $filters $important;
 
 }
 

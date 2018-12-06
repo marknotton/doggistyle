@@ -22,7 +22,6 @@
 ///
 /// @require {Mixin} contains
 /// @require {Mixin} prepend
-/// @require {Mixin} prefixer
 /// @require {Variables} eases - optional
 ///
 /// @example scss - Usage
@@ -155,11 +154,8 @@
 
 }
 
-/// @alias transition
-@mixin ani($settings...) { @include transition($settings...); }
-
 @mixin transition-timing-function($ease:ease-in-out) {
-  @include prefixer(transition-timing-function, $ease, webkit);
+  transition-timing-function : $ease;
 }
 
 @mixin transition-easing($ease:ease-in-out) {

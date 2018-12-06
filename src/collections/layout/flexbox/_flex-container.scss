@@ -55,7 +55,6 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
 ///   Unless this paramater is set to 'false'
 ///
 /// @require {mixin}    contains
-/// @require {mixin}    prefixer
 /// @require {function} merge
 /// @require {function} _smart_flex-container
 /// @require {function} arglist-to-list
@@ -143,7 +142,7 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
   // $settings : get-settings($defaults, $args...);
   $settings : get-settings($defaults, (debug:true), $args...);
 
-  
+
 
 }
 

@@ -21,8 +21,8 @@ gulp.task('compile', () => {
   .pipe(plumber({errorHandler: notifier.error }))
   .pipe(concat('_doggistyle.scss'))
   .pipe(gulp.dest('dist'))
-  // .pipe(gulp.dest('../Craft Master/Website/vendor/marknotton/doggistyle/dist'))
-  .pipe(gulp.dest('../../Craft Master/Website/vendor/marknotton/doggistyle/dist'))
+  // .pipe(gulp.dest('../../Aspire Courses/Website/vendor/marknotton/doggistyle/dist'))
+  // .pipe(gulp.dest('../../Craft Master/Website/vendor/marknotton/doggistyle/dist'))
   .pipe(notifier.success('Compiled Doggistyle successfully'))
 });
 
