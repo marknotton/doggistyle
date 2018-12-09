@@ -1,6 +1,6 @@
 {
   "name": "doggistyle",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A collection of Sass resources organised into a single library",
   "main": "dist/_doggistyle.scss",
   "repository": "https://www.npmjs.com/package/doggistyle",
@@ -11,7 +11,6 @@
   "devDependencies": {
     "@marknotton/lumberjack": "^1.1.1",
     "@marknotton/notifier": "^1.1.0",
-    "fs-readdir-recursive": "^1.1.0",
     "gulp": "^3.9.1",
     "gulp-concat": "^2.6.1",
     "gulp-plumber": "^1.2.0",
