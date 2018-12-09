@@ -210,15 +210,8 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
 
       @if $property == display and $value != null {
         @if $value == inline-flex {
-          display: -webkit-inline-flex is-important($important);
           display: inline-flex is-important($important);
         } @else {
-          -js-display: flex is-important($important); // This is for flexibility support
-          display: -webkit-box is-important($important);
-          display: -moz-box is-important($important);
-          display: -webkit-flexbox is-important($important);
-          display: -ms-flexbox is-important($important);
-          display: -webkit-flex is-important($important);
           display: flex is-important($important);
         }
       }
@@ -237,55 +230,6 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
 
     }
   }
-}
-
-
-// Quick Flex Container Mixins
-
-/// @alias flex-container -
-///
-/// @author Mark Notton
-///
-/// @access public
-///
-/// @warning Flexbox does not currently work on buttons, fieldsets or textareas
-///
-/// @warning box-orient, box-direction, box-ordinal-group, box-left, box-positive, box-pack, box-align
-///          ...and other unsupported/old flexbox values have been excluded
-///
-/// @todo Do special checks for 'flex-flow'
-///
-/// @param {Map} $settings - flexbox container property or alias : flexbox value.
-
-@mixin flex-display($value:flex, $important:false) {
-  @include flex-container((display:$value), $important);
-}
-
-@mixin flex-direction($value, $important:false) {
-  @include flex-container((direction:$value), $important);
-}
-
-@mixin flex-wrap($value, $important:false) {
-  @include flex-container((wrap:$value), $important);
-}
-
-@mixin flex-flow($value, $important:false) {
-  @include flex-container((flow:$value), $important);
-}
-
-@mixin flex-justify-content($value, $important:false) {
-  @include flex-container((justify:$value), $important);
-}
-@mixin flex-justify($value, $important:false) {
-  @include flex-container((justify:$value), $important);
-}
-
-@mixin flex-align-items($value, $important:false) {
-  @include flex-container((items:$value), $important);
-}
-
-@mixin flex-align-content($value, $important:false) {
-  @include flex-container((content:$value), $important);
 }
 
 // Private function provide a shorthand option in the flex-container mixin

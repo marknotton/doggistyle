@@ -49,13 +49,13 @@ $sc-constants: (
 
 /// Default return value for the `to-number(..)` function when running in
 /// non-strict mode.
-/// @access public
+
 /// @type Number
 $sc-non-strict-default-number: 0 !default;
 
 /// Default return value for the `to-color(..)` function when running in
 /// non-strict mode.
-/// @access public
+
 /// @type Number
 $sc-non-strict-default-color: transparent !default;
 /// Internal map for dynamically accessing default values for non-strict mode.
@@ -100,7 +100,7 @@ $sc-non-strict-defaults: (
 ///
 /// @link https://github.com/HugoGiraudel/SassyCast
 ///
-/// @access public
+
 ///
 /// @param {string} $value
 ///

@@ -1,3 +1,17 @@
-@mixin transition-duration($time) {
-  transition-duration: add-unit($time, $default-timing-unit);
+@mixin transition-duration($args...) {
+
+	$values : ();
+	$important : null;
+
+	@each $value in $args {
+
+		@if is-important($value) {
+			$important : !important;
+		} @else {
+			$values: append( $values, add-unit($value, $default-timing-unit), comma);
+		}
+	}
+
+  transition-duration : $values;
+
 }

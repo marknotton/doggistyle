@@ -10,7 +10,7 @@
 ///
 /// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#adding-values-to-a-list
 ///
-/// @access public
+
 
 @function prepend($list, $value, $seporator:auto) {
   @return join($value, $list, $seporator);

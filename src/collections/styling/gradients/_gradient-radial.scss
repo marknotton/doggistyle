@@ -1,0 +1,3 @@
+@mixin gradient-radial($args...) {
+  @include gradient(radial, $args...);
+}

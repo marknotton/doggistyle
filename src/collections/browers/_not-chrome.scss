@@ -1,0 +1,3 @@
+@mixin not-chrome($version:null) {
+  @include browsers(chrome $version true) { @content };
+}

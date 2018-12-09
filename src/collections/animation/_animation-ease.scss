@@ -1,0 +1,17 @@
+@mixin animation-ease($args...) {
+
+	$values : ();
+	$important : null;
+
+	@each $value in $args {
+
+		@if is-important($value) {
+			$important : !important;
+		} @else {
+			$values: append( $values, $value, comma);
+		}
+	}
+
+  animation-timing-function : $values;
+
+}

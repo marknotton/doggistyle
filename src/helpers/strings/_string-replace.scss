@@ -4,7 +4,7 @@
 
 /// Replace 'search' with '$replace' in '$string'. Reordered parameter order to match PHP str_replace
 /// @author Hugo Giraudel
-/// @access public
+
 /// @group helpers-strings
 /// @link https://css-tricks.com/snippets/sass/str-replace-function
 /// @param {string} $search - The value being searched for
@@ -20,16 +20,4 @@
   }
 
   @return $string;
-}
-
-/// Str Replace =================================================== #str-replace
-
-/// @ignore This is an alias for string-replace
-/// @alias string-replace
-/// @access public
-/// @require {function} string-replace
-/// @return {string}
-
-@function str-replace($string, $search:'', $replace:'') {
-  @return string-replace($search, $string, $replace);
 }

@@ -46,7 +46,7 @@ body {
       position:absolute;
       width:calc(#{var(--scrollbar-width, 0)} - 2px);
       height:$scroll-height;
-      @include var(background-color);
+      background-color : var(primary);
       margin-top:1px;
       @include transition(top 0 0.1 $easeOut)
       left:1px; top:calc(#{$scroll-height} + (var(--scroll-position, 0) - #{$scroll-height*2}));

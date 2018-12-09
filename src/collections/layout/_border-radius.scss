@@ -104,6 +104,3 @@
     }
   }
 }
-
-/// @alias transition
-@mixin radius($settings...) { @include border-radius($settings...); }

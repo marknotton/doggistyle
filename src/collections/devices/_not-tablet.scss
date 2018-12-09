@@ -1,0 +1,3 @@
+@mixin not-tablet($type:null) {
+  @include devices(tablet $type false) { @content };
+}

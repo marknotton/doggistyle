@@ -1,0 +1,3 @@
+@mixin blur($value:5px, $important:false) {
+  @include filter(blur $value $important);
+}

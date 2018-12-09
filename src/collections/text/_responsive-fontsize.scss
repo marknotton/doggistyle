@@ -2,7 +2,7 @@
 ///
 /// @author Mark Notton
 /// @todo REWRIGHT
-/// @access public
+
 ///
 /// @link https://github.com/seaneking/postcss-responsive-type/blob/master/test/fixtures/default.expected.css
 ///
@@ -139,9 +139,4 @@
     }
   }
 
-}
-
-
-@mixin responsive-font($settings...) {
-  @include responsive-fontsize($settings...);
 }

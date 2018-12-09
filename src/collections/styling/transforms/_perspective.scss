@@ -1,0 +1,3 @@
+@mixin perspective($value:600) {
+  perspective: add-unit($value);
+}

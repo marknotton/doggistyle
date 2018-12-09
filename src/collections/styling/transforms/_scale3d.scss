@@ -1,0 +1,6 @@
+@mixin scale3d($x:0, $y:0, $z:0) {
+  $x : remove-unit(nth($values, 1));
+  $y : remove-unit(nth($values, 2));
+  $z : remove-unit(nth($values, 3));
+  @include transform(scale3d $x $y $z);
+}

@@ -1,0 +1,3 @@
+@mixin is-tablet($type:null) {
+  @include devices(tablet $type) { @content };
+}

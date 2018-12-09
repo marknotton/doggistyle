@@ -1,5 +1,3 @@
-/// @todo REWRIGHT
-
 @mixin input-style($args...) {
 
   // ------------------------------------------------------------------------ //
@@ -111,7 +109,7 @@
 
       &:invalid {
         & ~ field-status-bar:before {
-          @include var(background-color,$error);
+          background-color: var(error);
         }
       }
     }
@@ -141,7 +139,7 @@
       padding:$input-padding-top $input-padding-right $input-padding-bottom $input-padding-left;
       border:$border-width $border-style $active-border-colour;
       width:100%; min-height:$input-height;
-      @include var(background-color, $active-background);
+      background-color: var($active-background);
       @include placeholder(transparent)
       @if remove-unit($radius) != 0 { @include radius($radius); }
       @include transition(background-color border-color color);
@@ -149,7 +147,7 @@
       &:valid ~ field-asterisk {
         pointer-events:none;
         &:empty { opacity:0; }
-        > svg { @include var(fill, $inactive-asterisk); }
+        > svg { fill: var($inactive-asterisk); }
       }
 
       // -------------------------------------------------------------------- //
@@ -157,15 +155,15 @@
       // -------------------------------------------------------------------- //
       &:placeholder-shown:not(:focus) {
         border:$border-width $border-style $inactive-border-colour;
-        @include var(background-color,$inactive-background);
-        @include var(color, $inactive-text);
+        background-color: var(inactive-background);
+        color: var($inactive-text);
         & ~ field-placeholder {
           left:$input-padding-left;
           top:$input-height/2;
           @if ( $placeholder-style == outside ) {
             top:$input-height/2 - $placeholder-padding-top/2 + $placeholder-padding-bottom/2;
           }
-          @include var(color, $inactive-placeholder);
+          color: var($inactive-placeholder);
           padding-left:0; padding-right:0;
           @include transform(y -50%, scale 1);
           &:before {
@@ -184,7 +182,7 @@
         &:-webkit-autofill, &:-webkit-autofill:hover, &:-webkit-autofill:focus {
           // This tricks Chrome into repainting the styling on hover/focus
           & ~ field-placeholder { opacity:1; }
-          @include var(-webkit-text-fill-color, $active-text);
+          -webkit-text-fill-color: var($active-text);
           -webkit-box-shadow: 0 0 0px 1000px if(is-var($active-background), var($active-background), $active-background) inset;
         }
       }
@@ -228,7 +226,7 @@
       position:absolute;
       bottom:$border-width; left:0;
       display:block;
-      @include var(background-color, $success);
+      background-color: var($success);
       @include transition(width);
     }
   }
@@ -273,7 +271,7 @@
     pointer-events:none;
     padding:$placeholder-padding-top $placeholder-padding-right $placeholder-padding-bottom $placeholder-padding-left;
     @include y(-50%);
-    @include var(color, $active-placeholder);
+    color: var($active-placeholder);
     @include transform-origin(0 50%);
     @if ( $placeholder-style == halfway ) {
       @include transform(y -50%, scale (1 - $placeholder-reduction));
@@ -292,7 +290,7 @@
 
     padding:0 $placeholder-padding-right 0 $placeholder-padding-left;
     font-size:add-unit((remove-unit(to-number($input-font-size))) - (remove-unit(to-number($input-font-size))*$placeholder-reduction)*2);
-    @include var(color, $active-asterisk);
+    color: var($active-asterisk);
 
     @if ( $placeholder-style == outside ) {
       top:$placeholder-padding-top/2; right:$placeholder-padding-bottom/2;
@@ -317,7 +315,7 @@
     > svg {
       @include size(10);
       @include transition(fill);
-      @include var(fill, $active-asterisk);
+      fill: var($active-asterisk);
     }
 
     // The required message styling
@@ -328,7 +326,7 @@
       padding:$placeholder-padding-top/2 $placeholder-padding-right $placeholder-padding-bottom/2 $placeholder-padding-left;
       right:calc(100% - #{$placeholder-offset}); top:50%;
       @if ( $placeholder-style == halfway ) {
-        @include var(background-color, $active-background);
+        background-color: var($active-background);
       }
       @include flex-container(center center);
       @include transition(opacity);

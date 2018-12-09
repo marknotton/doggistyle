@@ -2,7 +2,7 @@
 ///
 /// @author Mark Notton
 ///
-/// @access public
+
 ///
 /// @param {list} $args - Pass in the following animation settings. duration, delay, and iterations should be passed in that order.
 ///   [name](unique-id)    - name of the animation
@@ -136,28 +136,4 @@
     animation : $animations;
   }
 
-}
-
-
-/// @alias animation
-@mixin animate($settings...) { @include animation($settings...) { @content; }; }
-
-@mixin animation-delay($times...) {
-	$times-list : ();
-	@each $time in $times {
-		$times-list: append( $times-list, add-unit($time, s), comma);
-	}
-  animation-delay : $times-list;
-}
-
-@mixin animation-timing-function($ease) {
-	animation-timing-function : $ease;
-}
-
-@mixin animation-state($state:pause) {
-  animation-play-state : $state;
-}
-
-@mixin animation-ease($ease) {
-  @include animation-timing-function($ease);
 }

@@ -16,11 +16,13 @@
 
 @charset "UTF-8";
 
-@mixin doggistyle{
+@mixin doggistyle {
 
 	// Global Settings -----------------------------------------------------------
 
 	@include settings;
+
+	// Define Custom Properties if any exist -------------------------------------
 
 	@include set-custom-properties;
 

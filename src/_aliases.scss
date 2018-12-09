@@ -1,0 +1,147 @@
+////////////////////////////////////////////////////////////////////////////////
+// Aliases                                                              #aliases
+////////////////////////////////////////////////////////////////////////////////
+
+//==============================================================================
+// Mixins Aliases
+//==============================================================================
+
+/// @alias animation
+@mixin animate($args...) {
+	@include animation($args...) { @content; }
+}
+
+/// @alias is-chrome
+@mixin chrome($args...) {
+	@include is-chrome($args...) { @content; }
+}
+
+/// @alias is-edge
+@mixin edge($args...) {
+	@include is-edge($args...) { @content; }
+}
+
+/// @alias is-firefox
+@mixin firefox($args...) {
+	@include is-firefox($args...) { @content; }
+}
+
+/// @alias is-ie
+@mixin ie($args...) {
+	@include is-ie($args...) { @content; }
+}
+
+/// @alias is-opera
+@mixin opera($args...) {
+	@include is-opera($args...) { @content; }
+}
+
+/// @alias is-safari
+@mixin safari($args...) {
+	@include is-safari($args...) { @content; }
+}
+
+/// @alias transition-delay
+@mixin delay($args...) {
+	@include transition-delay($args...) { @content; }
+}
+
+/// @alias breakpoint
+@mixin break($args...) {
+	@include breakpoint($args...) { @content; }
+}
+
+/// @alias border-radius
+@mixin radius($args...) {
+	@include border-radius($args...);
+}
+
+/// @alias gradient-right
+@mixin gradient-horizontal($args...) {
+	@include gradient-right($args...);
+}
+
+/// @alias gradient-top
+@mixin gradient-vertical($args...) {
+	@include gradient-top($args...);
+}
+
+/// @alias greyscale
+@mixin grayscale($args...) {
+	@include greyscale($args...);
+}
+
+/// @alias dropshadow
+@mixin drop-shadow($args...) {
+	@include dropshadow($args...);
+}
+
+/// @alias hue
+@mixin hue-rotate($args...) {
+	@include hue($args...);
+}
+
+/// @alias translateY
+@mixin y($args...) {
+	@include translateY($args...);
+}
+
+/// @alias translateX
+@mixin x($args...) {
+	@include translateX($args...);
+}
+
+//==============================================================================
+// Functions Aliases
+//==============================================================================
+
+/// @alias colour
+@function color($args...) {
+	@return colour($args...);
+}
+
+/// @alias to-colour
+@function to-color($args...) {
+	@return to-colour($args...);
+}
+
+/// @alias is-colour
+@function to-colour($args...) {
+	@return is-colour($args...);
+}
+
+/// @alias get-colour-value
+@function get-color-value($args...) {
+	@return get-colour-value($args...);
+}
+
+/// @alias colour-contrast
+@function color-contrast($args...) {
+	@return colour-contrast($args...);
+}
+
+/// @alias get-variable-colour-value
+@function get-variable-color-value($args...) {
+	@return get-variable-colour-value($args...);
+}
+
+/// @alias is-boolean
+@function is-bool($args...) {
+	@return is-boolean($args...);
+}
+
+/// @alias random-colour
+@function rc($args...) {
+	@return random-colour($args...);
+}
+
+/// @alias string-replace
+@function str-replace($args...) {
+	@return string-replace($args...);
+}
+
+/// @alias remove-unit
+@function strip-unit($args...) {
+	@return remove-unit($args...);
+}
+

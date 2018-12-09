@@ -2,7 +2,7 @@
 ///
 /// @author Mark Notton
 ///
-/// @access public
+
 ///
 /// @param {list | colour | css variable} $static-colours :
 ///         Pass in the 2 colours (without a comma). First colour is for text,
@@ -20,10 +20,10 @@
 ///
 /// @example 1 scss - Usage
 /// .button1 {
-///   @include button(red white, blue white);
+///   red: button(hite, blue white);
 /// }
 /// .button2 {
-///   @include button(red, blue white, invert);
+///   red: button(blue white, invert);
 /// }
 ///
 
@@ -87,8 +87,8 @@
   @if $inverted == true {
 
     @if variable-exists(variables) and map-has-key($variables, $static-text) {
-      @include var(color, $static-text);
-      @if not $borderless { @include var(border-color, $static-text); }
+        $static-text:(colorstatic-text);
+      @if not $borderless { border-color: var($static-text); }
     } @else {
       color:$static-text;
       @if not $borderless { border-color:$static-text; }
@@ -97,14 +97,14 @@
     &:hover {
 
       @if variable-exists(variables) and map-has-key($variables, $hover-background) {
-        @include var(background-color, $hover-background);
+        background-color: var($hover-background);
       } @else {
         background-color:$hover-background;
       }
 
       @if variable-exists(variables) and map-has-key($variables, $hover-text) {
-        @include var(color, $hover-text);
-        @if not $borderless { @include var(border-color, $hover-text); }
+        color: var($hover-text);
+        @if not $borderless { border-color: var($hover-text); }
       } @else {
         color:$hover-text;
         @if not $borderless { border-color:$hover-text; }
@@ -115,13 +115,13 @@
   } @else {
     // STANDARD COLOURS
     @if variable-exists(variables) and map-has-key($variables, $static-background) {
-      @include var(background-color, $static-background);
+      background-color: var($static-background);
     } @else {
       background-color:$static-background;
     }
 
     @if variable-exists(variables) and map-has-key($variables, $static-text) {
-      @include var(color, $static-text);
+      color: var($static-text);
     } @else {
       color:$static-text;
     }
@@ -129,14 +129,14 @@
     &:hover {
 
       @if variable-exists(variables) and map-has-key($variables, $hover-background) {
-        @include var(background-color, $hover-background);
+        background-color: var($hover-background);
       } @else {
         background-color:$hover-background;
       }
 
       @if variable-exists(variables) and map-has-key($variables, $hover-text) {
-        @include var(color, $hover-text);
-        @if not $borderless { @include var(border-color, $hover-text); }
+        color: var($hover-text);
+        @if not $borderless { border-color: var($hover-text); }
       } @else {
         color:$hover-text;
         @if not $borderless { border-color:$hover-text; }

@@ -1,19 +1,6 @@
-/// Quick mixin to remove all active flexbox properties
-///
-/// @author Mark Notton
-///
-/// @access public
-///
 @mixin flex-remove($important:null) {
-  @if ($important == true) {
-    flex:initial !important;
-    display:initial !important;
-    flex-direction:initial !important;
-    justify-content:initial !important;
-  } @else {
-    flex:initial;
-    display:initial;
-    flex-direction:initial;
-    justify-content:initial;
-  }
+  flex : initial $important;
+  display : initial $important;
+  flex-direction : initial $important;
+  justify-content : initial $important;
 }

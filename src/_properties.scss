@@ -30,6 +30,37 @@ $all-units : join($relative-units, $absolute-units);
 
 $angel-types : deg rad grad turn;
 
+$browsers : ie edge safari firefox chrome opera;
+
+$devices : mobile tablet desktop;
+
+// Flex Container properties
+$flex-container-aliases : direction wrap flow justify items content;
+$flex-container         : display flex-direction flex-wrap flex-flow justify-content align-items align-content;
+$flex-container         : merge($flex-container, $flex-container-aliases);
+
+// Flex Container values
+$flex-display           : flex inline-flex inline;
+$flex-direction         : row row-reverse column column-reverse inherit col; // default row
+$flex-wrap              : nowrap wrap wrap-reverse; // default no-wrap
+$flex-justify-content   : flex-start flex-end center space-between space-around start end between around; // default flex-start
+$flex-align-items       : flex-start flex-end center baseline stretch start end; // default stretch
+$flex-align-content     : flex-start flex-end center space-between space-around stretch start end between around; // default stretch
+$flex-flow              : merge($flex-direction, $flex-wrap);
+
+// Flex Item properties
+$flex-item-aliases : grow shrink basis self;
+$flex-item         : order flex-grow flex-shrink flex-basis align-self $flex-item-aliases;
+$flex-item         : merge($flex-item, $flex-item-aliases);
+
+// Flex Item values
+$flex-order        : number;
+$flex-grow         : number;
+$flex-shrink       : number;
+$flex-basis        : number auto;
+$flex-flex         : none number; // flex-grow, flex-shrink, flex-basis
+$flex-align-self   : auto flex-start flex-end start end center baseline stretch;
+
 /// ============================================================================
 /// Eases                                                                 #eases
 /// ============================================================================
@@ -37,7 +68,7 @@ $angel-types : deg rad grad turn;
 /// CSS cubic-bezier timing functions from Ceaser Easeing.
 /// @author Jared Hardy
 /// @link https://github.com/jhardy/compass-ceaser-easing
-/// @access public
+
 /// @type string
 
 $linear            : cubic-bezier(0.250, 0.250, 0.750, 0.750);

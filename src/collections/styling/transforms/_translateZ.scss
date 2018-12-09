@@ -1,0 +1,3 @@
+@mixin translateZ($value) {
+  @include transform(translateZ $value);
+}

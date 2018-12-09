@@ -1,6 +1,9 @@
-// Breakpoint bewtween two points
-@mixin break-between($min, $max, $property:width) {
-  @media only screen and (min-#{$property}:add-unit($min)) and (max-#{$property}: add-unit($max)) {
+@mixin break-between($min, $max) {
+
+	$min : get-breakpoint($min);
+	$max : get-breakpoint($max);
+
+  @media (min-width:$min) and (max-width:$max) {
     @content;
   }
 }

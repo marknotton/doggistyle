@@ -9,10 +9,13 @@
   "_location": "marknotton/doggistyle",
   "location": "marknotton/doggistyle",
   "devDependencies": {
+    "@marknotton/lumberjack": "^1.1.1",
+    "@marknotton/notifier": "^1.1.0",
+    "fs-readdir-recursive": "^1.1.0",
     "gulp": "^3.9.1",
     "gulp-concat": "^2.6.1",
-    "gulp-notifier": "^1.0.5",
     "gulp-plumber": "^1.2.0",
+    "multi-glob": "^1.0.1",
     "sassdoc": "^2.5.0"
   }
 }

@@ -1,21 +1,8 @@
-// Item properties
-$flex-item-aliases : grow shrink basis self;
-$flex-item         : order flex-grow flex-shrink flex-basis align-self $flex-item-aliases;
-$flex-item         : merge($flex-item, $flex-item-aliases);
-
-// Item values
-$flex-order        : number;
-$flex-grow         : number;
-$flex-shrink       : number;
-$flex-basis        : number auto;
-$flex-flex         : none number; // flex-grow, flex-shrink, flex-basis
-$flex-align-self   : auto flex-start flex-end start end center baseline stretch;
-
 /// Flexbox items mixin validates and prefixes the most current Flexbox W3C working draft
 ///
 /// @author Mark Notton
 ///
-/// @access public
+
 ///
 /// @warning Flexbox does not currently work on buttons, fieldsets or textareas
 ///
@@ -111,29 +98,4 @@ $flex-align-self   : auto flex-start flex-end start end center baseline stretch;
       }
     }
   }
-}
-
-// Quick Flex Items Mixins
-@mixin flex-order($value, $important:false) {
-  @include flex-items((order:$value), $important);
-}
-
-@mixin flex-grow($value, $important:false) {
-  @include flex-items((grow:$value), $important);
-}
-
-@mixin flex-shrink($value, $important:false) {
-  @include flex-items((flex-shrink:$value), $important);
-}
-
-@mixin flex-basis($value, $important:false) {
-  @include flex-items((flex-basis:$value), $important);
-}
-
-@mixin flex-flex($value, $important:false) {
-  @include flex-items((flex:$value), $important);
-}
-
-@mixin flex-align-self($value, $important:false) {
-  @include flex-items((self:$value), $important);
 }

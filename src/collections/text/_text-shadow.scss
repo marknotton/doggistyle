@@ -21,6 +21,6 @@
   $colour    : map-get($settings, colour);
   $important : map-get($settings, important);
 
-  text-shadow: add-unit($x) add-unit($y) add-unit($blur) $color $important;
+  text-shadow: add-unit($x) add-unit($y) add-unit($blur) $colour $important;
 
 }

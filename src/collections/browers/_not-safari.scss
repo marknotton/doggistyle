@@ -1,0 +1,3 @@
+@mixin not-safari($version:null) {
+  @include browsers(safari $version true) { @content };
+}

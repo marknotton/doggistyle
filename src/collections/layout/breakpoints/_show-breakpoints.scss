@@ -1,12 +1,12 @@
 @mixin show-breakpoints($sudo : before) {
-  #{$show-breakpoints-selector}:#{$sudo} {
+  &:#{$sudo} {
     content:"\276F  #{$max}px";
     background-color:darken($red, 20);
     bottom:0;
     right:0;
     font-family:Arial;
     padding:4px $gap0;
-    @include ani(background-color color);
+    @include transition(background-color color);
     pointer-events:none;
     position:fixed;
     z-index:9999;

@@ -1,0 +1,6 @@
+@mixin scale($values) {
+  $width: nth($values, 1);
+  $height : if(length($values) > 1, nth($values, 2), null);
+
+  @include transform(scale $width $height);
+}

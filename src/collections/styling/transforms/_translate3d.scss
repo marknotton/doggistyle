@@ -1,0 +1,6 @@
+@mixin translate3d($values) {
+  $x : nth($values, 1);
+  $y : if( length($values) > 1, nth($values, 2), 0);
+  $z : if( length($values) > 2, nth($values, 3), 0);
+  @include transform(translate3d $x $y $z);
+}

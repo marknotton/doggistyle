@@ -1,0 +1,21 @@
+/// Random colour.
+///
+/// @author Pankaj Parashar
+///
+
+///
+/// @author https://pankajparashar.com/posts/random-colors-sass/
+///
+/// @param {number} $opacity - Amend the opacity of the colour that is returned. Default is 1
+///
+/// @example scss - Usage
+///   random-colour(0.5);
+///
+/// @example css - Output
+///   rgba(38, 153, 180, 0.5);
+///
+/// @return {color}
+
+@function random-colour($opacity:1) {
+  @return rgba(random(256) - 1, random(256) - 1, random(256) - 1, $opacity);
+}

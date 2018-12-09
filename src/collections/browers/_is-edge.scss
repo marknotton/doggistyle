@@ -1,0 +1,3 @@
+@mixin is-edge($version:null) {
+  @include browsers(edge $version) { @content };
+}

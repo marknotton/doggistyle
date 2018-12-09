@@ -1,9 +1,0 @@
-/// Generates a clean url attribute for compressed or uncompressed svg data
-/// @param {string} $svg - Add full SVG markup or base64 compressed code.
-/// @link http://b64.io/
-/// @return {string}
-
-@function svg-url($svg) {
-  $data:if(str-index($svg, '<svg'), "data:image/svg+xml;utf8, ", "data:image/svg+xml;base64, ");
-  @return url($data + unquote($svg));
-}

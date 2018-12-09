@@ -1,0 +1,3 @@
+@mixin contrast($value:200%, $important:false) {
+  @include filter(contrast $value $important);
+}

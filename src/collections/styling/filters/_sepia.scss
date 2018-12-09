@@ -1,0 +1,3 @@
+@mixin sepia($value:60%, $important:false) {
+  @include filter(sepia $value $important);
+}

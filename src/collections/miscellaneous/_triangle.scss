@@ -1,0 +1,231 @@
+/// Triangle Settings
+///
+/// @author Mark Notton
+///
+/// @type variables
+
+$triangle-settings: (
+  top-left : (
+    points : "0,100 0,0 100,0",
+    y : ( left , 0 ),
+    x : ( top , 0 )
+  ),
+  up : (
+    points : "100,100 0,100 50,0",
+    y : ( left , 50% ),
+    x : ( bottom , 100% )
+  ),
+  top-right : (
+    points : "100,100 0,0 100,0",
+    y : ( right , 0 ),
+    x : ( top , 0 )
+  ),
+  left : (
+    points : "100,100 0,50 100,0",
+    y : ( right , 100% ),
+    x : ( top , 50% )
+  ),
+  right : (
+    points : "0,100 0,0 100,50",
+    y : ( top , 50% ),
+    x : ( left , 100% )
+  ),
+  bottom-left : (
+    points : "100,100 0,100 0,0",
+    y : ( left , 0 ),
+    x : ( bottom , 0 )
+  ),
+  down : (
+    points : "0,0 100,0 50,100",
+    y : ( left , 50% ),
+    x : ( top , 100% )
+  ),
+  bottom-right : (
+    points : "0,100 100,0 100,100",
+    y : ( bottom , 0 ),
+    x : ( right , 0 )
+  ),
+);
+
+
+/// Create a triangle/carrat/arrow
+///
+/// @todo Figure a way to animate the fill colour of the svg background
+/// @todo Get Stroke Alignment to work "inner".
+///
+/// @param {list} $args
+///   In any order and without comma delimination, add any of the follwing arrow settings
+///   Colour { color } - Hex or RGBA
+///   Width { int } - First intiger is used as the width. 'px' units are used by defualt if not specified.
+///   Height { int } - Second intiger is used as the height. 'px' units are used by defualt if not specified. Width is used if second unit is not found.
+///   Direction { string } - top-left, up, top-right, left, right, bottom-left, down, bottom-right.
+///   Center { string } - In addition to the direction, you can add the unquote string 'center' to center the arrow
+///   Sudo { string } - Use an unquote string 'before' or 'after' to distinguish what sudo element to use
+///
+/// @param {bool} $position
+///   Determines wether the arrow should be positioned at all
+///
+/// @require {map} triangle-settings
+/// @require {function} random-color
+/// @require {function} map-fetch
+/// @require {function} is-calc
+///
+///
+/// @example {scss} - Usage
+///   @include arrow(50% 20 purple right);
+///   @include arrow(100 100 green up center after);
+///
+/// @return {sudo}
+
+@mixin triangle($args...) {
+
+  // Deafult Triangle Settings
+  $size      : ();
+  $sudo      : before;
+  $colour    : random-colour();
+  $direction : right;
+  $center    : false;
+  $triangle  : map-fetch($triangle-settings, $direction, points);
+
+  // Deafult Position Settings
+  $position  : true;
+  $x-pos     : nth(map-fetch($triangle-settings, $direction, x), 1);
+  $x-amount  : nth(map-fetch($triangle-settings, $direction, x), 2);
+  $y-pos     : nth(map-fetch($triangle-settings, $direction, y), 1);
+  $y-amount  : nth(map-fetch($triangle-settings, $direction, y), 2);
+
+  // Deafult Stroke Settings
+  $stroke      : false;
+  $s-colour    : random-colour();
+  $s-width     : 5;
+  $s-linecap   : round;
+  $s-linejoin  : round;
+  $s-dasharray : null;
+
+  $args: if(length($args) > 0, $args, null);
+  $value-counter : 0;
+
+  // Loop through and check all arguments for any special options
+  @for $i from 1 through length($args) {
+    @each $option in nth($args, $i) {
+      @if type-of($option) == bool and length(nth($args, $i)) == 1 {
+        $position : $option;
+      } @elseif length($args) > 1 {
+        $stroke : nth($args, $i);
+      }
+    }
+  }
+
+  // Check Triangle Settings
+  @each $rule in nth($args, 1) {
+
+    @if type-of($rule) == number or is-calc($rule) and length($size) < 2 {
+      $size : append($size, $rule);
+    }
+    @elseif type-of($rule) == color {
+      $colour : $rule;
+    }
+    @elseif type-of($rule) == string {
+      @if $rule == before or $rule == after {
+        $sudo : unquote($rule);
+      }
+      @elseif $rule == center {
+        $center : true;
+      }
+      @elseif map-has-key($triangle-settings, $rule) {
+        $direction: $rule;
+        $triangle: map-fetch($triangle-settings, $direction, points);
+
+        $x:map-fetch($triangle-settings, $direction, x);
+        $x-pos:nth($x, 1);
+        $x-amount:nth($x, 2);
+
+        $y:map-fetch($triangle-settings, $direction, y);
+        $y-pos:nth($y, 1);
+        $y-amount:nth($y, 2);
+      }
+    }
+  }
+
+  // Check Stroke Settings
+  @if $stroke {
+    @each $rule in $stroke {
+      @if type-of($rule) == string {
+        @if index((butt round square), $rule) {
+          $s-linecap : $rule;
+        }
+        @if index((miter miter-clip round bevel arcs), $rule) {
+          $s-linejoin : $rule;
+        }
+      }
+      @elseif type-of($rule) == list {
+        @each $dash in $rule {
+          $s-dasharray: append($s-dasharray,  $dash, comma);
+        }
+      }
+      @elseif type-of($rule) == color {
+        $s-colour : $rule;
+      }
+      @elseif type-of($rule) == number {
+        @if $value-counter < 1 {
+          $s-width : $rule;
+          $value-counter : $value-counter + 1;
+        } @elseif $value-counter >= 1 {
+          $s-dasharray : ($rule, $rule);
+        }
+      }
+    }
+  }
+
+  // Deafult size set if it remains empty
+  $size : if(length($size) == 0, 50, $size);
+
+  // Define width and height
+  $width : nth($size, 1);
+  $height : if(length($size) == 1, $width, nth($size, 2));
+
+  // Define all settings with strings
+  $fill : "' fill='" + hash-fix($colour);
+
+  @if $stroke {
+    $s-colour    : "' stroke='" + hash-fix($s-colour);
+    $s-width     : "' stroke-width='" + remove-unit($s-width);
+    $s-alignment : "' stroke-alignment='inner";
+    $s-linecap   : if($s-linecap, "' stroke-linecap='" + $s-linecap, '');
+    $s-linejoin   : if($s-linejoin, "' stroke-linejoin='" + $s-linejoin, '');
+    $s-dasharray : if($s-dasharray, "' stroke-dasharray='" + $s-dasharray, '');
+  }
+
+  &#{pseudo($sudo)} {
+    content:"";
+    @include size($width $height);
+    position:absolute;
+    pointer-events:none;
+    background-image:svg("<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'><polygon points='" + $triangle + $fill + if($stroke, $s-colour + $s-linecap + $s-linejoin + $s-width + $s-alignment + $s-dasharray,'') + "'/></svg>");
+    background-size:100% 100%;
+    background-repeat:no-repeat;
+    @if $center {
+      top:calc(50% - #{add-unit($height)}/2); left:calc(50% - #{add-unit($width)}/2);
+    } @elseif ($position) {
+      @if $direction == up or $direction == down {
+        #{$y-pos}:calc(#{$y-amount} - #{add-unit($width)}/2);
+        #{$x-pos}:$x-amount;
+      }
+      @elseif $direction == left {
+        #{$y-pos}:$y-amount;
+        #{$x-pos}:calc(#{$x-amount} - #{add-unit($height)}/2);
+      }
+      @elseif $direction == right {
+        #{$y-pos}:calc(#{$y-amount} - #{add-unit($height)}/2);
+        #{$x-pos}:$x-amount;
+      }
+      @else {
+        #{$y-pos}:$y-amount;
+        #{$x-pos}:$x-amount;
+      }
+    }
+
+    @content;
+  }
+
+}

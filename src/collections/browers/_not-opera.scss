@@ -1,0 +1,3 @@
+@mixin not-opera($version:null) {
+  @include browsers(opera $version true) { @content };
+}

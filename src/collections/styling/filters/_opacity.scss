@@ -1,0 +1,3 @@
+@mixin opacity($value:25%, $important:false) {
+  @include filter(opacity $value $important);
+}

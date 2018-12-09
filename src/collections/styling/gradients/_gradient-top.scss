@@ -1,0 +1,3 @@
+@mixin gradient-top($args...) {
+  @include gradient(linear, top, $args);
+}

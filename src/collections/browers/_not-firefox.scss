@@ -1,0 +1,3 @@
+@mixin not-firefox($version:null) {
+  @include browsers(firefox $version true) { @content };
+}

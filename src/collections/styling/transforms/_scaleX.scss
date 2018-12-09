@@ -1,0 +1,3 @@
+@mixin scaleX($value) {
+  @include transform(scaleX remove-unit($value));
+}

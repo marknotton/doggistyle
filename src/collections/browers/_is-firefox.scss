@@ -1,0 +1,3 @@
+@mixin is-firefox($version:null) {
+  @include browsers(firefox $version) { @content };
+}

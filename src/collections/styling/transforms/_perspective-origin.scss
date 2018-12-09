@@ -1,0 +1,14 @@
+@mixin perspective-origin($value:50% 50%) {
+
+  $values : ();
+
+  @if length($value) > 1 {
+    @each $val in $value {
+      $values : append($values, add-unit($val));
+    }
+  } @else {
+    $values : add-unit($value);
+  }
+
+  perspective-origin: $values;
+}

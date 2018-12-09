@@ -1,0 +1,5 @@
+@mixin translate($values) {
+  $x : nth($values, 1);
+  $y : if( length($values) > 1, nth($values, 2), $x);
+  @include transform(translate $x $y);
+}

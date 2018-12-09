@@ -1,0 +1,3 @@
+@mixin not-desktop($type:null) {
+  @include devices(desktop $type false) { @content };
+}

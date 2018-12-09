@@ -10,8 +10,6 @@
 ///
 /// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#removing-values-from-list
 ///
-/// @access public
-///
 /// @example scss - Usage
 ///   $list: a, b, z, c, d, e, f;
 ///   $new-list: remove-nth($list,   3);

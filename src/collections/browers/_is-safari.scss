@@ -1,0 +1,3 @@
+@mixin is-safari($version:null) {
+  @include browsers(safari $version) { @content };
+}

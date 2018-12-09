@@ -26,6 +26,8 @@
 	// Default units for timings
 	$default-timing-unit : s !default !global;
 
+	$default-custom-property : primary !default !global;
+
 	// This only works when css variable colours are defined as an RGB list, NOT Hex colours.
 	$support-css-variable-alpha-colours : false !default !global;
 	$support-css-variable-alpha-colors : $support-css-variable-alpha-colours !default !global;
@@ -132,15 +134,21 @@
 
 	$mobile-first:  false !default !global;
 
-	$max:           1440px !default !global;
-	$min:           320px  !default !global;
-	$small:         480px  !default !global;
-	$large:         1200px !default !global;
-	$medium:        (($large - $small) / 2) + $small !default !global; // 780px
-	$small-medium:  (($medium - $small) / 2) + $small !default !global; // 630px
+	$max    : 1440 !default !global;
+	$min    : 320  !default !global;
+	$small  : 480  !default !global;
+	$large  : 1200 !default !global;
+	$medium : (($large - $small) / 2) + $small !default !global; // 780px
+	$small-medium: (($medium - $small) / 2) + $small !default !global; // 630px
+
+	$max    : add-unit($max) !global;
+	$min    : add-unit($min) !global;
+	$small  : add-unit($small) !global;
+	$large  : add-unit($large) !global;
+	$medium : add-unit($medium) !global;
+	$small-medium : add-unit($small-medium) !global;
 
 	$show-breakpoints : false !default !global;
-	$show-breakpoints-selector : 'body.dev-environment' !default !global;
 
 	// =============================================================================
 	// Notches                                                              #notches
@@ -280,32 +288,43 @@
 	$text:        $text-colour !default !global;
 
 	// ===========================================================================
-	// Custom Properties
+	// Breakpoints
 	// ===========================================================================
 
-	$breakpoints:   () !default !global;
+	$_breakpoints:(
+		min          : add-unit($min, px, true),
+		small        : add-unit($small, px, true),
+		small-medium : add-unit($small-medium, px, true),
+		medium       : add-unit($medium, px, true),
+		large        : add-unit($large, px, true),
+		max          : add-unit($max, px, true)
+	);
+
+	@if variable-exists(breakpoints) {
+		$breakpoints: map-merge($breakpoints, $_breakpoints) !global;
+	} @else {
+		$breakpoints : $_breakpoints !global;
+	}
+
+	// ===========================================================================
+	// Custom Properties
+	// ===========================================================================
 
 	$_custom-properties : (
 	  gap                : add-unit($gap),
 	  vertical-spacing   : add-unit($vertical-spacing, vh),
 	  horizontal-spacing : add-unit($horizontal-spacing, vw),
 	  gutters            : add-unit($gutters),
-	  gutter-left        : add-unit($gutter-left),
-	  gutter-right       : add-unit($gutter-right),
 	  border-radius      : add-unit($border-radius),
-	  font-size          : $font-size,
-	  min                : add-unit($min, px, true),
-	  small              : add-unit($small, px, true),
-	  small-medium       : add-unit($small-medium, px, true),
-	  medium             : add-unit($medium, px, true),
-	  large              : add-unit($large, px, true),
-	  max                : add-unit($max, px, true),
-	) !default !global;
+	  font-size          : add-unit($font-size, $default-font-unit)
+	);
 
 	@if variable-exists(custom-properties) {
 	  $custom-properties: map-merge($custom-properties, $_custom-properties) !global;
 	} @else {
 	  $custom-properties : $_custom-properties !global;
 	}
+
+	$custom-properties: map-merge($custom-properties, $breakpoints) !global;
 
 }

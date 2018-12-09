@@ -1,0 +1,7 @@
+@mixin transform-style($value) {
+  @if contains((flat preserve-3d initial inherit), $value) {
+    transform-style: $value;
+  } @else {
+    @include warning($value + ": is an invalid value for 'transform-style'");
+  }
+}

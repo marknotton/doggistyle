@@ -59,13 +59,3 @@
     @return null;
   }
 }
-
-/// To Color ========================================================= #to-color
-/// @alias to-colour
-/// @access public
-/// @require {function} to-colour
-/// @return {colour}
-
-@function to-color($value) {
-  @return to-colour($value);
-}

@@ -1,0 +1,3 @@
+@mixin not-mobile($type:null) {
+  @include devices(mobile $type false) { @content };
+}

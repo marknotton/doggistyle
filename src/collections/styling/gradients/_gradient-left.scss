@@ -1,0 +1,3 @@
+@mixin gradient-left($args...) {
+  @include gradient(linear, left, $args);
+}

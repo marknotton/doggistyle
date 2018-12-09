@@ -30,7 +30,3 @@
 
   @return $number;
 }
-
-@function strip-unit($number) {
-  @return remove-unit($number);
-}

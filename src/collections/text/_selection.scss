@@ -20,13 +20,13 @@
 
   ::-moz-selection {
     color: $colour $important;
-    @include var(background-color, $background, $important);
+    background-color : var($background);
     @content;
   }
-  
+
   ::selection {
     color: $colour $important;
-    @include var(background-color, $background, $important);
+    background-color : var($background);
     @content;
   }
 }

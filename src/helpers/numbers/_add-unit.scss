@@ -28,10 +28,10 @@
 ///   50%
 ///   50%
 
-@function add-unit2($value, $args...) {
+@function add-unit($value, $args...) {
 
   $defaults : (
-    unit  : if(variable-exists(default-unit), $default-unit, 'px'),
+    unit  : $default-unit,
     force : false,
   );
 
@@ -54,30 +54,13 @@
   //   }
   // }
 
-  @if type-of($value) == 'number' {
+  @if is-number($value) {
     @if unitless($value) {
       @return to-number($value + if($unit == null, $default-unit, $unit));
     }
     @elseif is-unit($value) {
       @if $force and $unit != null {
         @return to-number(remove-unit($value) + $unit);
-      } @else {
-        @return to-number($value);
-      }
-    }
-  } @else {
-    @return $value;
-  }
-}
-
-@function add-unit($value, $unit:null, $replace:false) {
-  @if type-of($value) == 'number' {
-    @if unitless($value) {
-      @return to-number($value + if($unit == null, $default-unit, $unit));
-    }
-    @elseif is-unit($value) {
-      @if $replace and $unit != null {
-        @return to-number(strip($value) + $unit);
       } @else {
         @return to-number($value);
       }

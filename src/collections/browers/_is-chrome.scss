@@ -1,0 +1,3 @@
+@mixin is-chrome($version:null) {
+  @include browsers(chrome $version) { @content };
+}

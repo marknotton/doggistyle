@@ -1,59 +1,24 @@
-@mixin breakpoint($args) {
+@mixin breakpoint($args...) {
 
-  @if (is-null($args)) {
-    @content;
-  } @else {
-    $width : null;
-    $condition : if($mobile-first, min-width, max-width);
+	$defaults : (
+    breakpoint : null,
+    rule : 'min',
+  );
 
-    @each $rule in $args {
-      @if is_number($rule) {
-        $width : add-unit($rule);
-      }
-      @if is_string($rule) {
-        @if $rule == 'min' or $rule == '>' {
-          $rule : 'min-width';
-        } @else if $rule == 'max' or $rule == '<' {
-          $rule : 'max-width';
-          $width : $width - 1;
-        }
-        $condition : $rule;
-      }
-    }
+  $settings : get-settings($defaults, $args...);
 
-    // @if not contains($breakpoints, $width) {
-    //   @include add-breakpoint($width);
-    // }
-    // TODO: Add one for min, minus one for max
+  $rule : map-get($settings, rule);
+  $breakpoint : map-get($settings, breakpoint);
 
-    @media (#{$condition}:add-unit($width)) {
-      @content;
-    }
-  }
-}
+  $breakpoint : get-breakpoint($breakpoint);
 
-@mixin break($args...) {
-  @include breakpoint($args) { @content };
-}
-
-@mixin break-in($breakpoint) {
-
-  @if is-breakpoint($breakpoint) {
-    $breakpoint : get-breakpoint($breakpoint);
-  }
-
-  @media (max-width:add-unit($breakpoint)) {
-    @content;
-  }
-}
-
-@mixin break-out($breakpoint) {
-
-  @if is-breakpoint($breakpoint) {
-    $breakpoint : get-breakpoint($breakpoint);
-  }
-
-  @media (min-width:add-unit($breakpoint)) {
-    @content;
-  }
+	@if $rule == 'min' or $rule == '>' {
+		@media (min-width:$breakpoint - 1) {
+	    @content;
+	  }
+	}	@elseif $rule == 'max' or $rule == '<' {
+		@media (max-width:$breakpoint) {
+	    @content;
+	  }
+	}
 }

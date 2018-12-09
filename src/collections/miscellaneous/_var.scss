@@ -1,0 +1,46 @@
+@function var($args...) {
+
+	$custom-property : null;
+	$fallback : null;
+	$native : false;
+
+	@each $setting in $args {
+
+		@if is-bool($setting) {
+			$native : $setting;
+		} @else {
+
+			@if is-null($custom-property) and is-string($setting) {
+				$custom-property : $setting;
+			}
+			@elseif is-null($fallback) {
+				$fallback : $setting;
+			}
+		}
+
+	}
+
+	// If a true boolean was passed, return back exactly what passed to emulate native var functionality
+	@if $native == true {
+		@return unquote('var(' + remove-nth($args, -1) + ')');;
+	}
+
+	// Set the default customer is one wasn't passed
+	@if is-null($custom-property) {
+		$custom-property : $default-custom-property;
+	} @else {
+		// Remove the double-hyphen prefix is present
+		$custom-property : string-replace($custom-property, '--');
+	}
+
+	// Query a fallback if the given customer propery exists in the global custom-properties map
+	@if is-null($fallback) and map-has-key($custom-properties, $custom-property) {
+		$fallback : map-get($custom-properties, $custom-property);
+	}
+
+	@if not is-null($fallback) {
+		@return unquote('var(--' + $custom-property + ', '+ $fallback +')');
+	} @else {
+		@return unquote('var(--' + $custom-property + ')');
+	}
+}

@@ -16,7 +16,7 @@
 
   @if not is-null($breakpoint) {
 
-    @include break($break, '>') {
+    @include break-out($breakpoint) {
       width:100vw;
       left:50%;
       @include x(-50%);
@@ -24,10 +24,9 @@
 
   }
 
-
   @if ( $refactor != false ) {
     $refactor-gap : if(is-number($refactor), add-unit($refactor), $gap);
-    @include break($break - 1, '<') {
+    @include break-in($breakpoint) {
       left:-$refactor-gap;
       width:calc(100% + #{$refactor-gap*2});
       @content;

@@ -1,16 +1,17 @@
-@mixin transition-delay($times...) {
-	$times-list : ();
-	@each $time in $times {
-		$times-list: append( $times-list, add-unit($time, $default-timing-unit ), comma);
+@mixin transition-delay($args...) {
+
+	$values : ();
+	$important : null;
+
+	@each $value in $args {
+
+		@if is-important($value) {
+			$important : !important;
+		} @else {
+			$values: append( $values, add-unit($value, $default-timing-unit), comma);
+		}
 	}
-  transition-delay : $times-list;
-}
 
-/// @alias transition-delay
-/// @access public
-/// @require {mixin} transition-delay
-/// @return
+  transition-delay : $values $important;
 
-@mixin delay($time...) {
-  @include transition-delay($time...);
 }

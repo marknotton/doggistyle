@@ -1,0 +1,167 @@
+/// Create gradients
+///
+/// @author Mark Notton
+///
+/// @access private
+///
+/// @param {list} $args - Pass in the following gradient settings.
+///   [type]       - name of the graditent must be the first parameter
+///   [rule]       - Optional. If the gradient type requires it, you can add special rules. Like directions (as a string or number).
+///                  You don't need to type in 'to' for directions. This will be included automatically if necessary.
+///   [settings]   - Add a list of arguments for each colour. This can include a colour and number per argument.
+///
+/// @require {Mixin} contains
+/// @require {Mixin} prefix-values
+/// @require {Mixin} warning
+/// @require {Function} is-string
+/// @require {Function} is-number
+/// @require {Function} add-unit
+/// @require {Function} remove-nth
+/// @require {Function} replace-nth
+/// @require {Function} arglist-to-list
+///
+/// @example scss - Usage
+/// .foo {
+///   @include gradient(radial-repeat, ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+/// }
+///
+/// @example css - CSS output
+/// .foo {
+///   background: -webkit-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -moz-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -o-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -ms-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%); }
+/// }
+///
+
+@mixin gradient($args...) {
+
+  $settings : arglist-to-list($args);
+
+  $type: nth($settings, 1);
+
+  @if contains($type, $gradient-types) {
+
+    // Aliases
+    @if $type == linear-repeat {
+      $type : repeating-linear;
+    } @elseif $type == radial-repeat {
+      $type : repeating-radial;
+    } @elseif contains($type, circle) {
+      $type : radial;
+    }
+
+    $settings : remove-nth($settings, 1);
+
+  } @else {
+
+    $type : linear;
+
+    // @error "The first parameter must be the gradient type: #{$gradient-types}";
+
+  }
+
+  @if length($settings) > 1 {
+
+    @for $i from 1 through length($settings) {
+      $setting : nth($settings, $i);
+      // @debug $setting;
+      // Special first argument checks
+      @if ($i == 1) {
+        $unit : deg;
+
+        // Loop through the initial setting and check any unitless numbers has 'deg' as a default
+
+        @if contains($type, repeating-radial radial) {
+          $unit : %;
+          @if is-number($setting) {
+            @include warning($type + " can not have a number as the first parameter, it should be a colour");
+          }
+          @if contains($setting, at) {
+            $setting : replace-nth($setting, 1, add-unit(nth($setting, 1), px));
+          }
+        }
+
+        @if is-number($setting) {
+          $settings : replace-nth($settings, 1, add-unit($setting, $unit));
+        } @elseif is-list($setting) {
+          @if contains($setting, to) {
+            $setting : remove($setting, to);
+          }
+          @for $l from 1 through length($setting) {
+            $list-setting : nth($setting, $l);
+            @if is-number($list-setting) {
+              $setting : replace-nth($setting, $l, add-unit($list-setting, $unit));
+            }
+          }
+          $settings : replace-nth($settings, 1, $setting);
+        }
+      } @else {
+
+        @if is-list($setting) {
+          @for $l from 1 through length($setting) {
+            $list-setting : nth($setting, $l);
+            @if is-number($list-setting) {
+              $setting : replace-nth($setting, $l, add-unit($list-setting, %));
+            }
+          }
+          $settings : replace-nth($settings, $i, $setting);
+        }
+
+      }
+
+    }
+
+    $new-settings : ();
+    $new-generic-settings : ();
+
+    @each $set in $settings {
+      $new-settings : append($new-settings, $set, comma);
+      // Special checks for the generic syntax that requires "to" for specific direction strings
+      @if contains($set, right bottom left top) {
+        $new-generic-settings : append($new-generic-settings, to $set, comma);
+      } @else {
+        $new-generic-settings : append($new-generic-settings, $set, comma);
+      }
+
+    }
+
+    @include prefix-values(background, #{$type}-gradient($new-settings), webkit moz o ms only);
+    background:#{$type}-gradient($new-generic-settings);
+
+  } @else {
+    @include warning("You'll need more gradient settings than that");
+  }
+
+}
+
+@mixin gradient($args...) {
+  @include _gradient($args...);
+}
+
+@mixin gradient-radial($args...) {
+  @include _gradient(radial, $args...);
+}
+@mixin radial($args...) { @include gradient-radial($args...); }
+
+@mixin gradient-right($args...) {
+  @include _gradient(linear, right, $args);
+}
+@mixin gradient-horizontal($args...) { @include gradient-right($args...); }
+
+@mixin gradient-left($args...) {
+  @include _gradient(linear, left, $args);
+}
+
+@mixin gradient-top($args...) {
+  @include _gradient(linear, top, $args);
+}
+@mixin gradient-vertical($args...) { @include gradient-top($args...); }
+
+@mixin gradient-bottom($args...) {
+  @include _gradient(linear, bottom, $args);
+}
+@mixin gradient-circle($args...) {
+  @include _gradient($args...);
+}

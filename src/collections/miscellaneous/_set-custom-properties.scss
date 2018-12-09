@@ -1,0 +1,51 @@
+@mixin set-custom-properties($args...) {
+
+	$defaults : (
+		properties : if(variable-exists(custom-properties), $custom-properties, ()),
+		root : true,
+		without-media : true,
+	);
+
+	$settings : get-settings($defaults, $args...);
+
+	$properties    : map-get($settings, properties);
+	$root          : map-get($settings, root);
+	$without-media : map-get($settings, without-media);
+
+	// Special checks if css alpha variables are supported and the variable is a colour with alpha
+
+	$temp : $properties;
+
+	@if ($support-css-variable-alpha-colours == true) {
+    @each $variable, $value in $properties {
+      @if is-colour($value) {
+        @if is-hex($value) {
+          $temp : map-set($temp, $variable, (red($value), green($value), blue($value)));
+        } @else {
+          $temp : map-set($temp, $variable, hex-to-rgba($value));
+        }
+      }
+    }
+  }
+
+	@if $root == true {
+		@if $without-media == true {
+			@at-root(without:media) :root {
+		    @each $variable, $value in $properties {
+		      #{'--' + string-replace($variable, '--')}: $value;
+		    }
+			}
+		} @else {
+		  @at-root :root {
+		    @each $variable, $value in $properties {
+		      #{'--' + string-replace($variable, '--')}: $value;
+		    }
+		  }
+		}
+	} @else {
+		@each $variable, $value in $properties {
+			#{'--' + string-replace($variable, '--')}: $value;
+		}
+	}
+
+}
