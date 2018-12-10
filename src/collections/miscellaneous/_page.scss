@@ -14,6 +14,11 @@
 	$except : map-get( $settings, except );
 	$root   : map-get( $settings, root );
 
+	@if not is-null($id) and string-starts-with($id, '.')  {
+		$class : $id;
+		$id : null;
+	}
+
 	@if not is-null($id) and not string-starts-with($id, '#')  {
 		$id : #{'#' + $id};
 	}

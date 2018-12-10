@@ -25,7 +25,7 @@
 		@return unquote('var(' + remove-nth($args, -1) + ')');;
 	}
 
-	// Set the default customer is one wasn't passed
+	// Set the default custom property if one wasn't passed
 	@if is-null($custom-property) {
 		$custom-property : $default-custom-property;
 	} @else {

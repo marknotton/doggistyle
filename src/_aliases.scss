@@ -91,6 +91,11 @@
 	@include translateX($args...);
 }
 
+/// @alias outside-break
+@mixin break-in($args...) {
+	@include outside-break($args...) { @content; }
+}
+
 //==============================================================================
 // Functions Aliases
 //==============================================================================

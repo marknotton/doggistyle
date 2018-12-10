@@ -10,7 +10,7 @@
 @mixin transition($args...) {
 
 	$defaults : (
-		duration : 0.3s,
+		duration : 0.2s,
 		delay    : 0s,
 		ease     : ease-in-out
 	);

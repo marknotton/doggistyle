@@ -2,24 +2,26 @@
 
   $defaults : (
     gutters    : $gutters,
-    break      : $medium,
     max-width  : $max
   );
 
   $settings : get-settings($defaults, $args...);
 
-  $gutters    : map-get($settings, gutters);
-  $break      : map-get($settings, break);
+  $guts       : map-get($settings, gutters);
   $max        : map-get($settings, max-width);
   $important  : map-get($settings, important);
 
-  width:100%;
+  width:100%; max-width:add-unit($max);
   position:relative;
   display:block;
   margin-left:auto; margin-right:auto;
-  max-width:add-unit($max);
 
-	padding-left  : var(--gutters, add-unit($gutters)) $important;
-	padding-right : var(--gutters, add-unit($gutters)) $important;
+	@if is-number($guts) and $guts > 1 {
+		padding-left  : add-unit($gutters) $important;
+		padding-right : add-unit($gutters) $important;
+	} @elseif is-string($guts) {
+		padding-left  : var($gut) $important;
+		padding-right : var($gut) $important;
+	}
 
 }

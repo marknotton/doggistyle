@@ -127,41 +127,10 @@
 
     }
 
-    @include prefix-values(background, #{$type}-gradient($new-settings), webkit moz o ms only);
     background:#{$type}-gradient($new-generic-settings);
 
   } @else {
     @include warning("You'll need more gradient settings than that");
   }
 
-}
-
-@mixin gradient($args...) {
-  @include _gradient($args...);
-}
-
-@mixin gradient-radial($args...) {
-  @include _gradient(radial, $args...);
-}
-@mixin radial($args...) { @include gradient-radial($args...); }
-
-@mixin gradient-right($args...) {
-  @include _gradient(linear, right, $args);
-}
-@mixin gradient-horizontal($args...) { @include gradient-right($args...); }
-
-@mixin gradient-left($args...) {
-  @include _gradient(linear, left, $args);
-}
-
-@mixin gradient-top($args...) {
-  @include _gradient(linear, top, $args);
-}
-@mixin gradient-vertical($args...) { @include gradient-top($args...); }
-
-@mixin gradient-bottom($args...) {
-  @include _gradient(linear, bottom, $args);
-}
-@mixin gradient-circle($args...) {
-  @include _gradient($args...);
 }

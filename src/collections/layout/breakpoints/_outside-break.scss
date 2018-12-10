@@ -1,3 +1,3 @@
-@mixin break-out($breakpoint) {
+@mixin outside-break($breakpoint) {
 	@include breakpoint($breakpoint, min) { @content; }
 }

@@ -1,6 +1,6 @@
 @mixin show-breakpoints($sudo : before) {
   &:#{$sudo} {
-    content:"\276F  #{$max}px";
+    content:"\276F  #{add-unit($max)}";
     background-color:darken($red, 20);
     bottom:0;
     right:0;
@@ -16,8 +16,8 @@
     text-align:center;
     @each $name, $value in $breakpoints {
       $random-color: random-colour();
-      @include break($value) {
-        content:"#{$name} #{$value}px";
+      @include breakpoint($value, '>') {
+        content:"#{$name} #{add-unit($value)}";
         background-color:$random-color;
         color:colour-contrast($random-color);
       }

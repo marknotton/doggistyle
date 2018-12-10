@@ -43,7 +43,7 @@ gulp.task('compile', ['imports','aliases'], () => {
   .pipe(plumber({errorHandler: notifier.error }))
   .pipe(concat('_doggistyle.scss'))
   .pipe(gulp.dest('dist'))
-  // .pipe(gulp.dest('../../Aspire Courses/Website/vendor/marknotton/doggistyle/dist'))
+  .pipe(gulp.dest('../Aspire Courses/Website/vendor/marknotton/doggistyle/dist'))
   // .pipe(gulp.dest('../../Craft Master/Website/vendor/marknotton/doggistyle/dist'))
   .pipe(notifier.success('Compiled Doggistyle successfully'))
 });
@@ -84,6 +84,8 @@ const aliases = {
 		'hue' : 'hue-rotate',
 		'translateY' : 'y',
 		'translateX' : 'x',
+		'outside-break' : ['break-out', true],
+		'outside-break' : ['break-in', true],
 	},
 	'functions' : {
 		'colour'                     : 'color',
