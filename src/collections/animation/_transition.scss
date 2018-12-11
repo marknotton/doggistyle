@@ -18,6 +18,10 @@
 	$values : ();
 	$important : null;
 
+	@if length($args) == 0 {
+		$args : $defaults;
+	}
+
 	@each $settings in $args {
 
 		$properties : ();
@@ -61,8 +65,8 @@
 
 		}
 
-		@if is-null($properties) {
-			@warn 'You must define at least one property to be transitioned';
+		@if length($properties) == 0 {
+			$properties : all;
 		}
 
 		// Resolve defaults --------------------------------------------------------

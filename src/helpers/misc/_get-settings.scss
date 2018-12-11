@@ -55,7 +55,7 @@
   );
 
   // ===========================================================================
-  //  Revert to defaults of no arguments are passed
+  //  Revert to defaults if no arguments are passed
   // ===========================================================================
 
   @if length($args) == 0 and length(keywords($args)) == 0 {
@@ -93,8 +93,7 @@
     // $options keys.If it does, assume these are bespoke options relative to
     // the mixin that called this function.
 
-    @if not is-empty(nth($args, 1)) and is-map(nth($args, 1)) and
-        contains(map-keys(nth($args, 1)), map-keys($options)) {
+    @if not is-empty(nth($args, 1)) and is-map(nth($args, 1)) and contains(map-keys(nth($args, 1)), map-keys($options)) {
 
       @if map-get($options, debug ) { @debug 'Special options defined at start of the arguments'; }
 

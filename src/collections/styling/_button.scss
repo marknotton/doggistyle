@@ -19,133 +19,138 @@
 ///         This assumes you want the static state to have no background colour at all.
 ///
 /// @example 1 scss - Usage
-/// .button1 {
-///   red: button(hite, blue white);
-/// }
-/// .button2 {
-///   red: button(blue white, invert);
-/// }
 ///
-
+/// @include button(
+/// 	$initial:(
+/// 		'background' : red,
+/// 		'colour'     : white,
+/// 	),
+/// 	$hover:(
+/// 		'background' : red,
+/// 		'colour'     : red,
+/// 		'fill'       : purple,
+/// 		'stroke'     : green,
+/// 		'border'     : yellow
+/// 	)
+/// );
 @mixin button($args...) {
 
-  $static     : ();
-  $hover      : ();
-  $inverted   : false;
-  $borderless : false;
+	$transitions : ();
+	$svg-transitions : ();
 
-  $static-text       : white;
-  $static-background : $blue;
-  $hover-text        : $blue;
-  $hover-background  : white;
+	// Manage settings -----------------------------------------------------------
 
-  @each $settings in $args {
+	$defaults : (
+	  'initial' : (
+			'background' : white,
+			'colour' : var(primary),
+			'fill' : null,
+			'stroke' : null,
+			'border' : null
+		),
+		'hover' : (
+			'background' : var(secondary),
+			'colour' : white,
+			'fill' : null,
+			'stroke' : null,
+			'border' : null
+		),
+		'transitions' : true
+	);
 
-    @if is-list($settings) or is-color($settings) or variable-exists(variables) and map-has-key($variables, $settings){
-      @if length($static) == 0 {
-        $static : $settings;
-      } @else if length($hover) == 0 {
-        $hover : $settings;
-      }
-    } @else if is-bool($settings) {
-      $borderless : not $settings;
-    } @else if is-string($settings) {
-      @if $settings == invert {
-        $inverted : true;
-      } @elseif $settings == 'borderless' {
-        $borderless : true;
-      }
-    }
-  }
+	$settings : get-settings($defaults, $args...);
 
-  @if length($static) == 2 {
-    $static-text : first($static);
-    @if $inverted != true {
-      $static-background : last($static);
-    }
-    @if $inverted == true and $warnings {
-      @warn "You must defined two static colours for an inverted button. The second ("+$static-background+") colour will be ignored";
-    }
-  } @else if $inverted == true {
-    $static-text : first($static);
-  } @else {
-    @error "You must define two static colours in button(col1 col2). The first is for the text colour. The second for the background colour";
-  }
+	$initial : map-get($settings, initial);
+  $hover   : map-get($settings, hover);
+  $add-transitions : map-get($settings, transitions);
 
-  @if length($hover) == 2 {
-    $hover-text       : first($hover);
-    $hover-background : last($hover);
-  } @else if length($hover) == 1 {
-    $hover-text       : $hover;
-    $hover-background : col($hover, 0);
-  } @else {
-    $hover-text       : $static-background;
-    $hover-background : $static-text;
-  }
+	// Privately define all the default colours as provided ----------------------
 
-  // IVERTED COLOURS
-  @if $inverted == true {
+	$_background : map-get($initial, background);
+	$_colour     : map-get($initial, colour);
+	$_fill       : map-get($initial, fill);
+	$_stroke     : map-get($initial, stroke);
+	$_border     : map-get($initial, border);
 
-    @if variable-exists(variables) and map-has-key($variables, $static-text) {
-        $static-text:(colorstatic-text);
-      @if not $borderless { border-color: var($static-text); }
-    } @else {
-      color:$static-text;
-      @if not $borderless { border-color:$static-text; }
-    }
+	$_hover-background : map-get($hover, background);
+	$_hover-colour     : map-get($hover, colour);
+	$_hover-fill       : map-get($hover, fill);
+	$_hover-stroke     : map-get($hover, stroke);
+	$_hover-border     : map-get($hover, border);
 
-    &:hover {
+	// Check if the colours are colours or custom properties. --------------------
 
-      @if variable-exists(variables) and map-has-key($variables, $hover-background) {
-        background-color: var($hover-background);
-      } @else {
-        background-color:$hover-background;
-      }
+	$background : if(is-colour($_background) or is-var($_background), $_background, null);
+	$colour     : if(is-colour($_colour) or is-var($_colour), $_colour, null);
+	$fill       : if(is-colour($_fill) or is-var($_fill), $_fill, null);
+	$stroke     : if(is-colour($_stroke) or is-var($_stroke), $_stroke, null);
+	$border     : if(is-colour($_border) or is-var($_border), $_border, null);
 
-      @if variable-exists(variables) and map-has-key($variables, $hover-text) {
-        color: var($hover-text);
-        @if not $borderless { border-color: var($hover-text); }
-      } @else {
-        color:$hover-text;
-        @if not $borderless { border-color:$hover-text; }
-      }
+	$hover-background : if(is-colour($_hover-background) or is-var($_hover-background), $_hover-background, null);
+	$hover-colour     : if(is-colour($_hover-colour) or is-var($_hover-colour), $_hover-colour, null);
+	$hover-fill       : if(is-colour($_hover-fill) or is-var($_hover-fill), $_hover-fill, null);
+	$hover-stroke     : if(is-colour($_hover-stroke) or is-var($_hover-stroke), $_hover-stroke, null);
+	$hover-border     : if(is-colour($_hover-border) or is-var($_hover-border), $_hover-border, null);
 
-    }
+	// Apply initial state properties --------------------------------------------
 
-  } @else {
-    // STANDARD COLOURS
-    @if variable-exists(variables) and map-has-key($variables, $static-background) {
-      background-color: var($static-background);
-    } @else {
-      background-color:$static-background;
-    }
+	@if $background {
+		background-color:$background;
+		$transitions : add(background-color, $transitions);
+	}
+	@if $colour {
+		color:$colour;
+		$transitions : add(color, $transitions);
+	}
+	@if $fill {
+		svg { fill:$fill; }
+		$svg-transitions : add(fill, $svg-transitions);
+	}
+	@if $stroke {
+		svg { stroke:$stroke; }
+		$svg-transitions : add(stroke, $svg-transitions);
+	}
+	@if $border {
+		border-color:$border;
+		$transitions : add(border-color, $transitions);
+	}
 
-    @if variable-exists(variables) and map-has-key($variables, $static-text) {
-      color: var($static-text);
-    } @else {
-      color:$static-text;
-    }
+	// Apply hover state properties ----------------------------------------------
 
-    &:hover {
+	&:hover {
+		@if $hover-background {
+			background-color:$hover-background;
+			$transitions : add(background-color, $transitions);
+		}
+		@if $hover-colour {
+			color:$hover-colour;
+			$transitions : add(color, $transitions);
+		}
+		@if $hover-fill {
+			svg { fill:$hover-fill; }
+			$svg-transitions : add(fill, $svg-transitions);
+		}
+		@if $hover-stroke {
+			svg { stroke:$hover-stroke; }
+			$svg-transitions : add(stroke, $svg-transitions);
+		}
+		@if $hover-border {
+			border-color:$hover-border;
+			$transitions : add(border-color, $transitions);
+		}
+	}
 
-      @if variable-exists(variables) and map-has-key($variables, $hover-background) {
-        background-color: var($hover-background);
-      } @else {
-        background-color:$hover-background;
-      }
+	// Apply transitions if enabled ----------------------------------------------
 
-      @if variable-exists(variables) and map-has-key($variables, $hover-text) {
-        color: var($hover-text);
-        @if not $borderless { border-color: var($hover-text); }
-      } @else {
-        color:$hover-text;
-        @if not $borderless { border-color:$hover-text; }
-      }
+	$transitions : remove-duplicates($transitions);
 
-    }
-
-  }
-
-  @content;
+	@if $add-transitions {
+		@if length($transitions) {
+			@include transition($transitions);
+		}
+		@if length($svg-transitions) {
+			svg { @include transition($svg-transitions); }
+		}
+	}
 
 }

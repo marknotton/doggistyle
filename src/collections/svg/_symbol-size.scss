@@ -38,13 +38,12 @@
 
   $defaults : (
     symbol           : null,
-    new-width        : 1,
+    new-width        : null,
     new-height       : null,
     transform-origin : true
   );
 
   $settings : get-settings($defaults, $args...);
-
   $symbol           : map-get($settings, symbol);
   $new-width        : map-get($settings, new-width);
   $new-height       : map-get($settings, new-height);

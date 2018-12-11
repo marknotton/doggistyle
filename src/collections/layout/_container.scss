@@ -1,7 +1,7 @@
 @mixin container($args...) {
 
   $defaults : (
-    gutters    : $gutters,
+    gutters    : var(gutters),
     max-width  : $max
   );
 
@@ -19,9 +19,9 @@
 	@if is-number($guts) and $guts > 1 {
 		padding-left  : add-unit($gutters) $important;
 		padding-right : add-unit($gutters) $important;
-	} @elseif is-string($guts) {
-		padding-left  : var($gut) $important;
-		padding-right : var($gut) $important;
+	} @elseif is-var($guts) {
+		padding-left  : $guts $important;
+		padding-right : $guts $important;
 	}
 
 }
