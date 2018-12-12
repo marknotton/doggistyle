@@ -9,6 +9,9 @@
 /// @param {string} $unit - If a value is unitless add the default unit.
 /// @param {bool} $force - If the value already has a unit, and a different unit was specifically
 ///   supplied, this boolean desides wether to forcibly replace the unit.
+/// @param {bool} $convert - Is a var(...) was passed, add units to all numbers.
+///   setting this to false will instead pass back the first number in the var(...)
+///   and return that single number with the unit.
 /// @require {variable} default-unit
 /// @require {variable} $relative-lengths
 /// @require {variable} $abolute-lengths
@@ -33,26 +36,61 @@
   $defaults : (
     unit  : $default-unit,
     force : false,
+		convert : true
   );
 
   $settings : get-settings($defaults, $args...);
 
-  $unit  : map-get($settings, unit);
-  $force : map-get($settings, force);
+  $unit    : map-get($settings, unit);
+  $force   : map-get($settings, force);
+  $convert : map-get($settings, convert);
 
-  // @if is-var($value) {
-  //
-  //   $values : to-list($value);
-  //   $custom-property : nth($values, 1);
-  //
-  //   @if length($values) > 1 {
-  //     $values : slice($values, 2);
-  //     @for $val in $values {
-  //       @debug $val;
-  //
-  //     }
-  //   }
-  // }
+	// Manage var(...) values ----------------------------------------------------
+
+  @if is-var($value) {
+
+		$variables : get-var-value($value, false);
+
+		@if $convert == false {
+
+			// If the variables is a list, run through them all and use the first number
+			// as the value that needs to have a unit added. Return only that value;
+
+			$var-value : null;
+
+			@if ( is-list($variables)) {
+				@each $variable in $variables {
+					@if is-null($var-value) and is-number($variable) {
+						$var-value : to-number($variable);
+					}
+				}
+				@if not is-null($var-value) {
+					$value : $var-value;
+				}
+			} @else {
+				$value : $variables;
+			}
+
+		} @else {
+
+			$var-values : ();
+
+			@if ( is-list($variables)) {
+				@each $variable in $variables {
+					@debug $variable;
+					@if is-number($variable) {
+						$var-values : append($var-values, add-unit(to-number($variable)), comma);
+					} @else {
+						$var-values : append($var-values, $variable, comma);
+					}
+				}
+				@return unquote('var(--' + to-string($var-values) + ')');
+			} @else {
+				$value : $variables;
+			}
+
+		}
+  }
 
   @if is-number($value) {
     @if unitless($value) {

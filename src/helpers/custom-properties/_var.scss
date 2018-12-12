@@ -1,0 +1,43 @@
+@function var($args...) {
+
+	$custom-property : ();
+	$fallback : null;
+	$variables : ();
+	$suffix : '';
+
+	// List valid custom properties names
+	@each $value in $args {
+		@if is-string($value) and not is-number($value) {
+			$variables : append($variables, string-replace($value, '--'));
+			$suffix : $suffix + ')';
+		} @else {
+			$fallback : $value;
+		}
+	}
+
+	@if length($variables) > 0 {
+		@for $i from 1 through length($variables) {
+
+			$variable : nth($variables, $i);
+			$last : $i == length($variables);
+
+			@if $last and map-has-keys($custom-properties, $variable) {
+				$fallback : map-get($custom-properties, $variable);
+			}
+
+			$custom-property : append($custom-property, unquote('var(--' + $variable + ','));
+
+		}
+	}
+
+	@if not is-null($fallback) {
+		$custom-property : $custom-property + ' ' + $fallback;
+	}
+
+	$result : to-string($custom-property) + $suffix;
+
+	$result : string-replace($result, ',)', ')');
+
+	@return unquote($result);
+
+}

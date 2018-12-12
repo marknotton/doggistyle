@@ -1,0 +1,43 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Get Var Value                                                 #get-var-value
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @group helpers-misc
+///
+/// $return-all - Set to true if you want to return all value from a var(...),
+/// by default this will loop through all variables to see if one matches
+/// anything fomr the custom properties array.
+
+@function get-var-value($variable, $return-all : false) {
+
+  @if is-var($variable) {
+
+		@if map-has-keys($custom-properties, $variable) {
+			@return map-get($custom-properties, $variable);
+		}
+
+		@elseif string-starts-with(quote($variable), 'var(--') {
+			$variable : str-replace($variable, 'var(--', '');
+			$variable : str-replace($variable, ')', '');
+
+			$variables : string-explode(get-var-value($variable), ', ');
+
+			@if $return-all == false {
+				@each $var in $variables {
+					@if map-has-keys($custom-properties, $var) {
+						@return map-get($custom-properties, $var);
+					}
+				}
+			}
+
+			@if length($variables) > 1 {
+				@return $variables;
+			}
+
+			@return $variable;
+		}
+
+  } @else {
+    @return $variable
+  }
+}

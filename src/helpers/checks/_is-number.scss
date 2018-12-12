@@ -19,9 +19,8 @@
   @if $check-strings and type-of($value) == 'string' {
 
     // Early check to dismiss this as a number if any spaces are found in the string.
-    // TODO: considor replacing this with a string-replace to remove all spaces instead.
     @if str-index($value, ' ') != null {
-      @return false;
+      $value : str-replace($value, ' ', '');
     }
 
     // If a '-' symbol exists but it's not the first character, return false
@@ -45,10 +44,10 @@
       $value : str-replace($value, $unit, '');
     }
 
-    $exploaded-value : _string-explode($value, '');
+    $exploaded-value : string-explode($value, '');
     $allowed-characters : "-" "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
 
-    // Return false is any of the chacters are not in the list of allowed numbers
+    // Return false if any of the chacters are not in the list of allowed numbers
     @each $character in $exploaded-value {
       @if (index($allowed-characters, $character) != null) == false {
         @return false;

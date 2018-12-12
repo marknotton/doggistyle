@@ -14,7 +14,7 @@
   $keep: if(index("keys" "values" "both", $keep), $keep, "both");
 
   @if is-var($value) {
-    @return string-explode(is-var($value), ', ');
+    @return string-explode(get-var-value($value), ', ');
   }
 
   @if type-of($value) == "map" {
