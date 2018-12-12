@@ -1,106 +1,60 @@
 /// 10px on each corner. Call also use the string "all"
 /// @include border-radius(10)
-/// @include border-radius(all 10)
-
-/// 10 top left, 20 top right, 0 bottom right, 0 bottom left
-/// @include border-radius(10 20)
-
-/// 10 top left, 20 top right, 30 bottom right, 0 bottom left
-/// @include border-radius(10 20 30)
-
-/// 10 top left, 20 top right, 30 bottom right, 40 bottom left
-/// @include border-radius(10 20 30 40)
-
-/// 10 top left, 10 top right, 0 bottom right, 0 bottom left
-/// @include border-radius(10 top)
-
-/// 0 top left, 10 top right, 10 bottom right, 0 bottom left
-/// @include border-radius(10 right)
-
-/// 0 top left, 0 top right, 10 bottom right, 10 bottom left
-/// @include border-radius(10 bottom)
-
-/// 10 top left, 0 top right, 0 bottom right, 10 bottom left
-/// @include border-radius(10 left)
-
-/// 10 top left, 0 top right, 30 bottom right, 0 bottom left
-/// @include border-radius(10 top-left, 30 bottom-right)
+/// @include border-radius( 10)
 
 @mixin border-radius($args...) {
-  $corners : ();
-  $directions : ();
-  $excess-units : 0;
 
-  $args: if(length($args) > 0, $args, null);
+	$default : var(border-radius);
 
-  @for $i from 1 through length($args) {
+	$top-left     : null;
+	$top-right    : null;
+	$bottom-right : null;
+	$bottom-left  : null;
+	$important    : null;
+	$all : null;
+	$direction : null;
 
-    @each $rad in nth($args, $i) {
-      @if type-of($rad) == number and length($corners) < 4 {
-        $corners : append($corners, $rad);
-      } @elseif type-of($rad) == number and length($corners) == 4 {
-        $excess-units : $excess-units + 1;
-      }
-    }
-    @each $dir in nth($args, $i) {
-      @if type-of($dir) == string {
-        @if $dir == circle {
-          $corners : 100%;
-        } @else {
-          $directions : append($directions, $dir);
-        }
-      }
-    }
-  }
+	@each $value in $args {
+		@if is-important($value) {
+			$important : !important;
+		}
+		@elseif is-number($value) or is-var(var($value)) {
+			@if is-null($top-left) { $top-left : add-unit(var($value)); }
+			@elseif is-null($top-right) { $top-right : add-unit(var($value)); }
+			@elseif is-null($bottom-right) { $bottom-right : add-unit(var($value)); }
+			@elseif is-null($bottom-left) { $bottom-left : add-unit(var($value)); }
+		}
+		@elseif is-string($value) {
+			@if $value == circle { $all : 50%; }
+			@elseif contains(top right bottom left, $value) {
+				$direction : $value;
+			}
+		}
+	}
 
-  @if $excess-units > 0 {
-    @include warning("You can't have more than 4 units per argument. You have added '#{$excess-units}' number"+ if($excess-units != 1, 's', '') +" too many. Squares don't work that way.");
-  }
+	@if is-null($all) and is-null($top-right) and is-null($bottom-right) and is-null($bottom-left) {
+		$all : if(is-null($top-left), $default, $top-left);
+	}
 
-  $corners : if(length($corners) == 0, $border-radius, $corners);
-  $corner-count : length($corners);
+	@if not is-null($all) and is-null($direction) {
+		border-radius:$all $important;
+	} @else {
 
-  @if length($directions) == 0 {
-    $directions : if($corner-count == 1, all, slice((top-left top-right bottom-right bottom-left), 1, $corner-count));
-  }
+		@if not is-null($direction) {
+			$value1 : $top-left or $default;
+			$value2 : $top-right or $top-left or $default;
+			@if $direction == top or $direction == bottom {
+				border-#{$direction}-left-radius : $value1 $important;
+				border-#{$direction}-right-radius : $value2 $important;
+			} @elseif $direction == right or $direction == left {
+				border-top-#{$direction}-radius : $value1 $important;
+				border-bottom-#{$direction}-radius : $value2 $important;
+			}
+		}
+		@else {
+			border-radius:$top-left $top-right $bottom-right $bottom-left $important;
+		}
 
-  $direction-count : length($directions);
+	}
 
-  @for $i from 1 through $direction-count {
-    $direction : nth($directions, $i);
-    $radius : 0;
-    @if $corner-count == $direction-count {
-      $radius: nth($corners, $i);
-    } @else {
-      @if $corner-count > $direction-count and $i == $direction-count {
-        $radius: nth($corners, $i);
-        @include warning('You have entered more units than directions. Reverting back to the first numbers you entered');
-      } @else {
-        $radius: nth($corners, 1);
-      }
-    }
-
-    @if $direction == all {
-      border-radius : add-unit($radius);
-    }
-    @elseif $direction == top {
-      border-top-left-radius : add-unit($radius);
-			border-top-right-radius : add-unit($radius);
-    }
-    @elseif $direction == right {
-      border-top-right-radius : add-unit($radius);
-			border-bottom-right-radius : add-unit($radius);
-    }
-    @elseif $direction == bottom {
-      border-bottom-left-radius : add-unit($radius);
-			border-bottom-right-radius : add-unit($radius);
-    }
-    @elseif $direction == left {
-      border-top-left-radius : add-unit($radius);
-			border-bottom-left-radius : add-unit($radius);
-    }
-    @else {
-      border-#{$direction}-radius : add-unit($radius);
-    }
-  }
 }

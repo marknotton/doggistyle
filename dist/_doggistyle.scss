@@ -404,6 +404,1036 @@ $sc-non-strict-defaults: (
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Get Var Value                                                 #get-var-value
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @group helpers-misc
+///
+/// $return-all - Set to true if you want to return all value from a var(...),
+/// by default this will loop through all variables to see if one matches
+/// anything fomr the custom properties array.
+
+@function get-var-value($variable, $return-all : false) {
+
+  @if is-var($variable) {
+
+		@if map-has-keys($custom-properties, $variable) {
+			@return map-get($custom-properties, $variable);
+		}
+
+		@elseif string-starts-with(quote($variable), 'var(--') {
+			$variable : str-replace($variable, 'var(--', '');
+			$variable : str-replace($variable, ')', '');
+
+			$variables : string-explode(get-var-value($variable), ', ');
+
+			@if $return-all == false {
+				@each $var in $variables {
+					@if map-has-keys($custom-properties, $var) {
+						@return map-get($custom-properties, $var);
+					}
+				}
+			}
+
+			@if length($variables) > 1 {
+				@return $variables;
+			}
+
+			@return $variable;
+		}
+
+  } @else {
+    @return $variable
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Var Value                                                         #var-value
+////////////////////////////////////////////////////////////////////////////////
+
+/// @group helpers-misc
+
+@function var-value($variable:primary, $opacity:1, $fallback:true) {
+
+  $variable-value : $variable;
+  $fallback-value : null;
+
+  // If varuable is a standard colour, just use that colour as normal. Opacity is not used.
+  @if is-colour($variable) {
+
+    @if is-hex($variable) {
+      $variable-value : rgba($variable, $opacity);
+    } @else {
+      $variable-value : $variable;
+    }
+
+  } @else {
+
+    // Check the variables map to help generate a fallback colour
+    $fallback-value : get-variable-colour-value($variable, $opacity);
+
+    @if is-var($variable) {
+
+      // If a hardcoded 'var(--XXX)' is passed, extract the variable name and check if
+      // it's part of the variables map. If it is, use this hardcoded colour as a fallback.
+      // Add opacity is one if provided.
+
+      @if $support-css-variable-alpha-colours {
+
+        $variable-value : rgba($variable, $opacity);
+
+      } @else {
+
+        @if not is-null($fallback-value) {
+          $variable-value : str-replace($variable, ')', ', ' + $fallback-value + ')');
+        } @else {
+          $variable-value : $variable;
+        }
+
+      }
+
+    } @else {
+
+      // If a string was passed as the string. Assume this is a shorthand to search
+      // the variables map for the right variable then apply the fallback.
+
+      @if $support-css-variable-alpha-colours {
+        $variable-value : rgba(unquote('var(--' + $variable + ')'), $opacity);
+      } @else {
+
+        @if not is-null($fallback-value) {
+          $variable-value : unquote('var(--' + $variable + ', '+ $fallback-value +')');
+        } @else {
+          $variable-value : unquote('var(--' + $variable + ')');
+        }
+      }
+    }
+
+  }
+
+  @if ( not is-null($fallback-value) and $fallback ) {
+    @return ($variable-value, $fallback-value);
+  }
+
+  @return $variable-value;
+
+}
+
+@function var($args...) {
+
+	$custom-property : ();
+	$fallback : null;
+	$variables : ();
+	$suffix : '';
+
+	// List valid custom properties names
+	@each $value in $args {
+		@if is-string($value) and not is-number($value) {
+			$value : string-replace($value, ' ');
+			$variables : append($variables, string-replace($value, '--'));
+			$suffix : $suffix + ')';
+		} @else {
+			$fallback : $value;
+		}
+	}
+
+	@if length($variables) > 0 {
+		@for $i from 1 through length($variables) {
+
+			$variable : nth($variables, $i);
+			$last : $i == length($variables);
+
+			@if $last and map-has-keys($custom-properties, $variable) {
+				$fallback : map-get($custom-properties, $variable);
+			}
+
+			$custom-property : append($custom-property, unquote('var(--' + $variable + ','));
+
+		}
+	}
+
+	@if not is-null($fallback) {
+		$custom-property : $custom-property + ' ' + $fallback;
+	}
+
+	$result : to-string($custom-property) + $suffix;
+
+	$result : string-replace($result, ',)', ')');
+
+	// If the user is passing in variables within variables using the native syntax,
+	// This function will render out a looped mess. The following does some checks,
+	// and cleans it up. This hasn't been tested on complex variables like gradients,
+	// calcs, or anything that isn't a predefined customer-properties;
+	@if str-index($result, '--var(') {
+		$_result : string-replace($result, 'var(');
+		$_result : string-replace($_result, $suffix + ')');
+		$_result : string-remove-whitespace($_result);
+		$_fallback : null;
+		$_variables : ();
+		@each $value in string-explode($_result, ',', comma) {
+			@if string-starts-with($value, '--') {
+				$_variables : append($_variables, $value, comma);
+			} @else {
+				$_fallback : $value;
+			}
+		}
+
+		$result : unquote(var($_variables...));
+
+		@if ( not is-null($_fallback)) {
+			// When using native syntax, that has var fallbacks with vars, a
+			// given fallback is ignored. Either don't use nested vars where the
+			// fallback is important, or define a fallback before calling it this way.
+			// Ultimately this is almost never going to happen.
+			// TODO Inject the fallback so as to not break the syntax. Data is coreect, syntax isn't.
+			// $result : $result + $_fallback;
+		}
+
+		@return $result;
+	}
+
+	@return unquote($result);
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Check                                                                 #check
+////////////////////////////////////////////////////////////////////////////////
+
+/// If a value does not exist or is invalid, revert to a fallback value
+/// @name Check
+/// @author Mark Notton
+/// @group helpers-checks
+/// @param {*} $unit - The unit you want to check exists and is valid. Normally an nth list item or variable.
+/// @param {*} $fallback - If the first parameter doesn't exist or isn't valid, revert back to this fallback
+/// @param {string} $check - Check for a certain type of condition. Default is number.
+///   Accepted check types : angel, duration, false, frequency, integer, length, number, percentage, position, pseudo, sudo, resolution, time
+/// @require {function} is-absolute-length
+/// @require {function} is-angel
+/// @require {function} is-bool
+/// @require {function} is-colour
+/// @require {function} is-duration
+/// @require {function} is-false
+/// @require {function} is-frequency
+/// @require {function} is-integer
+/// @require {function} is-length
+/// @require {function} is-list
+/// @require {function} is-map
+/// @require {function} is-null
+/// @require {function} is-number
+/// @require {function} is-percentage
+/// @require {function} is-position
+/// @require {function} is-pseudo
+/// @require {function} is-relative-length
+/// @require {function} is-resolution
+/// @require {function} is-string
+/// @require {function} is-time
+/// @require {variable} warnings
+/// @return {*}
+
+@function check($value, $fallback, $check:number) {
+  @if index(angel duration false frequency integer length number percentage position pseudo sudo resolution time string bool boolean colour color list map null, $check) {
+    @if $check == angel     and is-angel($value)
+    or $check == duration   and is-duration($value)
+    or $check == false      and is-false($value)
+    or $check == frequency  and is-frequency($value)
+    or $check == integer    and is-integer($value)
+    or $check == length     and is-length($value)
+    or $check == number     and is-number($value)
+    or $check == percentage and is-percentage($value)
+    or $check == position   and is-position($value)
+    or $check == pseudo     and is-pseudo($value)
+    or $check == sudo       and is-sudo($value)
+    or $check == resolution and is-resolution($value)
+    or $check == string     and is-string($value)
+    or $check == bool       and is-bool($value)
+    or $check == boolean    and is-boolean($value)
+    or $check == color      and is-color($value)
+    or $check == colour     and is-colour($value)
+    or $check == list       and is-list($value)
+    or $check == map        and is-map($value)
+    or $check == null       and is-null($value) {
+      @return $value;
+    } @else {
+      @return $fallback;
+    }
+  } @else {
+    @if $warnings { @warn "#{$check} is not a valid type check. Returning the initial value: #{$value}"; }
+    @return $value;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Absolute Length                                          #is-absolute-length
+////////////////////////////////////////////////////////////////////////////////
+
+/// Checks to see if value is a type of unit that can't be manipulated relative
+/// to parent elements
+/// @name Absolute Length
+/// @author Hugo Giraudel
+/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
+
+/// @group helpers-checks
+/// @require {function} is-number
+/// @require {variable} $abolute-lengths
+/// @return {bool}
+
+@function is-absolute-length($value) {
+  @return is-number($value) and index($absolute-lengths, unit($value)) != null;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Angle                                                              #is-angel
+////////////////////////////////////////////////////////////////////////////////
+
+/// Checks to see if value ends with an angle
+/// @author Hugo Giraudel
+/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
+
+/// @group helpers-checks
+/// @require {function} is-number
+/// @require {variable} angel-types
+/// @return {bool}
+
+@function is-angle($value) {
+  @return is-number($value) and index($angel-types, unit($value)) != null;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Arglist                                                          #is-arglist
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a arglist
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-arglist($value) {
+  @return type-of($value) == 'arglist';
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Boolean                                                          #is-boolean
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a boolean
+///
+/// @author Mark Notton
+///
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-boolean($value) {
+  @return type-of($value) == 'bool';
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Calc                                                                #is-calc
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a calc
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-calc($value) {
+  @return is-string($value) and str-slice(#{$value}, 0, 4) == 'calc';
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Colour                                                            #is-colour
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a colour
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-colour($value) {
+  @return type-of($value) == 'color';
+}
+
+/// Color ============================================================ #is-color
+///
+/// @alias is-colour
+///
+
+///
+/// @group helpers-checks
+///
+/// @require {function} is-colour
+///
+/// @return {bool}
+
+@function is-color($value) {
+  @return is-colour($value);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Dark                                                                #is-dark
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if a colour is dark
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-checks
+///
+/// @require {function} brightness
+/// @require {function} lightness
+///
+/// @return {bool}
+
+@function is-dark($colour) {
+  @return brightness($colour) < lightness();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Duration                                                        #is-duration
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
+///
+
+///
+/// @group helpers-checks
+///
+/// @require {function} is-time
+///
+/// @return {bool}
+
+@function is-duration($value) {
+  @return is-time($value);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Ease                                                                #is-ease
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if string is an ease
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-checks
+///
+/// @require {function} contains
+/// @require {function} is-string
+///
+/// @return {bool}
+
+@function is-ease($string) {
+  @return is-string($string) and contains(str-slice(#{$string}, 0, 4), ease line step cubi init)
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// False                                                              #is-false
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is any type of false
+///
+
+/// @group helpers-checks
+/// @return {bool}
+
+@function is-empty($value) {
+  @return not not index(false null 0 off def, $value);
+}
+
+
+
+/// @group helpers-checks
+/// @return {bool}
+
+@function is-false($value) {
+  @return not not index(false null 0 off def, $value);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Extension                                                      #is-extension
+////////////////////////////////////////////////////////////////////////////////
+///
+/// If the end of a string matches the given extension, return the extension.
+/// Otherwise return false.
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-checks
+///
+/// @return {Bool String}
+
+@function is-extension($string, $extension) {
+
+  $string : to-string($string);
+
+  $extension : to-lower-case($extension);
+
+  $explode : string-explode($string, '.');
+
+  @if $extension == to-lower-case(last($explode)) {
+    @return $extension;
+  } @else {
+    @return false;
+  }
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// First Character                                          #is-first-character
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Compare the first character of a string
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-first-character($string, $character) {
+  @return str-slice(#{$string}, 1, 1) == #{$character};
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Frequency                                                      #is-frequency
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value ends with a frequency
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
+///
+
+///
+/// @group helpers-checks
+///
+/// @require {function} is-number
+///
+/// @return {bool}
+
+@function is-frequency($value) {
+  @return is-number($value) and index('Hz' 'kHz', unit($value)) != null;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Function                                                        #is-function
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Explodes a function into a list.
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-checks
+///
+/// @require {function} to-number
+/// @require {function} is-string
+/// @require {function} string-explode
+///
+/// @example scss - Usage
+///   @debug is-function(rotate(45deg));
+///   @debug is-function(transform);
+///
+/// @example scss - Output
+///   (rotate, 45deg)
+///   false
+///
+/// @return {bool | list} If value is not a string or does not fit the 'function'
+/// syntax, return false. Otherwise, return a list with the 'function' name and
+/// the 'value' that was passed.
+
+@function is-function($function) {
+
+  @if is-string($function) {
+
+    $first-brace : str-index($function, '(');
+    $last-brace : str-index($function, ')');
+
+    @return $first-brace and $last-brace;
+
+  } @else {
+
+    @return false;
+
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Hexadecimal                                                          #is-hex
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see value is a hexidecimal string
+///
+/// @author Mark Notton
+///
+
+///
+/// @return {bool}
+
+@function is-hex($value) {
+  @return is-colour($value) and string-starts-with(to-string($value), '#');
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Important                                                      #is-important
+////////////////////////////////////////////////////////////////////////////////
+
+/// Checks to see value is important
+/// @author Mark Notton
+
+/// @group  helpers-checks
+/// @return {bool}
+
+@function is-important($value, $bool:false) {
+  $_imp : null;
+
+  @if ( contains((important, !important), $value) or (is-bool($value) and $value == true) ) {
+    @if $bool {
+      $_imp : true;
+    } @else {
+      $_imp : $imp;
+    }
+  }
+
+  @return $_imp;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Integer                                                          #is-integer
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a rounded number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
+///
+
+///
+/// @group helpers-checks
+///
+/// @require {function} is-number
+///
+/// @return {bool}
+
+@function is-integer($value) {
+  @return is-number($value) and round($value) == $value;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Length                                                            #is-length
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value ends with any type of unit
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
+///
+
+///
+/// @group helpers-checks
+///
+/// @require {function} is-relative-length
+/// @require {function} is-absolute-length
+///
+/// @return {bool}
+
+@function is-length($value) {
+  @return is-relative-length($value) or is-absolute-length($value);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Light                                                              #is-light
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if a colour is light
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-checks
+///
+/// @require {function} brightness
+/// @require {function} lightness
+///
+/// @return {bool}
+
+@function is-light($colour) {
+  @return brightness($colour) > lightness();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// List                                                                #is-list
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a list
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-list($value) {
+  @return type-of($value) == 'list';
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map                                                                  #is-map
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a map
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-map($value) {
+  @return type-of($value) == 'map';
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Null                                                                #is-null
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is null
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-null($value) {
+  @return type-of($value) == 'null';
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Number                                                            #is-number
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a number. This includes units (except for calc)
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
+///
+
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-number($value, $check-strings:true, $allow-units:true) {
+
+  @if $check-strings and type-of($value) == 'string' {
+
+    // Early check to dismiss this as a number if any spaces are found in the string.
+    @if str-index($value, ' ') != null {
+      $value : str-replace($value, ' ', '');
+    }
+
+    // If a '-' symbol exists but it's not the first character, return false
+    @if str-index($value, '-') != null and str-slice($value, 1, 1) != '-' {
+      @return false;
+    }
+
+    // Remove percentage symbol.
+    $value : str-replace($value, '%', '');
+
+    // Remove units from the value string. It had to be done this way, because
+    // you can't strip units from a string.
+    @if $allow-units and not unitless(to-number($value)) {
+      $unit : null;
+
+      @each $u in $all-units {
+        @if string-ends-with($value, $u) {
+          $unit : $u;
+        }
+      }
+      $value : str-replace($value, $unit, '');
+    }
+
+    $exploaded-value : string-explode($value, '');
+    $allowed-characters : "-" "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+
+    // Return false if any of the chacters are not in the list of allowed numbers
+    @each $character in $exploaded-value {
+      @if (index($allowed-characters, $character) != null) == false {
+        @return false;
+      }
+    }
+
+    @return true;
+
+  } @else {
+
+    @return type-of($value) == 'number';
+
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Percentage                                                    #is-percentage
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a percentage
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
+///
+
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-percentage($value) {
+  @return is-number($value) and unit($value) == '%';
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Position                                                        #is-position
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a direction position
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
+///
+
+///
+/// @group helpers-checks
+///
+/// @require {function} is-length
+/// @require {function} is-percentage
+///
+/// @return {bool}
+
+@function is-position($value) {
+  @return is-length($value) or is-percentage($value) or index('top' 'right' 'bottom' 'left' 'center', $value) != null;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Pseudo                                                            #is-pseudo
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Check to see is a 'before' of 'after' pseudo has been passed
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-pseudo($pseudo) {
+  @return index(before after, $pseudo);
+}
+
+/// Sudo ============================================================== #is-sudo
+///
+/// @alias is-pseudo
+///
+
+///
+/// @group helpers-checks
+///
+/// @require {function} is-pseudo
+///
+/// @return {bool}
+
+@function is-sudo($pseudo) {
+  @return is-pseudo($pseudo)
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Relative Length                                          #is-relative-length
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a type of unit that can be manipulated relative to parent elements
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
+///
+
+///
+/// @group helpers-checks
+///
+/// @require {function} is-number
+/// @require {variable} relative-lengths
+///
+/// @return {bool}
+
+@function is-relative-length($value) {
+  @return is-number($value) and index($relative-units, unit($value)) != null;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Resolution                                                    #is-resolution
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value ends with a type of resolution
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
+///
+
+///
+/// @group helpers-checks
+///
+/// @require {function} is-number
+///
+/// @return {bool}
+
+@function is-resolution($value) {
+  @return is-number($value) and index('dpi' 'dpcm' 'dppx', unit($value)) != null;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Selector                                                        #is-selector
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Check to see if and ampersand refers to a particular string
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-selector($value) {
+  @return #{&} == #{$value};
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// String                                                            #is-string
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a string
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-string($value) {
+  @return type-of($value) == 'string';
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Selector                                                        #is-selector
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value ends with 's' or 'ms'
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
+///
+
+///
+/// @group helpers-checks
+///
+/// @require {function} is-number
+///
+/// @return {bool}
+
+@function is-time($value) {
+  @return is-number($value) and index('ms' 's', unit($value)) != null;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Unit                                                                #is-unit
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value ends with any type of unit
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
+///
+
+///
+/// @group helpers-checks
+///
+/// @require {function} is-relative-length
+/// @require {function} is-absolute-length
+///
+/// @return {bool}
+
+@function is-unit($value) {
+  @return unit($value) != '';
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Is Var                                                               #is-var
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a custom property. Eiter a as string in the
+/// cutom properties map. Or litterally starts with the var syntax
+///
+/// @author Mark Notton
+///
+/// @return {bool}
+
+@function is-var($value) {
+
+  @return string-starts-with(quote($value), 'var(--') or map-has-keys($custom-properties, $value);
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// Brightness                                                       #brightness
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -797,197 +1827,421 @@ $sc-non-strict-defaults: (
   @return rgba(random(256) - 1, random(256) - 1, random(256) - 1, $opacity);
 }
 
+/// @author Mark Notton
+/// @link http://www.w3schools.com/charsets/ref_html_utf8.asp
+/// @type variables
+
+/// Symbols
+
+$copyright :            "\00A9"; // ©
+
+$registered :           "\00AE"; // ®
+
+$tricolon :             "\205D"; // ⁝
+
+$quadcolon :            "\205E"; // ⁞
+
+$tick1 :                "\2713"; // ✓
+
+$tick2 :                "\2714"; // ✔
+
+$cross1 :               "\2715"; // ✕
+
+$cross2 :               "\2717"; // ✗
+
+$plus :                 "\271B"; // ✛
+
+$bullet :               "\2219"; // ∙
+
+/// Punctuation
+
+$single-dot :           "\2024"; // ․
+
+$double-dots :          "\2025"; // ‥
+
+$tripple-dots :         "\2026"; // …
+
+$open-quotes-1 :        "\201C"; // “
+
+$close-quotes-1 :       "\201D"; // ”
+
+$close-quotes-2 :       "\201E"; // „
+
+$open-quotes-2 :        "\201F"; // ‟
+
+$close-curly-brackets : "\2775"; // ❵
+
+$open-curly-brackets :  "\2774"; // ❴
+
+/// Arrows
+
+$double-right-arrows :  "\00BB"; // »
+
+$angle-left-1 :         "\276C"; // ❬
+
+$angle-right-1 :        "\276D"; // ❭
+
+$angle-left-2 :         "\276E"; // ❮
+
+$angle-right-2 :        "\276F"; // ❯
+
+$angle-left-3 :         "\2770"; // ❰
+
+$angle-right-3 :        "\2771"; // ❱
+
+$small-left-arrow :     "\2039"; // ‹
+
+$small-right-arrow :    "\203A"; // ›
+
+$arrow-right :          "\27A4"; // ➤
+
+$triangle-right-1 :     "\2023"; // ‣
+
+$triangle-right-2 :     "\25B6"; // ▶
+
+$triangle-right-3 :     "\25B7"; // ▷
+
+
+/// Currency
+
+$british-pound :        "\00A3"; // £
+
+$dollar :               "\0024"; // $
+
+$euro :                 "\20AC"; // €
+
+
+/// Shapes
+
+$star :                 "\272F"; // ✯
+
+$circle :               "\25CF"; // ●
+
+$square-1 :             "\25A0"; // ■
+
+$square-2 :             "\25A1"; // □
+
+$quare-3 :              "\25A2"; // ▢
+
 ////////////////////////////////////////////////////////////////////////////////
-/// Get Var Value                                                 #get-var-value
+/// Get Settings                                                   #get-settings
 ////////////////////////////////////////////////////////////////////////////////
+
+/// Have all mixins accept the same pattern on arguments and manage all defaults
+/// data and fallbacks. Use either a list, map, or keywords.
 ///
-/// @group helpers-misc
+/// @name Get Settings
+/// @author Mark Notton
+
+/// @return {map}
+/// @example
+/// @mixin myMixin($args...) {
+///    $defaults : (
+///      name   : 'unknown',
+///      age    : '99',
+///      gender : null,
+///      data   : ('foo':'bar')
+///    );
+///    $settings : get-settings($defaults, $args...);
+///    // $settings : get-settings($defaults, (deep:false, debug:true), $args...);
+///    @debug $settings;
+/// }
+/// @include myMixin('Mark', '31', male, ('wibble':'wobble'), important);
+/// @include myMixin((name:'Lizzie', gender:female, data:('wibble':'wobble')));
+/// @include myMixin($name:'Andy', $age:'36', $gender:male);
+/// @include myMixin(important);
 ///
-/// $return-all - Set to true if you want to return all value from a var(...),
-/// by default this will loop through all variables to see if one matches
-/// anything fomr the custom properties array.
+/// @output
+/// name: "Mark", age: "31", gender: male, data: ("foo": "bar", "wibble": "wobble"), important: !important
+/// name: "Lizzie", age: "99", gender: female, data: ("foo": "bar", "wibble": "wobble"), important: null
+/// name: "Andy", age: "36", gender: male, data: ("foo": "bar"), important: null
+/// name: "unknown", age: "99", gender: null, data: ("foo": "bar"), important: !important
+// NOTE Passing a list of arguments in the keywords format will return incorrect
+// settings data if a special options map prefixes 'args...' within the Mixin.
 
-@function get-var-value($variable, $return-all : false) {
+@function get-settings($defaults, $args...) {
 
-  @if is-var($variable) {
+  // ===========================================================================
+  // Initial settings
+  // ===========================================================================
 
-		@if map-has-keys($custom-properties, $variable) {
-			@return map-get($custom-properties, $variable);
-		}
+  $important : false;
+  $settings  : null;
+  $defaults  : if(is-null($defaults), (), $defaults);
+  $backup    : $args;
 
-		@elseif string-starts-with(quote($variable), 'var(--') {
-			$variable : str-replace($variable, 'var(--', '');
-			$variable : str-replace($variable, ')', '');
+  // Special options on how to manage the arguments ----------------------------
 
-			$variables : string-explode(get-var-value($variable), ', ');
+  $options : (
+    deep      : true,
+    prefix    : 'argument',
+    important : null,
+    debug     : false
+  );
 
-			@if $return-all == false {
-				@each $var in $variables {
-					@if map-has-keys($custom-properties, $var) {
-						@return map-get($custom-properties, $var);
-					}
-				}
-			}
+  // ===========================================================================
+  //  Revert to defaults if no arguments are passed
+  // ===========================================================================
 
-			@if length($variables) > 1 {
-				@return $variables;
-			}
+  @if length($args) == 0 and length(keywords($args)) == 0 {
 
-			@return $variable;
-		}
+    @if map-get($options, debug ) { @debug "NO ARGUMENTS DETECTED"; }
+
+    $settings : $defaults;
 
   } @else {
-    @return $variable
-  }
-}
 
-////////////////////////////////////////////////////////////////////////////////
-/// Var Value                                                         #var-value
-////////////////////////////////////////////////////////////////////////////////
+    // =========================================================================
+    //  Keywords
+    // =========================================================================
+    // Convert keywords into a useable map
 
-/// @group helpers-misc
+    @if length(keywords($args)) > 0 {
 
-@function var-value($variable:primary, $opacity:1, $fallback:true) {
+      @if map-get($options, debug ) { @debug "KEYWORDS DETECTED"; }
 
-  $variable-value : $variable;
-  $fallback-value : null;
+      $args : keywords($args);
 
-  // If varuable is a standard colour, just use that colour as normal. Opacity is not used.
-  @if is-colour($variable) {
+      @if map-has-key($args, options) {
+        $options : map-merge($options, map-get($args, options));
+        $args : map-remove($args, options);
+      }
 
-    @if is-hex($variable) {
-      $variable-value : rgba($variable, $opacity);
-    } @else {
-      $variable-value : $variable;
     }
 
-  } @else {
+    // =========================================================================
+    //  Special Options
+    // =========================================================================
 
-    // Check the variables map to help generate a fallback colour
-    $fallback-value : get-variable-colour-value($variable, $opacity);
+    // Special options at start ------------------------------------------------
+    // Check if the fisrt args element exists, is a map, and contains any of the
+    // $options keys.If it does, assume these are bespoke options relative to
+    // the mixin that called this function.
 
-    @if is-var($variable) {
+    @if not is-empty(nth($args, 1)) and is-map(nth($args, 1)) and contains(map-keys(nth($args, 1)), map-keys($options)) {
 
-      // If a hardcoded 'var(--XXX)' is passed, extract the variable name and check if
-      // it's part of the variables map. If it is, use this hardcoded colour as a fallback.
-      // Add opacity is one if provided.
+      @if map-get($options, debug ) { @debug 'Special options defined at start of the arguments'; }
 
-      @if $support-css-variable-alpha-colours {
+      $options : map-merge($options, nth($args, 1));
+      $args    : slice($args, 2, length($args));
 
-        $variable-value : rgba($variable, $opacity);
+    }
 
+    // Special options at end -------------------------------------------------
+    // Essentially the same as above, but checks the last argument for options.
+    // This allows for a little syntax suger when passing aguments on a per-maxin call basis
+
+    @elseif not is-empty(nth($args, -1)) and is-map(nth($args, -1)) and
+            contains(map-keys(nth($args, -1)), map-keys($options)) {
+
+      @if map-get($options, debug ) { @debug 'Special options defined at end of the arguments'; }
+
+      $options : map-merge($options, nth($args, -1));
+      $args    : slice($args, 1, length($args) - 1)
+    }
+
+    // =========================================================================
+    //  Maps
+    // =========================================================================
+
+    // Quick check to determine if the map was originally passed as keywords or not.
+    $map : if(is-map($args), $args, nth($args, 1));
+
+    @if not is-empty($map) and is-map($map) {
+
+      @if map-get($options, debug ) { @debug "MAP DETECTED"; }
+
+    /// @todo: Check for cast type and required types
+
+      @if map-get($options, deep) == true  {
+        // If deep is true (default), then perform a deep merge with the defaults
+        $settings : map-deep-merge($defaults, $map);
       } @else {
+        // Otherwise do a standard merge.
+        $settings : map-merge($defaults, $map);
+      }
 
-        @if not is-null($fallback-value) {
-          $variable-value : str-replace($variable, ')', ', ' + $fallback-value + ')');
-        } @else {
-          $variable-value : $variable;
-        }
+      // Check if the map has important explicitly defined within it.
+      @if contains(map-keys($settings), important) {
+        $important : map-get($settings, important);
+        // If important is found, remove it from the settings list.
+        $settings : map-remove($settings, important);
+      }
 
+      // If a map was passed, check the second parameter for
+      // important as they may be seperated.
+      @if length($args) > 1 and is-important(nth($args, 2)) {
+        $important : true;
       }
 
     } @else {
 
-      // If a string was passed as the string. Assume this is a shorthand to search
-      // the variables map for the right variable then apply the fallback.
+    // =========================================================================
+    //  List
+    // =========================================================================
 
-      @if $support-css-variable-alpha-colours {
-        $variable-value : rgba(unquote('var(--' + $variable + ')'), $opacity);
-      } @else {
+      @if map-get($options, debug ) { @debug "LIST DETECTED"; }
 
-        @if not is-null($fallback-value) {
-          $variable-value : unquote('var(--' + $variable + ', '+ $fallback-value +')');
-        } @else {
-          $variable-value : unquote('var(--' + $variable + ')');
+      // Arguments that are passed as a standard list
+
+      $default-keys : map-keys($defaults);
+      $default-values : map-values($defaults);
+
+      // Convert all items into lists to help looping.
+      $arguments : arglist-to-list($args...);
+
+      // Check and remove 'important' if it was defined.
+      @if contains($arguments, important) {
+        $important : true;
+        $arguments : remove($arguments, important);
+      }
+
+      // Run through all the arguments
+      @if ( length($arguments) > 0 ) {
+        @for $i from 1 through length($arguments) {
+
+          @if $i <= length($default-keys) {
+            // Check if the amount of arguements is less than the
+            // amount of defaults before setting the value
+            @if is-null(nth($arguments, $i)) or contains((default, defaults), nth($arguments, $i)) {
+              // Passing in null, default or defaults will use the default value.
+              $defaults : map-set($defaults, nth($default-keys, $i), nth($default-values, $i));
+            } @elseif is-map(nth($arguments, $i)) {
+              @if map-get($options, deep) == true  {
+                // Do a deep-merge for map data
+                $defaults : map-set($defaults, nth($default-keys, $i), map-deep-merge(nth($default-values, $i), nth($arguments, $i)));
+              } @else {
+                // Do a normal merge for map data
+                $defaults : map-set($defaults, nth($default-keys, $i), map-merge(nth($default-values, $i), nth($arguments, $i)));
+              }
+            } @else {
+              // Add value to the associated argument number from the defaults key.
+              $defaults : map-set($defaults, nth($default-keys, $i), nth($arguments, $i));
+            }
+          } @else {
+            // If there are more arguments, define a map key with "argument",
+            // followed by the argument index.
+            $defaults : map-set($defaults, #{map-get($options, prefix) + $i}, nth($arguments, $i));
+          }
         }
+        $settings : $defaults;
+      } @else {
+        // This is a fallback should no arguments be passed except for 'important'
+        $settings : $defaults;
       }
     }
 
   }
 
-  @if ( not is-null($fallback-value) and $fallback ) {
-    @return ($variable-value, $fallback-value);
+  // ===========================================================================
+  //  Return Settings
+  // ===========================================================================
+
+  // Lastely, include important key and value at the end of the map.
+  $settings : map-set($settings, important, if($important, $imp, map-get($options, important)));
+
+  @if map-get($options, debug ) {
+    // @debug #{'Settings:'} $settings;
+    // @debug #{'Options:'} $options;
   }
 
-  @return $variable-value;
+  @return $settings;
 
 }
 
-@function var($args...) {
+////////////////////////////////////////////////////////////////////////////////
+/// Opposite Direction                                       #opposite-direction
+////////////////////////////////////////////////////////////////////////////////
 
-	$custom-property : ();
-	$fallback : null;
-	$variables : ();
-	$suffix : '';
+/// Return an opposite direction
+/// @author Hugo Giraudel
+/// @group helpers-strings
+/// @link http://www.sitepoint.com/sass-mixins-kickstart-project/#opposite-direction
 
-	// List valid custom properties names
-	@each $value in $args {
-		@if is-string($value) and not is-number($value) {
-			$value : string-replace($value, ' ');
-			$variables : append($variables, string-replace($value, '--'));
-			$suffix : $suffix + ')';
-		} @else {
-			$fallback : $value;
-		}
-	}
+@function opposite-direction($directions) {
 
-	@if length($variables) > 0 {
-		@for $i from 1 through length($variables) {
+  $has-hyphen : false;
 
-			$variable : nth($variables, $i);
-			$last : $i == length($variables);
+  @if str-index(to-string($directions), '-') {
+    $has-hyphen : true;
+    $directions : string-explode(to-string($directions), '-');
+  }
 
-			@if $last and map-has-keys($custom-properties, $variable) {
-				$fallback : map-get($custom-properties, $variable);
-			}
+  $opposite-directions: ();
+  $direction-map: (
+    top    : bottom,
+    right  : left,
+    bottom : top,
+    left   : right,
+    up     : down,
+    down   : up,
+    center : center,
+    ltr    : rtl,
+    rtl    : ltr
+  );
 
-			$custom-property : append($custom-property, unquote('var(--' + $variable + ','));
+  @each $direction in $directions {
+    $direction: to-lower-case($direction);
 
-		}
-	}
+    @if map-has-key($direction-map, $direction) {
+      $opposite-directions: append($opposite-directions, unquote(map-get($direction-map, $direction)));
+    } @else {
+      @if $warnings {
+        @warn "No opposite direction can be found for '#{$direction}'. Direction omitted.";
+      }
+    }
+  }
 
-	@if not is-null($fallback) {
-		$custom-property : $custom-property + ' ' + $fallback;
-	}
+  @if $has-hyphen == true {
+    @return string-replace(to-string($opposite-directions), '-', ' ');
+  } @else {
+    @return $opposite-directions;
+  }
+}
 
-	$result : to-string($custom-property) + $suffix;
+////////////////////////////////////////////////////////////////////////////////
+/// Pseudo                                                               #pseudo
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Check to see if the given pseduo is valid
+///
+/// @author Mark Notton
+///
+/// @access private
+///
+/// @group helpers-misc
+///
+/// @require {function} is-pseudo
+///
+/// @return {string}
+///
+/// @example scss - Usage
+///   &#{pseudo(before)} { ... }
+///
+/// @example scss - Output
+///   &:before { ... }
+///
 
-	$result : string-replace($result, ',)', ')');
+@function pseudo($pseudo, $colon:true) {
+  @if is-pseudo($pseudo) {
+    @return if($colon, ':'+$pseudo, $pseudo);
+  } @else {
+    @return null;
+  }
+}
 
-	// If the user is passing in variables within variables using the native syntax,
-	// This function will render out a looped mess. The following does some checks,
-	// and cleans it up. This hasn't been tested on complex variables like gradients,
-	// calcs, or anything that isn't a predefined customer-properties;
-	@if str-index($result, '--var(') {
-		$_result : string-replace($result, 'var(');
-		$_result : string-replace($_result, $suffix + ')');
-		$_result : string-remove-whitespace($_result);
-		$_fallback : null;
-		$_variables : ();
-		@each $value in string-explode($_result, ',', comma) {
-			@if string-starts-with($value, '--') {
-				$_variables : append($_variables, $value, comma);
-			} @else {
-				$_fallback : $value;
-			}
-		}
+/// Sudo ================================================================= #sudo
+///
+/// @alias pseudo
+///
 
-		$result : unquote(var($_variables...));
+///
+/// @require {function} pseudo
+///
+/// @return {bool}
 
-		@if ( not is-null($_fallback)) {
-			// When using native syntax, that has var fallbacks with vars, a
-			// given fallback is ignored. Either don't use nested vars where the
-			// fallback is important, or define a fallback before calling it this way.
-			// Ultimately this is almost never going to happen.
-			// TODO Inject the fallback so as to not break the syntax. Data is coreect, syntax isn't.
-			// $result : $result + $_fallback;
-		}
-
-		@return $result;
-	}
-
-	@return unquote($result);
-
+@function sudo($pseudo, $colon:true) {
+  @return pseudo($pseudo, $colon);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2144,1260 +3398,6 @@ $sc-non-strict-defaults: (
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Check                                                                 #check
-////////////////////////////////////////////////////////////////////////////////
-
-/// If a value does not exist or is invalid, revert to a fallback value
-/// @name Check
-/// @author Mark Notton
-/// @group helpers-checks
-/// @param {*} $unit - The unit you want to check exists and is valid. Normally an nth list item or variable.
-/// @param {*} $fallback - If the first parameter doesn't exist or isn't valid, revert back to this fallback
-/// @param {string} $check - Check for a certain type of condition. Default is number.
-///   Accepted check types : angel, duration, false, frequency, integer, length, number, percentage, position, pseudo, sudo, resolution, time
-/// @require {function} is-absolute-length
-/// @require {function} is-angel
-/// @require {function} is-bool
-/// @require {function} is-colour
-/// @require {function} is-duration
-/// @require {function} is-false
-/// @require {function} is-frequency
-/// @require {function} is-integer
-/// @require {function} is-length
-/// @require {function} is-list
-/// @require {function} is-map
-/// @require {function} is-null
-/// @require {function} is-number
-/// @require {function} is-percentage
-/// @require {function} is-position
-/// @require {function} is-pseudo
-/// @require {function} is-relative-length
-/// @require {function} is-resolution
-/// @require {function} is-string
-/// @require {function} is-time
-/// @require {variable} warnings
-/// @return {*}
-
-@function check($value, $fallback, $check:number) {
-  @if index(angel duration false frequency integer length number percentage position pseudo sudo resolution time string bool boolean colour color list map null, $check) {
-    @if $check == angel     and is-angel($value)
-    or $check == duration   and is-duration($value)
-    or $check == false      and is-false($value)
-    or $check == frequency  and is-frequency($value)
-    or $check == integer    and is-integer($value)
-    or $check == length     and is-length($value)
-    or $check == number     and is-number($value)
-    or $check == percentage and is-percentage($value)
-    or $check == position   and is-position($value)
-    or $check == pseudo     and is-pseudo($value)
-    or $check == sudo       and is-sudo($value)
-    or $check == resolution and is-resolution($value)
-    or $check == string     and is-string($value)
-    or $check == bool       and is-bool($value)
-    or $check == boolean    and is-boolean($value)
-    or $check == color      and is-color($value)
-    or $check == colour     and is-colour($value)
-    or $check == list       and is-list($value)
-    or $check == map        and is-map($value)
-    or $check == null       and is-null($value) {
-      @return $value;
-    } @else {
-      @return $fallback;
-    }
-  } @else {
-    @if $warnings { @warn "#{$check} is not a valid type check. Returning the initial value: #{$value}"; }
-    @return $value;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Absolute Length                                          #is-absolute-length
-////////////////////////////////////////////////////////////////////////////////
-
-/// Checks to see if value is a type of unit that can't be manipulated relative
-/// to parent elements
-/// @name Absolute Length
-/// @author Hugo Giraudel
-/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
-
-/// @group helpers-checks
-/// @require {function} is-number
-/// @require {variable} $abolute-lengths
-/// @return {bool}
-
-@function is-absolute-length($value) {
-  @return is-number($value) and index($absolute-lengths, unit($value)) != null;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Angle                                                              #is-angel
-////////////////////////////////////////////////////////////////////////////////
-
-/// Checks to see if value ends with an angle
-/// @author Hugo Giraudel
-/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
-
-/// @group helpers-checks
-/// @require {function} is-number
-/// @require {variable} angel-types
-/// @return {bool}
-
-@function is-angle($value) {
-  @return is-number($value) and index($angel-types, unit($value)) != null;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Arglist                                                          #is-arglist
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value is a arglist
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-checks
-///
-/// @return {bool}
-
-@function is-arglist($value) {
-  @return type-of($value) == 'arglist';
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Boolean                                                          #is-boolean
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value is a boolean
-///
-/// @author Mark Notton
-///
-///
-/// @group helpers-checks
-///
-/// @return {bool}
-
-@function is-boolean($value) {
-  @return type-of($value) == 'bool';
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Calc                                                                #is-calc
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value is a calc
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-checks
-///
-/// @return {bool}
-
-@function is-calc($value) {
-  @return is-string($value) and str-slice(#{$value}, 0, 4) == 'calc';
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Colour                                                            #is-colour
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value is a colour
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-checks
-///
-/// @return {bool}
-
-@function is-colour($value) {
-  @return type-of($value) == 'color';
-}
-
-/// Color ============================================================ #is-color
-///
-/// @alias is-colour
-///
-
-///
-/// @group helpers-checks
-///
-/// @require {function} is-colour
-///
-/// @return {bool}
-
-@function is-color($value) {
-  @return is-colour($value);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Dark                                                                #is-dark
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if a colour is dark
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-checks
-///
-/// @require {function} brightness
-/// @require {function} lightness
-///
-/// @return {bool}
-
-@function is-dark($colour) {
-  @return brightness($colour) < lightness();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Duration                                                        #is-duration
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value is a number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
-///
-
-///
-/// @group helpers-checks
-///
-/// @require {function} is-time
-///
-/// @return {bool}
-
-@function is-duration($value) {
-  @return is-time($value);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Ease                                                                #is-ease
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if string is an ease
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-checks
-///
-/// @require {function} contains
-/// @require {function} is-string
-///
-/// @return {bool}
-
-@function is-ease($string) {
-  @return is-string($string) and contains(str-slice(#{$string}, 0, 4), ease line step cubi init)
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// False                                                              #is-false
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value is any type of false
-///
-
-/// @group helpers-checks
-/// @return {bool}
-
-@function is-empty($value) {
-  @return not not index(false null 0 off def, $value);
-}
-
-
-
-/// @group helpers-checks
-/// @return {bool}
-
-@function is-false($value) {
-  @return not not index(false null 0 off def, $value);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Extension                                                      #is-extension
-////////////////////////////////////////////////////////////////////////////////
-///
-/// If the end of a string matches the given extension, return the extension.
-/// Otherwise return false.
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-checks
-///
-/// @return {Bool String}
-
-@function is-extension($string, $extension) {
-
-  $string : to-string($string);
-
-  $extension : to-lower-case($extension);
-
-  $explode : string-explode($string, '.');
-
-  @if $extension == to-lower-case(last($explode)) {
-    @return $extension;
-  } @else {
-    @return false;
-  }
-
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// First Character                                          #is-first-character
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Compare the first character of a string
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-checks
-///
-/// @return {bool}
-
-@function is-first-character($string, $character) {
-  @return str-slice(#{$string}, 1, 1) == #{$character};
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Frequency                                                      #is-frequency
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value ends with a frequency
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
-///
-
-///
-/// @group helpers-checks
-///
-/// @require {function} is-number
-///
-/// @return {bool}
-
-@function is-frequency($value) {
-  @return is-number($value) and index('Hz' 'kHz', unit($value)) != null;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Function                                                        #is-function
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Explodes a function into a list.
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-checks
-///
-/// @require {function} to-number
-/// @require {function} is-string
-/// @require {function} string-explode
-///
-/// @example scss - Usage
-///   @debug is-function(rotate(45deg));
-///   @debug is-function(transform);
-///
-/// @example scss - Output
-///   (rotate, 45deg)
-///   false
-///
-/// @return {bool | list} If value is not a string or does not fit the 'function'
-/// syntax, return false. Otherwise, return a list with the 'function' name and
-/// the 'value' that was passed.
-
-@function is-function($function) {
-
-  @if is-string($function) {
-
-    $first-brace : str-index($function, '(');
-    $last-brace : str-index($function, ')');
-
-    @return $first-brace and $last-brace;
-
-  } @else {
-
-    @return false;
-
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Hexadecimal                                                          #is-hex
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see value is a hexidecimal string
-///
-/// @author Mark Notton
-///
-
-///
-/// @return {bool}
-
-@function is-hex($value) {
-  @return is-colour($value) and string-starts-with(to-string($value), '#');
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Important                                                      #is-important
-////////////////////////////////////////////////////////////////////////////////
-
-/// Checks to see value is important
-/// @author Mark Notton
-
-/// @group  helpers-checks
-/// @return {bool}
-
-@function is-important($value, $bool:false) {
-  $_imp : null;
-
-  @if ( contains((important, !important), $value) or (is-bool($value) and $value == true) ) {
-    @if $bool {
-      $_imp : true;
-    } @else {
-      $_imp : $imp;
-    }
-  }
-
-  @return $_imp;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Integer                                                          #is-integer
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value is a rounded number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
-///
-
-///
-/// @group helpers-checks
-///
-/// @require {function} is-number
-///
-/// @return {bool}
-
-@function is-integer($value) {
-  @return is-number($value) and round($value) == $value;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Length                                                            #is-length
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value ends with any type of unit
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
-///
-
-///
-/// @group helpers-checks
-///
-/// @require {function} is-relative-length
-/// @require {function} is-absolute-length
-///
-/// @return {bool}
-
-@function is-length($value) {
-  @return is-relative-length($value) or is-absolute-length($value);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Light                                                              #is-light
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if a colour is light
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-checks
-///
-/// @require {function} brightness
-/// @require {function} lightness
-///
-/// @return {bool}
-
-@function is-light($colour) {
-  @return brightness($colour) > lightness();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// List                                                                #is-list
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value is a list
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-checks
-///
-/// @return {bool}
-
-@function is-list($value) {
-  @return type-of($value) == 'list';
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map                                                                  #is-map
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value is a map
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-checks
-///
-/// @return {bool}
-
-@function is-map($value) {
-  @return type-of($value) == 'map';
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Null                                                                #is-null
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value is null
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-checks
-///
-/// @return {bool}
-
-@function is-null($value) {
-  @return type-of($value) == 'null';
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Number                                                            #is-number
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value is a number. This includes units (except for calc)
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
-///
-
-///
-/// @group helpers-checks
-///
-/// @return {bool}
-
-@function is-number($value, $check-strings:true, $allow-units:true) {
-
-  @if $check-strings and type-of($value) == 'string' {
-
-    // Early check to dismiss this as a number if any spaces are found in the string.
-    @if str-index($value, ' ') != null {
-      $value : str-replace($value, ' ', '');
-    }
-
-    // If a '-' symbol exists but it's not the first character, return false
-    @if str-index($value, '-') != null and str-slice($value, 1, 1) != '-' {
-      @return false;
-    }
-
-    // Remove percentage symbol.
-    $value : str-replace($value, '%', '');
-
-    // Remove units from the value string. It had to be done this way, because
-    // you can't strip units from a string.
-    @if $allow-units and not unitless(to-number($value)) {
-      $unit : null;
-
-      @each $u in $all-units {
-        @if string-ends-with($value, $u) {
-          $unit : $u;
-        }
-      }
-      $value : str-replace($value, $unit, '');
-    }
-
-    $exploaded-value : string-explode($value, '');
-    $allowed-characters : "-" "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
-
-    // Return false if any of the chacters are not in the list of allowed numbers
-    @each $character in $exploaded-value {
-      @if (index($allowed-characters, $character) != null) == false {
-        @return false;
-      }
-    }
-
-    @return true;
-
-  } @else {
-
-    @return type-of($value) == 'number';
-
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Percentage                                                    #is-percentage
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value is a percentage
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
-///
-
-///
-/// @group helpers-checks
-///
-/// @return {bool}
-
-@function is-percentage($value) {
-  @return is-number($value) and unit($value) == '%';
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Position                                                        #is-position
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value is a direction position
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
-///
-
-///
-/// @group helpers-checks
-///
-/// @require {function} is-length
-/// @require {function} is-percentage
-///
-/// @return {bool}
-
-@function is-position($value) {
-  @return is-length($value) or is-percentage($value) or index('top' 'right' 'bottom' 'left' 'center', $value) != null;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Pseudo                                                            #is-pseudo
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Check to see is a 'before' of 'after' pseudo has been passed
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-checks
-///
-/// @return {bool}
-
-@function is-pseudo($pseudo) {
-  @return index(before after, $pseudo);
-}
-
-/// Sudo ============================================================== #is-sudo
-///
-/// @alias is-pseudo
-///
-
-///
-/// @group helpers-checks
-///
-/// @require {function} is-pseudo
-///
-/// @return {bool}
-
-@function is-sudo($pseudo) {
-  @return is-pseudo($pseudo)
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Relative Length                                          #is-relative-length
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value is a type of unit that can be manipulated relative to parent elements
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
-///
-
-///
-/// @group helpers-checks
-///
-/// @require {function} is-number
-/// @require {variable} relative-lengths
-///
-/// @return {bool}
-
-@function is-relative-length($value) {
-  @return is-number($value) and index($relative-units, unit($value)) != null;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Resolution                                                    #is-resolution
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value ends with a type of resolution
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
-///
-
-///
-/// @group helpers-checks
-///
-/// @require {function} is-number
-///
-/// @return {bool}
-
-@function is-resolution($value) {
-  @return is-number($value) and index('dpi' 'dpcm' 'dppx', unit($value)) != null;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Selector                                                        #is-selector
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Check to see if and ampersand refers to a particular string
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-checks
-///
-/// @return {bool}
-
-@function is-selector($value) {
-  @return #{&} == #{$value};
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String                                                            #is-string
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value is a string
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-checks
-///
-/// @return {bool}
-
-@function is-string($value) {
-  @return type-of($value) == 'string';
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Selector                                                        #is-selector
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value ends with 's' or 'ms'
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
-///
-
-///
-/// @group helpers-checks
-///
-/// @require {function} is-number
-///
-/// @return {bool}
-
-@function is-time($value) {
-  @return is-number($value) and index('ms' 's', unit($value)) != null;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Unit                                                                #is-unit
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value ends with any type of unit
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/advanced-type-checking/
-///
-
-///
-/// @group helpers-checks
-///
-/// @require {function} is-relative-length
-/// @require {function} is-absolute-length
-///
-/// @return {bool}
-
-@function is-unit($value) {
-  @return unit($value) != '';
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Is Var                                                               #is-var
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if value is a custom property. Eiter a as string in the
-/// cutom properties map. Or litterally starts with the var syntax
-///
-/// @author Mark Notton
-///
-/// @return {bool}
-
-@function is-var($value) {
-
-  @return string-starts-with(quote($value), 'var(--') or map-has-keys($custom-properties, $value);
-
-}
-
-/// @author Mark Notton
-/// @link http://www.w3schools.com/charsets/ref_html_utf8.asp
-/// @type variables
-
-/// Symbols
-
-$copyright :            "\00A9"; // ©
-
-$registered :           "\00AE"; // ®
-
-$tricolon :             "\205D"; // ⁝
-
-$quadcolon :            "\205E"; // ⁞
-
-$tick1 :                "\2713"; // ✓
-
-$tick2 :                "\2714"; // ✔
-
-$cross1 :               "\2715"; // ✕
-
-$cross2 :               "\2717"; // ✗
-
-$plus :                 "\271B"; // ✛
-
-$bullet :               "\2219"; // ∙
-
-/// Punctuation
-
-$single-dot :           "\2024"; // ․
-
-$double-dots :          "\2025"; // ‥
-
-$tripple-dots :         "\2026"; // …
-
-$open-quotes-1 :        "\201C"; // “
-
-$close-quotes-1 :       "\201D"; // ”
-
-$close-quotes-2 :       "\201E"; // „
-
-$open-quotes-2 :        "\201F"; // ‟
-
-$close-curly-brackets : "\2775"; // ❵
-
-$open-curly-brackets :  "\2774"; // ❴
-
-/// Arrows
-
-$double-right-arrows :  "\00BB"; // »
-
-$angle-left-1 :         "\276C"; // ❬
-
-$angle-right-1 :        "\276D"; // ❭
-
-$angle-left-2 :         "\276E"; // ❮
-
-$angle-right-2 :        "\276F"; // ❯
-
-$angle-left-3 :         "\2770"; // ❰
-
-$angle-right-3 :        "\2771"; // ❱
-
-$small-left-arrow :     "\2039"; // ‹
-
-$small-right-arrow :    "\203A"; // ›
-
-$arrow-right :          "\27A4"; // ➤
-
-$triangle-right-1 :     "\2023"; // ‣
-
-$triangle-right-2 :     "\25B6"; // ▶
-
-$triangle-right-3 :     "\25B7"; // ▷
-
-
-/// Currency
-
-$british-pound :        "\00A3"; // £
-
-$dollar :               "\0024"; // $
-
-$euro :                 "\20AC"; // €
-
-
-/// Shapes
-
-$star :                 "\272F"; // ✯
-
-$circle :               "\25CF"; // ●
-
-$square-1 :             "\25A0"; // ■
-
-$square-2 :             "\25A1"; // □
-
-$quare-3 :              "\25A2"; // ▢
-
-////////////////////////////////////////////////////////////////////////////////
-/// Get Settings                                                   #get-settings
-////////////////////////////////////////////////////////////////////////////////
-
-/// Have all mixins accept the same pattern on arguments and manage all defaults
-/// data and fallbacks. Use either a list, map, or keywords.
-///
-/// @name Get Settings
-/// @author Mark Notton
-
-/// @return {map}
-/// @example
-/// @mixin myMixin($args...) {
-///    $defaults : (
-///      name   : 'unknown',
-///      age    : '99',
-///      gender : null,
-///      data   : ('foo':'bar')
-///    );
-///    $settings : get-settings($defaults, $args...);
-///    // $settings : get-settings($defaults, (deep:false, debug:true), $args...);
-///    @debug $settings;
-/// }
-/// @include myMixin('Mark', '31', male, ('wibble':'wobble'), important);
-/// @include myMixin((name:'Lizzie', gender:female, data:('wibble':'wobble')));
-/// @include myMixin($name:'Andy', $age:'36', $gender:male);
-/// @include myMixin(important);
-///
-/// @output
-/// name: "Mark", age: "31", gender: male, data: ("foo": "bar", "wibble": "wobble"), important: !important
-/// name: "Lizzie", age: "99", gender: female, data: ("foo": "bar", "wibble": "wobble"), important: null
-/// name: "Andy", age: "36", gender: male, data: ("foo": "bar"), important: null
-/// name: "unknown", age: "99", gender: null, data: ("foo": "bar"), important: !important
-// NOTE Passing a list of arguments in the keywords format will return incorrect
-// settings data if a special options map prefixes 'args...' within the Mixin.
-
-@function get-settings($defaults, $args...) {
-
-  // ===========================================================================
-  // Initial settings
-  // ===========================================================================
-
-  $important : false;
-  $settings  : null;
-  $defaults  : if(is-null($defaults), (), $defaults);
-  $backup    : $args;
-
-  // Special options on how to manage the arguments ----------------------------
-
-  $options : (
-    deep      : true,
-    prefix    : 'argument',
-    important : null,
-    debug     : false
-  );
-
-  // ===========================================================================
-  //  Revert to defaults if no arguments are passed
-  // ===========================================================================
-
-  @if length($args) == 0 and length(keywords($args)) == 0 {
-
-    @if map-get($options, debug ) { @debug "NO ARGUMENTS DETECTED"; }
-
-    $settings : $defaults;
-
-  } @else {
-
-    // =========================================================================
-    //  Keywords
-    // =========================================================================
-    // Convert keywords into a useable map
-
-    @if length(keywords($args)) > 0 {
-
-      @if map-get($options, debug ) { @debug "KEYWORDS DETECTED"; }
-
-      $args : keywords($args);
-
-      @if map-has-key($args, options) {
-        $options : map-merge($options, map-get($args, options));
-        $args : map-remove($args, options);
-      }
-
-    }
-
-    // =========================================================================
-    //  Special Options
-    // =========================================================================
-
-    // Special options at start ------------------------------------------------
-    // Check if the fisrt args element exists, is a map, and contains any of the
-    // $options keys.If it does, assume these are bespoke options relative to
-    // the mixin that called this function.
-
-    @if not is-empty(nth($args, 1)) and is-map(nth($args, 1)) and contains(map-keys(nth($args, 1)), map-keys($options)) {
-
-      @if map-get($options, debug ) { @debug 'Special options defined at start of the arguments'; }
-
-      $options : map-merge($options, nth($args, 1));
-      $args    : slice($args, 2, length($args));
-
-    }
-
-    // Special options at end -------------------------------------------------
-    // Essentially the same as above, but checks the last argument for options.
-    // This allows for a little syntax suger when passing aguments on a per-maxin call basis
-
-    @elseif not is-empty(nth($args, -1)) and is-map(nth($args, -1)) and
-            contains(map-keys(nth($args, -1)), map-keys($options)) {
-
-      @if map-get($options, debug ) { @debug 'Special options defined at end of the arguments'; }
-
-      $options : map-merge($options, nth($args, -1));
-      $args    : slice($args, 1, length($args) - 1)
-    }
-
-    // =========================================================================
-    //  Maps
-    // =========================================================================
-
-    // Quick check to determine if the map was originally passed as keywords or not.
-    $map : if(is-map($args), $args, nth($args, 1));
-
-    @if not is-empty($map) and is-map($map) {
-
-      @if map-get($options, debug ) { @debug "MAP DETECTED"; }
-
-    /// @todo: Check for cast type and required types
-
-      @if map-get($options, deep) == true  {
-        // If deep is true (default), then perform a deep merge with the defaults
-        $settings : map-deep-merge($defaults, $map);
-      } @else {
-        // Otherwise do a standard merge.
-        $settings : map-merge($defaults, $map);
-      }
-
-      // Check if the map has important explicitly defined within it.
-      @if contains(map-keys($settings), important) {
-        $important : map-get($settings, important);
-        // If important is found, remove it from the settings list.
-        $settings : map-remove($settings, important);
-      }
-
-      // If a map was passed, check the second parameter for
-      // important as they may be seperated.
-      @if length($args) > 1 and is-important(nth($args, 2)) {
-        $important : true;
-      }
-
-    } @else {
-
-    // =========================================================================
-    //  List
-    // =========================================================================
-
-      @if map-get($options, debug ) { @debug "LIST DETECTED"; }
-
-      // Arguments that are passed as a standard list
-
-      $default-keys : map-keys($defaults);
-      $default-values : map-values($defaults);
-
-      // Convert all items into lists to help looping.
-      $arguments : arglist-to-list($args...);
-
-      // Check and remove 'important' if it was defined.
-      @if contains($arguments, important) {
-        $important : true;
-        $arguments : remove($arguments, important);
-      }
-
-      // Run through all the arguments
-      @if ( length($arguments) > 0 ) {
-        @for $i from 1 through length($arguments) {
-
-          @if $i <= length($default-keys) {
-            // Check if the amount of arguements is less than the
-            // amount of defaults before setting the value
-            @if is-null(nth($arguments, $i)) or contains((default, defaults), nth($arguments, $i)) {
-              // Passing in null, default or defaults will use the default value.
-              $defaults : map-set($defaults, nth($default-keys, $i), nth($default-values, $i));
-            } @elseif is-map(nth($arguments, $i)) {
-              @if map-get($options, deep) == true  {
-                // Do a deep-merge for map data
-                $defaults : map-set($defaults, nth($default-keys, $i), map-deep-merge(nth($default-values, $i), nth($arguments, $i)));
-              } @else {
-                // Do a normal merge for map data
-                $defaults : map-set($defaults, nth($default-keys, $i), map-merge(nth($default-values, $i), nth($arguments, $i)));
-              }
-            } @else {
-              // Add value to the associated argument number from the defaults key.
-              $defaults : map-set($defaults, nth($default-keys, $i), nth($arguments, $i));
-            }
-          } @else {
-            // If there are more arguments, define a map key with "argument",
-            // followed by the argument index.
-            $defaults : map-set($defaults, #{map-get($options, prefix) + $i}, nth($arguments, $i));
-          }
-        }
-        $settings : $defaults;
-      } @else {
-        // This is a fallback should no arguments be passed except for 'important'
-        $settings : $defaults;
-      }
-    }
-
-  }
-
-  // ===========================================================================
-  //  Return Settings
-  // ===========================================================================
-
-  // Lastely, include important key and value at the end of the map.
-  $settings : map-set($settings, important, if($important, $imp, map-get($options, important)));
-
-  @if map-get($options, debug ) {
-    // @debug #{'Settings:'} $settings;
-    // @debug #{'Options:'} $options;
-  }
-
-  @return $settings;
-
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Opposite Direction                                       #opposite-direction
-////////////////////////////////////////////////////////////////////////////////
-
-/// Return an opposite direction
-/// @author Hugo Giraudel
-/// @group helpers-strings
-/// @link http://www.sitepoint.com/sass-mixins-kickstart-project/#opposite-direction
-
-@function opposite-direction($directions) {
-
-  $has-hyphen : false;
-
-  @if str-index(to-string($directions), '-') {
-    $has-hyphen : true;
-    $directions : string-explode(to-string($directions), '-');
-  }
-
-  $opposite-directions: ();
-  $direction-map: (
-    top    : bottom,
-    right  : left,
-    bottom : top,
-    left   : right,
-    up     : down,
-    down   : up,
-    center : center,
-    ltr    : rtl,
-    rtl    : ltr
-  );
-
-  @each $direction in $directions {
-    $direction: to-lower-case($direction);
-
-    @if map-has-key($direction-map, $direction) {
-      $opposite-directions: append($opposite-directions, unquote(map-get($direction-map, $direction)));
-    } @else {
-      @if $warnings {
-        @warn "No opposite direction can be found for '#{$direction}'. Direction omitted.";
-      }
-    }
-  }
-
-  @if $has-hyphen == true {
-    @return string-replace(to-string($opposite-directions), '-', ' ');
-  } @else {
-    @return $opposite-directions;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Pseudo                                                               #pseudo
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Check to see if the given pseduo is valid
-///
-/// @author Mark Notton
-///
-/// @access private
-///
-/// @group helpers-misc
-///
-/// @require {function} is-pseudo
-///
-/// @return {string}
-///
-/// @example scss - Usage
-///   &#{pseudo(before)} { ... }
-///
-/// @example scss - Output
-///   &:before { ... }
-///
-
-@function pseudo($pseudo, $colon:true) {
-  @if is-pseudo($pseudo) {
-    @return if($colon, ':'+$pseudo, $pseudo);
-  } @else {
-    @return null;
-  }
-}
-
-/// Sudo ================================================================= #sudo
-///
-/// @alias pseudo
-///
-
-///
-/// @require {function} pseudo
-///
-/// @return {bool}
-
-@function sudo($pseudo, $colon:true) {
-  @return pseudo($pseudo, $colon);
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Added Extension                                               #add-extension
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -3721,6 +3721,133 @@ $quare-3 :              "\25A2"; // ▢
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Find Digits                                                     #find-digits
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Finding the digits part of a stringified number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-numbers
+///
+/// @param {string} $source - string source
+///
+/// @param {number} $pointer - current pointer
+///
+/// @return {list} - new pointer, parsed number
+
+@function find-digits($source, $pointer) {
+  $source: to-lower-case($source);
+  $length: str-length($source);
+  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  $result: 0;
+  $runs: 1;
+
+  @while $pointer <= $length {
+    $token: str-slice($source, $pointer, $pointer);
+    $index: index($numbers, $token);
+
+    @if $token == "." {
+      // @continue;
+    }
+    @else if $index and $index > 0 {
+      $runs: $runs * 10;
+      $result: $result * 10 + ($index - 1);
+    }
+    @else {
+      @return $pointer, $result / $runs;
+    }
+
+    $pointer: $pointer + 1;
+  }
+
+  @return $pointer, $result / $runs;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Find Interger                                                  #find-integer
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Finding the digits part of a stringified number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-numbers
+///
+/// @param {string} $source  - string source
+///
+/// @param {number} $pointer - current pointer
+///
+/// @return {list} new pointer, parsed number
+
+@function find-integer($source, $pointer) {
+  $source: to-lower-case($source);
+  $length: str-length($source);
+  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  $result: 0;
+
+  @while $pointer <= $length {
+    $token: str-slice($source, $pointer, $pointer);
+    $index: index($numbers, $token);
+
+    @if $token == "-" {
+      // @continue;
+    }
+    @else if $index {
+      $result: $result * 10 + ($index - 1);
+    }
+    @else {
+      @return $pointer, $result;
+    }
+
+    $pointer: $pointer + 1;
+  }
+
+  @return $pointer, $result;
+}
+
+/// Strips any units from a number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/remove-unit-function/
+///
+/// @param {string} $number
+///
+/// @return {number}
+///
+/// @require {function} is-number
+/// @require {function} to-number
+///
+/// @example scss - Usage
+///   remove-unit(50px)
+///
+/// @example scss - Output
+///   50
+///
+
+@function remove-unit($number) {
+
+  @if not is-number($number) {
+    $number : to-number($number);
+  }
+
+  @if is-number($number) and not unitless($number) {
+    @return ($number / ($number * 0 + 1));
+  }
+
+  @return $number;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// Add Unit                                                           #add-unit
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -4004,133 +4131,6 @@ $quare-3 :              "\25A2"; // ▢
   $min       : add-unit(map-get($settings, min));
 
   @return calc(#{$size} + #{$min});
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Find Digits                                                     #find-digits
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Finding the digits part of a stringified number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-numbers
-///
-/// @param {string} $source - string source
-///
-/// @param {number} $pointer - current pointer
-///
-/// @return {list} - new pointer, parsed number
-
-@function find-digits($source, $pointer) {
-  $source: to-lower-case($source);
-  $length: str-length($source);
-  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
-  $result: 0;
-  $runs: 1;
-
-  @while $pointer <= $length {
-    $token: str-slice($source, $pointer, $pointer);
-    $index: index($numbers, $token);
-
-    @if $token == "." {
-      // @continue;
-    }
-    @else if $index and $index > 0 {
-      $runs: $runs * 10;
-      $result: $result * 10 + ($index - 1);
-    }
-    @else {
-      @return $pointer, $result / $runs;
-    }
-
-    $pointer: $pointer + 1;
-  }
-
-  @return $pointer, $result / $runs;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Find Interger                                                  #find-integer
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Finding the digits part of a stringified number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-numbers
-///
-/// @param {string} $source  - string source
-///
-/// @param {number} $pointer - current pointer
-///
-/// @return {list} new pointer, parsed number
-
-@function find-integer($source, $pointer) {
-  $source: to-lower-case($source);
-  $length: str-length($source);
-  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
-  $result: 0;
-
-  @while $pointer <= $length {
-    $token: str-slice($source, $pointer, $pointer);
-    $index: index($numbers, $token);
-
-    @if $token == "-" {
-      // @continue;
-    }
-    @else if $index {
-      $result: $result * 10 + ($index - 1);
-    }
-    @else {
-      @return $pointer, $result;
-    }
-
-    $pointer: $pointer + 1;
-  }
-
-  @return $pointer, $result;
-}
-
-/// Strips any units from a number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/remove-unit-function/
-///
-/// @param {string} $number
-///
-/// @return {number}
-///
-/// @require {function} is-number
-/// @require {function} to-number
-///
-/// @example scss - Usage
-///   remove-unit(50px)
-///
-/// @example scss - Output
-///   50
-///
-
-@function remove-unit($number) {
-
-  @if not is-number($number) {
-    $number : to-number($number);
-  }
-
-  @if is-number($number) and not unitless($number) {
-    @return ($number / ($number * 0 + 1));
-  }
-
-  @return $number;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -4647,352 +4647,30 @@ $ease-in-out-back  : cubic-bezier(0.680, -0.550, 0.265, 1.550);
   text-indent:0; overflow:visible; white-space:normal; user-select:all;
 }
 
-@mixin break-between($min, $max) {
-
-	$min : get-breakpoint($min);
-	$max : get-breakpoint($max);
-
-  @media (min-width:$min) and (max-width:$max) {
-    @content;
+@mixin jump($amount:10, $animation-name:jump) {
+  @include keyframes(#{$animation-name}) {
+    0%   { top:0 }
+    50%  { top:$amount + px }
+    100% { top:0 }
   }
 }
 
-@mixin breakpoint($args...) {
-
-	$defaults : (
-    breakpoint : null,
-    rule : 'min',
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $rule : map-get($settings, rule);
-  $breakpoint : map-get($settings, breakpoint);
-
-  $breakpoint : get-breakpoint($breakpoint);
-
-	@if $rule == 'min' or $rule == '>' {
-		@media (min-width:$breakpoint - 1) {
-	    @content;
-	  }
-	}	@elseif $rule == 'max' or $rule == '<' {
-		@media (max-width:$breakpoint) {
-	    @content;
-	  }
-	}
-}
-
-// Get breakpoint from the breakpoint list, either by it's number or name
-@function get-breakpoint($break) {
-
-	$breakpoint : $break;
-
-	// If a string is passed and exists in the breakpoints map as a key, return the value
-  @if is-string($break) and map-has-key($breakpoints, $break) {
-    $breakpoint : map-get($breakpoints, $break);
-  }
-
-	// If a number is passed and it exists in the breakpoints map, return the key
-	@elseif is-number($break) {
-    $breakpoint : add-unit($break, 'px', true);
-  }
-
-	@return to-number($breakpoint);
-
-}
-
-@mixin inside-break($breakpoint) {
-	@include breakpoint($breakpoint, max) { @content; }
-}
-
-@mixin outside-break($breakpoint) {
-	@include breakpoint($breakpoint, min) { @content; }
-}
-
-@mixin show-breakpoints($sudo : before) {
-  &:#{$sudo} {
-    content:"\276F  #{add-unit($max)}";
-    background-color:darken($red, 20);
-    bottom:0;
-    right:0;
-    font-family:Arial;
-    padding:4px $gap0;
-    @include transition(background-color color);
-    pointer-events:none;
-    position:fixed;
-    z-index:9999;
-    font-size:12px;
-    line-height:16px;
-    color:white;
-    text-align:center;
-    @each $name, $value in $breakpoints {
-      $random-color: random-colour();
-      @include breakpoint($value, '>') {
-        content:"#{$name} #{add-unit($value)}";
-        background-color:$random-color;
-        color:colour-contrast($random-color);
-      }
-    }
+@mixin shake($amount:10, $animation-name:shake) {
+  @include keyframes(#{$animation-name}) {
+    0%   { transform:rotate(0) }
+    25%  { transform:rotate(-#{$amount}deg) }
+    75%  { transform:rotate(#{$amount}deg) }
+    100% { transform:rotate(0) }
   }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Grid Layouts                                                   #grid-layouts
-////////////////////////////////////////////////////////////////////////////////
-
-// =============================================================================
-// 2x Blocks
-// =============================================================================
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-$grid-template-2-blocks-1x2: "block1 block2";
-
-// =============================================================================
-// 3x Blocks
-// =============================================================================
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘└───┘└───┘
-$grid-template-3-blocks-1x3: "block1 block2 block3";
-
-// -----------------------------------------------------------------------------
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-// ┍────────────┐
-// │  3         │
-// └────────────┘
-$grid-template-3-blocks-1x2-3x3: "block1 block2" "block3 block3";
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  3  │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x2-1x3: "block1 block2" "block1 block3";
-
-// ┍────────────┐
-// │  1         │
-// └────────────┘
-// ┍─────┐┍─────┐
-// │  2  ││  3  │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x1-2x3: "block1 block1" "block2 block3";
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  3  ││     │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x2-3x2: "block1 block2" "block3 block2";
-
-// =============================================================================
-// 4x Blocks
-// =============================================================================
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-// ┍─────┐┍─────┐
-// │  3  ││  4  │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-3x4: "block1 block2" "block3 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  3  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  4  │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-1x3-1x4: "block1 block2" "block1 block3" "block1 block4";
-
-// ┍─────────────┐
-// │ 1           │
-// └─────────────┘
-// ┍───┐┍───┐┍───┐
-// │ 2 ││ 3 ││ 4 │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x1x1-2x3x4: "block1 block1 block1" "block2 block3 block4";
-
-// ┍─────┐┍─────┐
-// │  1  ││  4  │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  2  ││     │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  3  ││     │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-2x4-3x4: "block1 block2" "block2 block4" "block3 block4";
-
-// 270 Degrees
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘└───┘└───┘
-// ┍─────────────┐
-// │ 4           │
-// └─────────────┘
-$grid-template-4-blocks-1x2x3-4x4x4: "block1 block2 block3" "block4 block4 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   │└───┘│   │
-// │   │┍───┐│   │
-// │   ││ 4 ││   │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-1x3x3: "block1 block2 block3" "block1 block3 block3";
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// | 1  || 2  |
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x1-2x3-4x4: "block1 block1" "block2 block3" "block4 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍──────────┐
-// | 2        |
-// └──────────┘
-// ┍────┐┍────┐
-// | 3  || 4  |
-// └────┘└────┘
-$grid-template-4-blocks-1x1-2x2-3x4: "block1 block1" "block2 block2" "block3 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘│   ││   │
-// ┍───┐│   ││   │
-// │ 4 ││   ││   │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-4x2x3: "block1 block2 block3" "block4 block2 block3";
-
-// ┍────┐┍────┐
-// | 1  || 2  |
-// └────┘└────┘
-// ┍──────────┐
-// | 3        |
-// └──────────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-3x3-4x4: "block1 block2" "block3 block3" "block4 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   ││   │└───┘
-// │   ││   │┍───┐
-// │   ││   ││ 4 │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-1x2x4: "block1 block2 block3" "block1 block2 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// │ 3  ││  2 │
-// └────┘│    │
-// ┍────┐│    │
-// │ 4  ││    │
-// └────┘└────┘
-$grid-template-4-blocks-1x1-3x2-4x2: "block1 block1" "block3 block2" "block4 block2";
-
-// ┍────┐┍────┐┍────┐
-// │ 1  ││ 2  ││ 3  │
-// └────┘└────┘│    │
-// ┍──────────┐│    |
-// │ 4        ││    │
-// └──────────┘└────┘
-$grid-template-4-blocks-1x2x3-4x4x3: "block1 block2 block3" "block4 block4 block3";
-
-// ┍────┐┍────┐
-// │ 1  ││ 2  │
-// │    │└────┘
-// │    │┍────┐
-// │    ││ 3  │
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-1x3-4x4: "block1 block2" "block1 block3" "block4 block4";
-
-// ┍────┐┍──────────┐
-// │ 1  ││ 2        │
-// │    │└──────────┘
-// │    │┍────┐┍────┐
-// │    ││ 3  ││ 4  │
-// └────┘└────┘└────┘
-$grid-template-4-blocks-1x2x2-1x3x4: "block1 block2 block2" "block1 block3 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// │ 2  ││ 3  │
-// │    │└────┘
-// │    │┍────┐
-// │    ││ 4  │
-// └────┘└────┘
-$grid-template-4-blocks-1x1-2x3-2x4: "block1 block1" "block2 block3" "block2 block4";
-
-// ┍──────────┐┍────┐
-// │ 1        ││ 4  │
-// └──────────┘│    │
-// ┍────┐┍────┐│    │
-// │ 2  ││ 3  ││    │
-// └────┘└────┘└────┘
-$grid-template-4-blocks-1x1x4-2x3x4: "block1 block1 block4" "block2 block3 block4";
-
-// ┍────┐┍────┐
-// │ 1  ││ 2  │
-// └────┘│    │
-// ┍────┐│    │
-// │ 3  ││    │
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-3x2-4x4: "block1 block2" "block3 block2" "block4 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   │└───┘└───┘
-// │   |┍────────┐
-// │   ││ 4      |
-// └───┘└────────┘
-$grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block4";
-
-// =============================================================================
-// 5x Blocks
-// =============================================================================
-
-// If you want to split a column up using the repeat function, you may want to devide the min and max values by the amount of columns;
-@function grid-repeat($amount, $min:$small, $max:$max) {
-  @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
+@mixin wobble($amount:10, $animation-name:wobble) {
+  @include keyframes(#{$animation-name}) {
+    0%   { left:0 }
+    25%  { left:(-$amount) + px }
+    75%  { left:($amount) + px }
+    100% { left:0 }
+  }
 }
 
 // Documentation: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
@@ -5427,30 +5105,520 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
   justify-content : initial $important;
 }
 
-@mixin jump($amount:10, $animation-name:jump) {
-  @include keyframes(#{$animation-name}) {
-    0%   { top:0 }
-    50%  { top:$amount + px }
-    100% { top:0 }
+////////////////////////////////////////////////////////////////////////////////
+/// Grid Layouts                                                   #grid-layouts
+////////////////////////////////////////////////////////////////////////////////
+
+// =============================================================================
+// 2x Blocks
+// =============================================================================
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+$grid-template-2-blocks-1x2: "block1 block2";
+
+// =============================================================================
+// 3x Blocks
+// =============================================================================
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘└───┘└───┘
+$grid-template-3-blocks-1x3: "block1 block2 block3";
+
+// -----------------------------------------------------------------------------
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+// ┍────────────┐
+// │  3         │
+// └────────────┘
+$grid-template-3-blocks-1x2-3x3: "block1 block2" "block3 block3";
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  3  │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x2-1x3: "block1 block2" "block1 block3";
+
+// ┍────────────┐
+// │  1         │
+// └────────────┘
+// ┍─────┐┍─────┐
+// │  2  ││  3  │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x1-2x3: "block1 block1" "block2 block3";
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  3  ││     │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x2-3x2: "block1 block2" "block3 block2";
+
+// =============================================================================
+// 4x Blocks
+// =============================================================================
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+// ┍─────┐┍─────┐
+// │  3  ││  4  │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-3x4: "block1 block2" "block3 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  3  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  4  │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-1x3-1x4: "block1 block2" "block1 block3" "block1 block4";
+
+// ┍─────────────┐
+// │ 1           │
+// └─────────────┘
+// ┍───┐┍───┐┍───┐
+// │ 2 ││ 3 ││ 4 │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x1x1-2x3x4: "block1 block1 block1" "block2 block3 block4";
+
+// ┍─────┐┍─────┐
+// │  1  ││  4  │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  2  ││     │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  3  ││     │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-2x4-3x4: "block1 block2" "block2 block4" "block3 block4";
+
+// 270 Degrees
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘└───┘└───┘
+// ┍─────────────┐
+// │ 4           │
+// └─────────────┘
+$grid-template-4-blocks-1x2x3-4x4x4: "block1 block2 block3" "block4 block4 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   │└───┘│   │
+// │   │┍───┐│   │
+// │   ││ 4 ││   │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-1x3x3: "block1 block2 block3" "block1 block3 block3";
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// | 1  || 2  |
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x1-2x3-4x4: "block1 block1" "block2 block3" "block4 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍──────────┐
+// | 2        |
+// └──────────┘
+// ┍────┐┍────┐
+// | 3  || 4  |
+// └────┘└────┘
+$grid-template-4-blocks-1x1-2x2-3x4: "block1 block1" "block2 block2" "block3 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘│   ││   │
+// ┍───┐│   ││   │
+// │ 4 ││   ││   │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-4x2x3: "block1 block2 block3" "block4 block2 block3";
+
+// ┍────┐┍────┐
+// | 1  || 2  |
+// └────┘└────┘
+// ┍──────────┐
+// | 3        |
+// └──────────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-3x3-4x4: "block1 block2" "block3 block3" "block4 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   ││   │└───┘
+// │   ││   │┍───┐
+// │   ││   ││ 4 │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-1x2x4: "block1 block2 block3" "block1 block2 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// │ 3  ││  2 │
+// └────┘│    │
+// ┍────┐│    │
+// │ 4  ││    │
+// └────┘└────┘
+$grid-template-4-blocks-1x1-3x2-4x2: "block1 block1" "block3 block2" "block4 block2";
+
+// ┍────┐┍────┐┍────┐
+// │ 1  ││ 2  ││ 3  │
+// └────┘└────┘│    │
+// ┍──────────┐│    |
+// │ 4        ││    │
+// └──────────┘└────┘
+$grid-template-4-blocks-1x2x3-4x4x3: "block1 block2 block3" "block4 block4 block3";
+
+// ┍────┐┍────┐
+// │ 1  ││ 2  │
+// │    │└────┘
+// │    │┍────┐
+// │    ││ 3  │
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-1x3-4x4: "block1 block2" "block1 block3" "block4 block4";
+
+// ┍────┐┍──────────┐
+// │ 1  ││ 2        │
+// │    │└──────────┘
+// │    │┍────┐┍────┐
+// │    ││ 3  ││ 4  │
+// └────┘└────┘└────┘
+$grid-template-4-blocks-1x2x2-1x3x4: "block1 block2 block2" "block1 block3 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// │ 2  ││ 3  │
+// │    │└────┘
+// │    │┍────┐
+// │    ││ 4  │
+// └────┘└────┘
+$grid-template-4-blocks-1x1-2x3-2x4: "block1 block1" "block2 block3" "block2 block4";
+
+// ┍──────────┐┍────┐
+// │ 1        ││ 4  │
+// └──────────┘│    │
+// ┍────┐┍────┐│    │
+// │ 2  ││ 3  ││    │
+// └────┘└────┘└────┘
+$grid-template-4-blocks-1x1x4-2x3x4: "block1 block1 block4" "block2 block3 block4";
+
+// ┍────┐┍────┐
+// │ 1  ││ 2  │
+// └────┘│    │
+// ┍────┐│    │
+// │ 3  ││    │
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-3x2-4x4: "block1 block2" "block3 block2" "block4 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   │└───┘└───┘
+// │   |┍────────┐
+// │   ││ 4      |
+// └───┘└────────┘
+$grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block4";
+
+// =============================================================================
+// 5x Blocks
+// =============================================================================
+
+// If you want to split a column up using the repeat function, you may want to devide the min and max values by the amount of columns;
+@function grid-repeat($amount, $min:$small, $max:$max) {
+  @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
+}
+
+@mixin break-between($min, $max) {
+
+	$min : get-breakpoint($min);
+	$max : get-breakpoint($max);
+
+  @media (min-width:$min) and (max-width:$max) {
+    @content;
   }
 }
 
-@mixin shake($amount:10, $animation-name:shake) {
-  @include keyframes(#{$animation-name}) {
-    0%   { transform:rotate(0) }
-    25%  { transform:rotate(-#{$amount}deg) }
-    75%  { transform:rotate(#{$amount}deg) }
-    100% { transform:rotate(0) }
+@mixin breakpoint($args...) {
+
+	$defaults : (
+    breakpoint : null,
+    rule : 'min',
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $rule : map-get($settings, rule);
+  $breakpoint : map-get($settings, breakpoint);
+
+  $breakpoint : get-breakpoint($breakpoint);
+
+	@if $rule == 'min' or $rule == '>' {
+		@media (min-width:$breakpoint - 1) {
+	    @content;
+	  }
+	}	@elseif $rule == 'max' or $rule == '<' {
+		@media (max-width:$breakpoint) {
+	    @content;
+	  }
+	}
+}
+
+// Get breakpoint from the breakpoint list, either by it's number or name
+@function get-breakpoint($break) {
+
+	$breakpoint : $break;
+
+	// If a string is passed and exists in the breakpoints map as a key, return the value
+  @if is-string($break) and map-has-key($breakpoints, $break) {
+    $breakpoint : map-get($breakpoints, $break);
+  }
+
+	// If a number is passed and it exists in the breakpoints map, return the key
+	@elseif is-number($break) {
+    $breakpoint : add-unit($break, 'px', true);
+  }
+
+	@return to-number($breakpoint);
+
+}
+
+@mixin inside-break($breakpoint) {
+	@include breakpoint($breakpoint, max) { @content; }
+}
+
+@mixin outside-break($breakpoint) {
+	@include breakpoint($breakpoint, min) { @content; }
+}
+
+@mixin show-breakpoints($sudo : before) {
+  &:#{$sudo} {
+    content:"\276F  #{add-unit($max)}";
+    background-color:darken($red, 20);
+    bottom:0;
+    right:0;
+    font-family:Arial;
+    padding:4px $gap0;
+    @include transition(background-color color);
+    pointer-events:none;
+    position:fixed;
+    z-index:9999;
+    font-size:12px;
+    line-height:16px;
+    color:white;
+    text-align:center;
+    @each $name, $value in $breakpoints {
+      $random-color: random-colour();
+      @include breakpoint($value, '>') {
+        content:"#{$name} #{add-unit($value)}";
+        background-color:$random-color;
+        color:colour-contrast($random-color);
+      }
+    }
   }
 }
 
-@mixin wobble($amount:10, $animation-name:wobble) {
-  @include keyframes(#{$animation-name}) {
-    0%   { left:0 }
-    25%  { left:(-$amount) + px }
-    75%  { left:($amount) + px }
-    100% { left:0 }
+@mixin blur($value:5px, $important:false) {
+  @include filter(blur $value $important);
+}
+
+@mixin brightness($value:0.4, $important:false) {
+  @include filter(brightness $value $important);
+}
+
+@mixin contrast($value:200%, $important:false) {
+  @include filter(contrast $value $important);
+}
+
+@mixin drop-shadow($value:16px 16px 20px blue, $important:false) {
+  @include filter(drop-shadow $value $important);
+}
+
+/// Filter mixin that allows various syntax's
+///
+/// @author Mark Notton
+///
+
+///
+/// @param {Map} $settings - Each argument should consist of a filter type and it's value
+///
+/// @require {variable} transform-types
+/// @require {variable} transform-values
+/// @require {function} arglist-to-list
+/// @require {function} contains
+/// @require {function} is-function
+/// @require {function} is-string
+///
+/// @example scss - Usage
+///   Doggy Style Syntax
+///   @include filter(blur 5, sepia 100);
+///   Bourbon Syntax
+///   @include filter(blur(5), sepia(100));
+///   Generic Syntax
+///   @include filter(blur(5) sepia(100));
+///
+/// @example css - CSS Output
+///   -webkit-filter: blur(5px) sepia(100%);
+///   -moz-filter: blur(5px) sepia(100%);
+///   filter: blur(5px) sepia(100%);
+///
+
+@mixin filter($settings...) {
+
+  $filters : ();
+  $fallback-settings : ();
+  $important : false;
+
+  @if not contains($filter-values, $settings, true) and length($settings) >= 1 {
+
+    // This is an over-engineered section of code to to allow for all types of syntaxes.
+    // Essestially making it work with Bourbon and other frameworks.
+    @if length($settings) == 1  {
+      @for $i from 1 through length($settings) {
+        @each $setting in nth($settings, $i) {
+          @if is-function($setting) {
+            $fallback-settings : append($fallback-settings, $setting, comma);
+          }
+        }
+      }
+    }
+    $settings-lists : if(length($fallback-settings) > 1, $fallback-settings,  arglist-to-list($settings));
+
+
+    @each $settings in $settings-lists {
+
+      @if is-function($settings) {
+        $settings : is-function($settings);
+      }
+
+      $filter : null;
+      $value : ();
+
+      // Check for transforms
+      @each $setting in $settings {
+        @if is-string($setting) and contains($filter-types, $setting) {
+          @if $setting == hue {
+            $filter : hue-rotate;
+          } @elseif $setting == shadow {
+            $filter : drop-shadow;
+          } @elseif $setting == greyscale {
+            $filter : grayscale;
+          } @else {
+            $filter : $setting;
+          }
+        } @elseif is-bool($setting){
+          $important : $setting;
+        }
+      }
+
+      // Check and validate all transform types
+      @each $setting in $settings {
+        @if not is-string($setting) and not is-bool($setting) {
+          @if contains($filter, (blur)) {
+            // Values that require a unit
+            $value : append($value, add-unit($setting));
+          } @elseif contains($filter, (hue-rotate)) {
+            // Values that require an angle
+            $value : append($value, add-unit($setting, deg));
+          } @elseif contains($filter, (invert opacity saturate sepia contrast grayscale)) {
+            // Values that require an percent
+            $value : append($value, add-unit($setting, %));
+          } @elseif $filter == drop-shadow {
+            // Specific for drop-shdaow
+            @each $val in $setting {
+              @if is-number($val) {
+                $value : append($value, add-unit($val));
+              } @elseif is-colour($val) {
+                $value : append($value, $val);
+              }
+            }
+
+          } @else {
+            // All other values
+            $value : append($value, $setting);
+          }
+        } @elseif contains($filter-values, $setting) {
+          // Values that are strings and are global values
+           $value : append($value, $setting);
+        }
+      }
+
+      // Append transform and value to the transforms list
+      @if $filter != null {
+        $filters : append($filters, $filter+"("+$value+")");
+      }
+
+    }
+  } @else {
+   $filters : nth($settings, 1);
   }
+  // @debug $filters;
+  // @debug $important;
+  filter : $filters $important;
+
+}
+
+@mixin greyscale($value:50%, $important:false) {
+  @include filter(grayscale $value $important);
+}
+
+@mixin hue($value:90deg, $important:false) {
+  @include filter(hue-rotate $value $important);
+}
+
+@mixin invert($value:75%, $important:false) {
+  @include filter(invert $value $important);
+}
+
+@mixin opacity($value:25%, $important:false) {
+  @include filter(opacity $value $important);
+}
+
+@mixin saturate($value:30%, $important:false) {
+  @include filter(saturate $value $important);
+}
+
+@mixin sepia($value:60%, $important:false) {
+  @include filter(sepia $value $important);
+}
+
+@mixin url($value:null, $important:false) {
+  @include filter(url $value $important);
 }
 
 @mixin gradient-bottom($args...) {
@@ -5860,182 +6028,11 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
   @include transform(translateZ $value);
 }
 
-@mixin blur($value:5px, $important:false) {
-  @include filter(blur $value $important);
-}
-
-@mixin brightness($value:0.4, $important:false) {
-  @include filter(brightness $value $important);
-}
-
-@mixin contrast($value:200%, $important:false) {
-  @include filter(contrast $value $important);
-}
-
-@mixin drop-shadow($value:16px 16px 20px blue, $important:false) {
-  @include filter(drop-shadow $value $important);
-}
-
-/// Filter mixin that allows various syntax's
-///
-/// @author Mark Notton
-///
-
-///
-/// @param {Map} $settings - Each argument should consist of a filter type and it's value
-///
-/// @require {variable} transform-types
-/// @require {variable} transform-values
-/// @require {function} arglist-to-list
-/// @require {function} contains
-/// @require {function} is-function
-/// @require {function} is-string
-///
-/// @example scss - Usage
-///   Doggy Style Syntax
-///   @include filter(blur 5, sepia 100);
-///   Bourbon Syntax
-///   @include filter(blur(5), sepia(100));
-///   Generic Syntax
-///   @include filter(blur(5) sepia(100));
-///
-/// @example css - CSS Output
-///   -webkit-filter: blur(5px) sepia(100%);
-///   -moz-filter: blur(5px) sepia(100%);
-///   filter: blur(5px) sepia(100%);
-///
-
-@mixin filter($settings...) {
-
-  $filters : ();
-  $fallback-settings : ();
-  $important : false;
-
-  @if not contains($filter-values, $settings, true) and length($settings) >= 1 {
-
-    // This is an over-engineered section of code to to allow for all types of syntaxes.
-    // Essestially making it work with Bourbon and other frameworks.
-    @if length($settings) == 1  {
-      @for $i from 1 through length($settings) {
-        @each $setting in nth($settings, $i) {
-          @if is-function($setting) {
-            $fallback-settings : append($fallback-settings, $setting, comma);
-          }
-        }
-      }
-    }
-    $settings-lists : if(length($fallback-settings) > 1, $fallback-settings,  arglist-to-list($settings));
-
-
-    @each $settings in $settings-lists {
-
-      @if is-function($settings) {
-        $settings : is-function($settings);
-      }
-
-      $filter : null;
-      $value : ();
-
-      // Check for transforms
-      @each $setting in $settings {
-        @if is-string($setting) and contains($filter-types, $setting) {
-          @if $setting == hue {
-            $filter : hue-rotate;
-          } @elseif $setting == shadow {
-            $filter : drop-shadow;
-          } @elseif $setting == greyscale {
-            $filter : grayscale;
-          } @else {
-            $filter : $setting;
-          }
-        } @elseif is-bool($setting){
-          $important : $setting;
-        }
-      }
-
-      // Check and validate all transform types
-      @each $setting in $settings {
-        @if not is-string($setting) and not is-bool($setting) {
-          @if contains($filter, (blur)) {
-            // Values that require a unit
-            $value : append($value, add-unit($setting));
-          } @elseif contains($filter, (hue-rotate)) {
-            // Values that require an angle
-            $value : append($value, add-unit($setting, deg));
-          } @elseif contains($filter, (invert opacity saturate sepia contrast grayscale)) {
-            // Values that require an percent
-            $value : append($value, add-unit($setting, %));
-          } @elseif $filter == drop-shadow {
-            // Specific for drop-shdaow
-            @each $val in $setting {
-              @if is-number($val) {
-                $value : append($value, add-unit($val));
-              } @elseif is-colour($val) {
-                $value : append($value, $val);
-              }
-            }
-
-          } @else {
-            // All other values
-            $value : append($value, $setting);
-          }
-        } @elseif contains($filter-values, $setting) {
-          // Values that are strings and are global values
-           $value : append($value, $setting);
-        }
-      }
-
-      // Append transform and value to the transforms list
-      @if $filter != null {
-        $filters : append($filters, $filter+"("+$value+")");
-      }
-
-    }
-  } @else {
-   $filters : nth($settings, 1);
-  }
-  // @debug $filters;
-  // @debug $important;
-  filter : $filters $important;
-
-}
-
-@mixin greyscale($value:50%, $important:false) {
-  @include filter(grayscale $value $important);
-}
-
-@mixin hue($value:90deg, $important:false) {
-  @include filter(hue-rotate $value $important);
-}
-
-@mixin invert($value:75%, $important:false) {
-  @include filter(invert $value $important);
-}
-
-@mixin opacity($value:25%, $important:false) {
-  @include filter(opacity $value $important);
-}
-
-@mixin saturate($value:30%, $important:false) {
-  @include filter(saturate $value $important);
-}
-
-@mixin sepia($value:60%, $important:false) {
-  @include filter(sepia $value $important);
-}
-
-@mixin url($value:null, $important:false) {
-  @include filter(url $value $important);
-}
-
-@mixin browsers($args...) {
+@mixin devices($args...) {
 
   // This checks to see if the current selector is html.
   // This can not be converted into a shorthanded if statement.
-  // $selector : null;
-  // @if not is-selector(html) { $selector : &; }
-
-	$selector : to-string(#{&});
+  $selector : to-string(#{&});
 	$space : ' ';
 
 	@if (str-index($selector, 'html')) {
@@ -6045,143 +6042,59 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
 		}
 	}
 
-	$not-all : if(is-bool(nth(nth($args, 1),1)), nth(nth($args, 1),1), false);
-
-
   @each $settings in arglist-to-list($args...) {
 
-    $browsers-list : ();
-    $versions-list : ();
-    $not : $not-all;
+    $devices-list : ();
+    $not : true;
 
     @each $setting in $settings {
-      @if is-string($setting) and contains($browsers, $setting) {
-        $browsers-list : append($browsers-list, $setting);
-      }
-      @elseif is-bool($setting) {
+      @if is-string($setting) {
+        @if contains($devices, $setting) and length($devices-list) < 2 {
+          $devices-list : append($devices-list, $setting);
+        }
+      } @elseif is-bool($setting) {
         $not : $setting;
       }
-      @elseif is-number($setting) or is-list($setting){
-        @each $version in $setting {
-          $versions-list : append($versions-list, $version);
-        }
-      }
     }
 
-    @if length($browsers-list) > 1 and length($versions-list) > 0 {
-      @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
-    } @else {
-      @if length($browsers-list) > 0 {
-        @if length($versions-list) > 0 {
-          @each $version in $versions-list {
-            @if not $not {
-              @at-root html[data-browser^="#{$browsers-list}"][data-browser$='#{$version}'] #{$selector} { @content; }
-            } @else {
-              @at-root html:not([data-browser^="#{$browsers-list}"][data-browser$='#{$version}']) #{$selector} { @content; }
-            }
-          }
-        } @else {
-					@if not $not {
-	          @each $browser in $browsers-list {
-
-              @at-root html[data-browser^="#{$browser}"]#{$space}#{$selector} { @content; }
-              // Fallback hacks should the data-browser attribute not be in the html tag
-              @if $browser == edge {
-                @supports (-ms-accelerator:true) {
-                  #{$selector} {
-                    @content;
-                  }
-                }
-              }
-              @elseif $browser == ie {
-								@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-                  @content;
-                }
-              }
-              @elseif $browser == firefox {
-                #{$selector ',  x:-moz-any-link'}{
-                  @content;
-                }
-              }
-              @elseif $browser == chrome {
-                @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
-                  @content;
-                }
-              }
-              @elseif $browser == safari {
-                @supports (overflow:-webkit-marquee) and (justify-content:inherit){
-                  #{$selector} {
-                    @content;
-                  }
-                }
-              }
-            }
+    // @if length($devices-list) > 1 and length($types-list) > 0 {
+    //   @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
+    // } @else {
+      @if length($devices-list) > 0 {
+        @each $device in $devices-list {
+          @if $not {
+            @at-root html[data-device="#{$device}"]#{$space}#{$selector}{ @content; }
           } @else {
-
-						$nots : '';
-
-						@each $browser in $browsers-list {
-							$nots : $nots + ':not([data-browser^="#{$browser}"])';
-						}
-
-						@at-root html#{$nots}#{$space}#{$selector} { @content; }
-					}
+            @at-root html:not([data-device="#{$device}"])#{$space}#{$selector}{ @content; }
+          }
         }
       }
-    }
+    // }
   }
 }
 
-@mixin is-chrome($version:null) {
-  @include browsers(chrome $version) { @content };
+@mixin is-desktop($type:null) {
+  @include devices(desktop $type) { @content };
 }
 
-@mixin is-edge($version:null) {
-  @include browsers(edge $version) { @content };
+@mixin is-mobile($type:null) {
+  @include devices(mobile $type) { @content };
 }
 
-@mixin is-firefox($version:null) {
-  @include browsers(firefox $version) { @content };
+@mixin is-tablet($type:null) {
+  @include devices(tablet $type) { @content };
 }
 
-@mixin is-ie($version:null) {
-  @include browsers(ie $version) { @content };
+@mixin not-desktop($type:null) {
+  @include devices(desktop $type false) { @content };
 }
 
-@mixin is-opera($version:null) {
-  @include browsers(opera $version) { @content };
+@mixin not-mobile($type:null) {
+  @include devices(mobile $type false) { @content };
 }
 
-@mixin is-safari($version:null) {
-  @include browsers(safari $version) { @content };
-}
-
-@mixin not-browsers($args...) {
-	@include browsers(join(true, $args, comma)) { @content };
-}
-
-@mixin not-chrome($version:null) {
-  @include browsers(chrome $version true) { @content };
-}
-
-@mixin not-edge($version:null) {
-  @include browsers(edge $version true) { @content };
-}
-
-@mixin not-firefox($version:null) {
-  @include browsers(firefox $version true) { @content };
-}
-
-@mixin not-ie($version:null) {
-  @include browsers(ie $version true) { @content };
-}
-
-@mixin not-opera($version:null) {
-  @include browsers(opera $version true) { @content };
-}
-
-@mixin not-safari($version:null) {
-  @include browsers(safari $version true) { @content };
+@mixin not-tablet($type:null) {
+  @include devices(tablet $type false) { @content };
 }
 
 @mixin animation-delay($args...) {
@@ -6579,109 +6492,63 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
 
 /// 10px on each corner. Call also use the string "all"
 /// @include border-radius(10)
-/// @include border-radius(all 10)
-
-/// 10 top left, 20 top right, 0 bottom right, 0 bottom left
-/// @include border-radius(10 20)
-
-/// 10 top left, 20 top right, 30 bottom right, 0 bottom left
-/// @include border-radius(10 20 30)
-
-/// 10 top left, 20 top right, 30 bottom right, 40 bottom left
-/// @include border-radius(10 20 30 40)
-
-/// 10 top left, 10 top right, 0 bottom right, 0 bottom left
-/// @include border-radius(10 top)
-
-/// 0 top left, 10 top right, 10 bottom right, 0 bottom left
-/// @include border-radius(10 right)
-
-/// 0 top left, 0 top right, 10 bottom right, 10 bottom left
-/// @include border-radius(10 bottom)
-
-/// 10 top left, 0 top right, 0 bottom right, 10 bottom left
-/// @include border-radius(10 left)
-
-/// 10 top left, 0 top right, 30 bottom right, 0 bottom left
-/// @include border-radius(10 top-left, 30 bottom-right)
+/// @include border-radius( 10)
 
 @mixin border-radius($args...) {
-  $corners : ();
-  $directions : ();
-  $excess-units : 0;
 
-  $args: if(length($args) > 0, $args, null);
+	$default : var(border-radius);
 
-  @for $i from 1 through length($args) {
+	$top-left     : null;
+	$top-right    : null;
+	$bottom-right : null;
+	$bottom-left  : null;
+	$important    : null;
+	$all : null;
+	$direction : null;
 
-    @each $rad in nth($args, $i) {
-      @if type-of($rad) == number and length($corners) < 4 {
-        $corners : append($corners, $rad);
-      } @elseif type-of($rad) == number and length($corners) == 4 {
-        $excess-units : $excess-units + 1;
-      }
-    }
-    @each $dir in nth($args, $i) {
-      @if type-of($dir) == string {
-        @if $dir == circle {
-          $corners : 100%;
-        } @else {
-          $directions : append($directions, $dir);
-        }
-      }
-    }
-  }
+	@each $value in $args {
+		@if is-important($value) {
+			$important : !important;
+		}
+		@elseif is-number($value) or is-var(var($value)) {
+			@if is-null($top-left) { $top-left : add-unit(var($value)); }
+			@elseif is-null($top-right) { $top-right : add-unit(var($value)); }
+			@elseif is-null($bottom-right) { $bottom-right : add-unit(var($value)); }
+			@elseif is-null($bottom-left) { $bottom-left : add-unit(var($value)); }
+		}
+		@elseif is-string($value) {
+			@if $value == circle { $all : 50%; }
+			@elseif contains(top right bottom left, $value) {
+				$direction : $value;
+			}
+		}
+	}
 
-  @if $excess-units > 0 {
-    @include warning("You can't have more than 4 units per argument. You have added '#{$excess-units}' number"+ if($excess-units != 1, 's', '') +" too many. Squares don't work that way.");
-  }
+	@if is-null($all) and is-null($top-right) and is-null($bottom-right) and is-null($bottom-left) {
+		$all : if(is-null($top-left), $default, $top-left);
+	}
 
-  $corners : if(length($corners) == 0, $border-radius, $corners);
-  $corner-count : length($corners);
+	@if not is-null($all) and is-null($direction) {
+		border-radius:$all $important;
+	} @else {
 
-  @if length($directions) == 0 {
-    $directions : if($corner-count == 1, all, slice((top-left top-right bottom-right bottom-left), 1, $corner-count));
-  }
+		@if not is-null($direction) {
+			$value1 : $top-left or $default;
+			$value2 : $top-right or $top-left or $default;
+			@if $direction == top or $direction == bottom {
+				border-#{$direction}-left-radius : $value1 $important;
+				border-#{$direction}-right-radius : $value2 $important;
+			} @elseif $direction == right or $direction == left {
+				border-top-#{$direction}-radius : $value1 $important;
+				border-bottom-#{$direction}-radius : $value2 $important;
+			}
+		}
+		@else {
+			border-radius:$top-left $top-right $bottom-right $bottom-left $important;
+		}
 
-  $direction-count : length($directions);
+	}
 
-  @for $i from 1 through $direction-count {
-    $direction : nth($directions, $i);
-    $radius : 0;
-    @if $corner-count == $direction-count {
-      $radius: nth($corners, $i);
-    } @else {
-      @if $corner-count > $direction-count and $i == $direction-count {
-        $radius: nth($corners, $i);
-        @include warning('You have entered more units than directions. Reverting back to the first numbers you entered');
-      } @else {
-        $radius: nth($corners, 1);
-      }
-    }
-
-    @if $direction == all {
-      border-radius : add-unit($radius);
-    }
-    @elseif $direction == top {
-      border-top-left-radius : add-unit($radius);
-			border-top-right-radius : add-unit($radius);
-    }
-    @elseif $direction == right {
-      border-top-right-radius : add-unit($radius);
-			border-bottom-right-radius : add-unit($radius);
-    }
-    @elseif $direction == bottom {
-      border-bottom-left-radius : add-unit($radius);
-			border-bottom-right-radius : add-unit($radius);
-    }
-    @elseif $direction == left {
-      border-top-left-radius : add-unit($radius);
-			border-bottom-left-radius : add-unit($radius);
-    }
-    @else {
-      border-#{$direction}-radius : add-unit($radius);
-    }
-  }
 }
 
 @mixin container($args...) {
@@ -6779,11 +6646,14 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
   }
 }
 
-@mixin devices($args...) {
+@mixin browsers($args...) {
 
   // This checks to see if the current selector is html.
   // This can not be converted into a shorthanded if statement.
-  $selector : to-string(#{&});
+  // $selector : null;
+  // @if not is-selector(html) { $selector : &; }
+
+	$selector : to-string(#{&});
 	$space : ' ';
 
 	@if (str-index($selector, 'html')) {
@@ -6793,59 +6663,143 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
 		}
 	}
 
+	$not-all : if(is-bool(nth(nth($args, 1),1)), nth(nth($args, 1),1), false);
+
+
   @each $settings in arglist-to-list($args...) {
 
-    $devices-list : ();
-    $not : true;
+    $browsers-list : ();
+    $versions-list : ();
+    $not : $not-all;
 
     @each $setting in $settings {
-      @if is-string($setting) {
-        @if contains($devices, $setting) and length($devices-list) < 2 {
-          $devices-list : append($devices-list, $setting);
-        }
-      } @elseif is-bool($setting) {
+      @if is-string($setting) and contains($browsers, $setting) {
+        $browsers-list : append($browsers-list, $setting);
+      }
+      @elseif is-bool($setting) {
         $not : $setting;
+      }
+      @elseif is-number($setting) or is-list($setting){
+        @each $version in $setting {
+          $versions-list : append($versions-list, $version);
+        }
       }
     }
 
-    // @if length($devices-list) > 1 and length($types-list) > 0 {
-    //   @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
-    // } @else {
-      @if length($devices-list) > 0 {
-        @each $device in $devices-list {
-          @if $not {
-            @at-root html[data-device="#{$device}"]#{$space}#{$selector}{ @content; }
-          } @else {
-            @at-root html:not([data-device="#{$device}"])#{$space}#{$selector}{ @content; }
+    @if length($browsers-list) > 1 and length($versions-list) > 0 {
+      @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
+    } @else {
+      @if length($browsers-list) > 0 {
+        @if length($versions-list) > 0 {
+          @each $version in $versions-list {
+            @if not $not {
+              @at-root html[data-browser^="#{$browsers-list}"][data-browser$='#{$version}'] #{$selector} { @content; }
+            } @else {
+              @at-root html:not([data-browser^="#{$browsers-list}"][data-browser$='#{$version}']) #{$selector} { @content; }
+            }
           }
+        } @else {
+					@if not $not {
+	          @each $browser in $browsers-list {
+
+              @at-root html[data-browser^="#{$browser}"]#{$space}#{$selector} { @content; }
+              // Fallback hacks should the data-browser attribute not be in the html tag
+              @if $browser == edge {
+                @supports (-ms-accelerator:true) {
+                  #{$selector} {
+                    @content;
+                  }
+                }
+              }
+              @elseif $browser == ie {
+								@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+                  @content;
+                }
+              }
+              @elseif $browser == firefox {
+                #{$selector ',  x:-moz-any-link'}{
+                  @content;
+                }
+              }
+              @elseif $browser == chrome {
+                @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
+                  @content;
+                }
+              }
+              @elseif $browser == safari {
+                @supports (overflow:-webkit-marquee) and (justify-content:inherit){
+                  #{$selector} {
+                    @content;
+                  }
+                }
+              }
+            }
+          } @else {
+
+						$nots : '';
+
+						@each $browser in $browsers-list {
+							$nots : $nots + ':not([data-browser^="#{$browser}"])';
+						}
+
+						@at-root html#{$nots}#{$space}#{$selector} { @content; }
+					}
         }
       }
-    // }
+    }
   }
 }
 
-@mixin is-desktop($type:null) {
-  @include devices(desktop $type) { @content };
+@mixin is-chrome($version:null) {
+  @include browsers(chrome $version) { @content };
 }
 
-@mixin is-mobile($type:null) {
-  @include devices(mobile $type) { @content };
+@mixin is-edge($version:null) {
+  @include browsers(edge $version) { @content };
 }
 
-@mixin is-tablet($type:null) {
-  @include devices(tablet $type) { @content };
+@mixin is-firefox($version:null) {
+  @include browsers(firefox $version) { @content };
 }
 
-@mixin not-desktop($type:null) {
-  @include devices(desktop $type false) { @content };
+@mixin is-ie($version:null) {
+  @include browsers(ie $version) { @content };
 }
 
-@mixin not-mobile($type:null) {
-  @include devices(mobile $type false) { @content };
+@mixin is-opera($version:null) {
+  @include browsers(opera $version) { @content };
 }
 
-@mixin not-tablet($type:null) {
-  @include devices(tablet $type false) { @content };
+@mixin is-safari($version:null) {
+  @include browsers(safari $version) { @content };
+}
+
+@mixin not-browsers($args...) {
+	@include browsers(join(true, $args, comma)) { @content };
+}
+
+@mixin not-chrome($version:null) {
+  @include browsers(chrome $version true) { @content };
+}
+
+@mixin not-edge($version:null) {
+  @include browsers(edge $version true) { @content };
+}
+
+@mixin not-firefox($version:null) {
+  @include browsers(firefox $version true) { @content };
+}
+
+@mixin not-ie($version:null) {
+  @include browsers(ie $version true) { @content };
+}
+
+@mixin not-opera($version:null) {
+  @include browsers(opera $version true) { @content };
+}
+
+@mixin not-safari($version:null) {
+  @include browsers(safari $version true) { @content };
 }
 
 @mixin page($args...) {
