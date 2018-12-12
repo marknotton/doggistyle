@@ -189,8 +189,7 @@
         'collections/styling/button',
         'collections/styling/reset',
         'collections/styling/box-shadow',
-        'collections/styling/horizontal-lines',
-        'collections/styling/custom-elements';
+        'collections/styling/horizontal-lines';
 
 
 @if mixin-exists(update-settings) and $reset { @include update-settings; }
