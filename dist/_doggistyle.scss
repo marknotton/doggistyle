@@ -404,6 +404,1746 @@ $sc-non-strict-defaults: (
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Brightness                                                       #brightness
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Calculates a colours brightness
+///
+/// @author David Halford
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
+///
+/// @return {number}
+
+@function brightness($colour) {
+  @return abs(round((red($colour) * 299) + (green($colour) * 587) + (blue($colour) * 114) / 1000));
+}
+
+/// Compares contrast of a given colour and returns the most appropriate given colour that contrasts it.
+///
+/// @author David Halford
+///
+
+///
+/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
+///
+/// @param {color} $colour - Define a colour that you want to check is dark or light
+///
+/// @param {list | colour} - Define up to two seperate colours. Each one will be checked for their lightness or darkness
+///    If one of the colours is not dark enough it will revert to black;
+///    If the other colour is not light enough it will revert to white;
+///
+/// @require {function} is-colour
+/// @require {function} is-dark
+/// @require {function} is-light
+/// @require {function} brightness
+/// @require {function} lightness
+///
+/// @return {number}
+///
+/// @example {scss} - Usage
+///   color : colour-contrast(red, purple yellow);
+///
+/// @example {scss} - Output
+///   color : yellow;
+
+@function colour-contrast($colour, $text-colours:null) {
+
+  $dark-text : black;
+  $light-text : white;
+
+  $colour : get-variable-colour-value($colour);
+
+  @if is-colour($colour) {
+
+    @each $setting in $text-colours {
+      @if is-colour($setting) {
+        @if $dark-text == black {
+          $dark-text: $setting;
+        }
+        @elseif $light-text == white {
+          $light-text: $setting;
+        }
+      }
+    }
+
+    $dark-text : if(is-dark($dark-text), $dark-text, black);
+    $light-text : if(is-light($light-text), $light-text, white);
+
+    @return if(brightness($colour) <  lightness(), $light-text, $dark-text);
+
+  } @else {
+
+    @return $dark-text;
+  }
+}
+
+/// @alias contrasting-colour
+///
+
+///
+/// @require {function} contrasting-colour
+///
+/// @return {color}
+
+@function color-contrast($colour, $light:white, $dark:dark) {
+  @return colour-contrast($colour, $light, $dark);
+}
+
+/// An alternative to the native rgba function. With a few extra checks.
+///
+/// @author Mark Notton
+///
+
+///
+/// @param {color} Hex colour
+///
+/// @require {function} percent-to-decimal
+///
+/// @param {opacity} $opacity
+///   This can be as a percentage or a standard single decimal unit.
+///
+/// @return {color}
+///
+
+@function colour($colour:random-colour(), $opacity:1) {
+
+  @if str-index(#{$colour}, 'rgba') {
+    @return $colour;
+  }
+  @else {
+    @return rgba($colour, percent-to-decimal($opacity));
+  }
+}
+
+/// @alias colour
+///
+
+///
+/// @require {function} colour
+///
+/// @return {bool}colour
+
+@function color($colour:random-colour(), $opacity:1) {
+  @return colour($colour, $opacity);
+}
+
+
+/// @alias colour
+///
+
+///
+/// @require {function} colour
+///
+/// @return {bool}
+
+@function col($colour:random-colour(), $opacity:1) {
+  @return colour($colour, $opacity);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Get Colour Value                                           #get-colour-value
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Cast a stringified number / stringified percentage into number type
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @param {string} $string - string
+///
+/// @return {number} - unitless number or percentage
+///
+/// @require {function} to-number
+
+@function get-colour-value($string) {
+  $first: str-slice($string, 1, 1);
+
+  @if $first == '.' {
+    $string: '0' + $string;
+  }
+
+  $last: str-slice($string, -1, -1);
+
+  @return if($last == '%', to-number(str-slice($string, 1, -2), 2) * 1%, to-number($string));
+}
+
+/// Get Color Value =========================================== #get-color-value
+///
+/// @alias get-colour-value
+///
+
+///
+/// @group helpers-colours
+///
+/// @require {function} get-colour-value
+///
+/// @return {colour}
+
+@function get-color-value($string) {
+  @return get-colour-value($string);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Get Variable Colour Value                         #get-variable-colour-value
+////////////////////////////////////////////////////////////////////////////////
+///
+
+///
+/// @group helpers-colours
+///
+/// @require {function} get-variable-colour-value
+///
+/// @return {colour}
+
+@function get-variable-colour-value($colour, $opacity:1) {
+
+  @if not is-colour($colour) and variable-exists(variables) {
+
+    $value : map-get($variables, get-var-variable($colour));
+
+    @if not is-null($value) {
+
+      @if is-list($value) {
+        $red:   nth($value, 1);
+        $green: nth($value, 2);
+        $blue:  nth($value, 3);
+        $value : rgba($red, $green, $blue, $opacity);
+      }
+
+      $colour : $value;
+    }
+
+  }
+
+  @return $colour;
+
+}
+
+///  Get Variable Color Value ======================== #get-variable-color-value
+///
+/// @alias get-variable-colour-value
+///
+
+///
+/// @group helpers-colours
+///
+/// @require {function} get-variable-colour-value
+///
+/// @return {colour}
+
+@function get-variable-color-value($colour, $opacity:1) {
+  @return get-variable-colour-value($colour, $opacity);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Gradient Properties                                     #gradient-properties
+////////////////////////////////////////////////////////////////////////////////
+///
+// Add each argument into a single comma delimited list
+///
+/// @group helpers-colours
+///
+
+@function gradient-properties($args...) {
+  $properties : ();
+
+  $args: if(length($args) > 0, $args, null);
+
+  @for $i from 1 through length($args) {
+    $properties : append($properties, nth($args, $i), comma);
+  }
+
+  @return $properties;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Hash Fix                                                           #hash-fix
+////////////////////////////////////////////////////////////////////////////////
+///
+/// For reasons specific to Firefox (currently version 45),
+/// SVG's require all hash symbols to be replaced with '%23'. This includes hex
+/// colours and <use> xlinks This function will find and replace that hash
+/// symbol with the appropriate new string (which also works in other browsers)
+///
+/// @author Mark Notton
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @link http://stackoverflow.com/questions/28588050/how-to-use-a-hex-value-for-svg-in-firefox#answer-28588194
+///
+/// @return {string} - Without "#" as the first character
+
+@function hash-fix($string) {
+  @if get-var-value($string) {
+    @return str-replace(to-string(get-var-value($string)), '#', '%23');
+  } @else {
+    @return if(is-first-character($string, '#'), str-replace(#{$string}, '#', '%23'), $string);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Hexadecimal to Decimal                                           #hex-to-dec
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Convert an hexadecimal number to a decimal number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @param {string} $string - string
+///
+/// @param {string} $string - hexadecimal value
+///
+/// @return {number} - decimal number
+
+@function hex-to-dec($string){
+  $hex: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f";
+  $string: to-lower-case($string);
+  $length: str-length($string);
+
+  $dec: 0;
+  @for $i from 1 through $length {
+    $factor: 1 + ( 15 * ( $length - $i ));
+    $index: index($hex, str-slice($string, $i, $i));
+    $dec: $dec + $factor * ($index - 1);
+  }
+
+  @return $dec;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Hexadecimal to RGBA                                             #hex-to-rgba
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @group helpers-colours
+///
+
+@function hex-to-rgba($colour, $opacity:1) {
+
+  @if is-hex($colour) {
+
+    $red:   red($colour);
+    $green: green($colour);
+    $blue:  blue($colour);
+
+    @return unquote("rgba(#{$red}, #{$green}, #{$blue}, #{$opacity})");
+
+  } @else {
+
+    @return $colour;
+
+  }
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Lightness                                                         #lightness
+////////////////////////////////////////////////////////////////////////////////
+///
+/// A smart calculation to what lightness is
+///
+/// @notice This could just be a variable, but for potential future minipulation I've left it as a function
+///
+/// @author David Halford
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
+///
+/// @return {number}
+
+@function lightness() {
+  @return round((red(#ffffff) * 299) + (green(#ffffff) * 587) + (blue(#ffffff) * 114) / 1000)/2;
+}
+
+/// Random colour.
+///
+/// @author Pankaj Parashar
+///
+
+///
+/// @author https://pankajparashar.com/posts/random-colors-sass/
+///
+/// @param {number} $opacity - Amend the opacity of the colour that is returned. Default is 1
+///
+/// @example scss - Usage
+///   random-colour(0.5);
+///
+/// @example css - Output
+///   rgba(38, 153, 180, 0.5);
+///
+/// @return {color}
+
+@function random-colour($opacity:1) {
+  @return rgba(random(256) - 1, random(256) - 1, random(256) - 1, $opacity);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Get Var Value                                                 #get-var-value
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @group helpers-misc
+///
+/// $return-all - Set to true if you want to return all value from a var(...),
+/// by default this will loop through all variables to see if one matches
+/// anything fomr the custom properties array.
+
+@function get-var-value($variable, $return-all : false) {
+
+  @if is-var($variable) {
+
+		@if map-has-keys($custom-properties, $variable) {
+			@return map-get($custom-properties, $variable);
+		}
+
+		@elseif string-starts-with(quote($variable), 'var(--') {
+			$variable : str-replace($variable, 'var(--', '');
+			$variable : str-replace($variable, ')', '');
+
+			$variables : string-explode(get-var-value($variable), ', ');
+
+			@if $return-all == false {
+				@each $var in $variables {
+					@if map-has-keys($custom-properties, $var) {
+						@return map-get($custom-properties, $var);
+					}
+				}
+			}
+
+			@if length($variables) > 1 {
+				@return $variables;
+			}
+
+			@return $variable;
+		}
+
+  } @else {
+    @return $variable
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Var Value                                                         #var-value
+////////////////////////////////////////////////////////////////////////////////
+
+/// @group helpers-misc
+
+@function var-value($variable:primary, $opacity:1, $fallback:true) {
+
+  $variable-value : $variable;
+  $fallback-value : null;
+
+  // If varuable is a standard colour, just use that colour as normal. Opacity is not used.
+  @if is-colour($variable) {
+
+    @if is-hex($variable) {
+      $variable-value : rgba($variable, $opacity);
+    } @else {
+      $variable-value : $variable;
+    }
+
+  } @else {
+
+    // Check the variables map to help generate a fallback colour
+    $fallback-value : get-variable-colour-value($variable, $opacity);
+
+    @if is-var($variable) {
+
+      // If a hardcoded 'var(--XXX)' is passed, extract the variable name and check if
+      // it's part of the variables map. If it is, use this hardcoded colour as a fallback.
+      // Add opacity is one if provided.
+
+      @if $support-css-variable-alpha-colours {
+
+        $variable-value : rgba($variable, $opacity);
+
+      } @else {
+
+        @if not is-null($fallback-value) {
+          $variable-value : str-replace($variable, ')', ', ' + $fallback-value + ')');
+        } @else {
+          $variable-value : $variable;
+        }
+
+      }
+
+    } @else {
+
+      // If a string was passed as the string. Assume this is a shorthand to search
+      // the variables map for the right variable then apply the fallback.
+
+      @if $support-css-variable-alpha-colours {
+        $variable-value : rgba(unquote('var(--' + $variable + ')'), $opacity);
+      } @else {
+
+        @if not is-null($fallback-value) {
+          $variable-value : unquote('var(--' + $variable + ', '+ $fallback-value +')');
+        } @else {
+          $variable-value : unquote('var(--' + $variable + ')');
+        }
+      }
+    }
+
+  }
+
+  @if ( not is-null($fallback-value) and $fallback ) {
+    @return ($variable-value, $fallback-value);
+  }
+
+  @return $variable-value;
+
+}
+
+@function var($args...) {
+
+	$custom-property : ();
+	$fallback : null;
+	$variables : ();
+	$suffix : '';
+
+	// List valid custom properties names
+	@each $value in $args {
+		@if is-string($value) and not is-number($value) {
+			$value : string-replace($value, ' ');
+			$variables : append($variables, string-replace($value, '--'));
+			$suffix : $suffix + ')';
+		} @else {
+			$fallback : $value;
+		}
+	}
+
+	@if length($variables) > 0 {
+		@for $i from 1 through length($variables) {
+
+			$variable : nth($variables, $i);
+			$last : $i == length($variables);
+
+			@if $last and map-has-keys($custom-properties, $variable) {
+				$fallback : map-get($custom-properties, $variable);
+			}
+
+			$custom-property : append($custom-property, unquote('var(--' + $variable + ','));
+
+		}
+	}
+
+	@if not is-null($fallback) {
+		$custom-property : $custom-property + ' ' + $fallback;
+	}
+
+	$result : to-string($custom-property) + $suffix;
+
+	$result : string-replace($result, ',)', ')');
+
+	// If the user is passing in variables within variables using the native syntax,
+	// This function will render out a looped mess. The following does some checks,
+	// and cleans it up. This hasn't been tested on complex variables like gradients,
+	// calcs, or anything that isn't a predefined customer-properties;
+	@if str-index($result, '--var(') {
+		$_result : string-replace($result, 'var(');
+		$_result : string-replace($_result, $suffix + ')');
+		$_result : string-remove-whitespace($_result);
+		$_fallback : null;
+		$_variables : ();
+		@each $value in string-explode($_result, ',', comma) {
+			@if string-starts-with($value, '--') {
+				$_variables : append($_variables, $value, comma);
+			} @else {
+				$_fallback : $value;
+			}
+		}
+
+		$result : unquote(var($_variables...));
+
+		@if ( not is-null($_fallback)) {
+			// When using native syntax, that has var fallbacks with vars, a
+			// given fallback is ignored. Either don't use nested vars where the
+			// fallback is important, or define a fallback before calling it this way.
+			// Ultimately this is almost never going to happen.
+			// TODO Inject the fallback so as to not break the syntax. Data is coreect, syntax isn't.
+			// $result : $result + $_fallback;
+		}
+
+		@return $result;
+	}
+
+	@return unquote($result);
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Add                                                                     #add
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Extends the default append function, with an option to ignore the
+/// first list value if it is null
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-lists
+///
+/// @param (list) $list
+/// @param (mix) $val
+/// @param (string) $seperator
+/// @param (bool) $remove-first-if-null
+///
+/// @return {list}
+
+@function add($val, $list, $seperator:space, $remove-first-if-null:true) {
+
+  @if length($list) == 1 and is-null(nth($list, 1)) and $remove-first-if-null == true {
+    $list : remove-nth($list, 1);
+  }
+
+  @return append($list, $val, $seperator);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Arglist to List                                             #arglist-to-list
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Casts a list of arguments into a single list of lists.
+///
+/// @author Mark Notton
+///
+/// @access private
+///
+/// @group helpers-lists
+///
+/// @argument {arglist} $values
+///
+/// @example scss - Usage
+///   arglist-to-list((foo bar), lorem ipsum, 1 2 3, red);
+///
+/// @example scss - Output
+///   ((foo bar) (lorem ipsum) (1 2 3) (red));
+///
+/// @return {list}
+
+@function arglist-to-list($args...) {
+
+  $args: if(length($args) > 0, $args, null);
+
+  $lists : ();
+
+  @for $i from 1 through length($args) {
+
+    $setting : nth($args, $i);
+    @if is-arglist($setting) {
+      @each $set in $setting {
+        $lists : append($lists, $set);
+      }
+    } @else {
+      $lists : append($lists, $setting);
+    }
+  }
+
+  @return $lists;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Contains                                                           #contains
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if a given value exists within a list
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-lists
+///
+/// @param {list} $list - List to be crossed referenced to
+///
+/// @param {string | number | list} $values - These are the values that will be checked within the list from the first param.
+///   All list and value items will be cast to strings. Specificially useful is a list of numbers are compared
+///   to a list of stringed numbers for example.
+///
+/// @param {bool} $recursive - If a list is being cross referenced to another list, this function will
+///   return true if just one of the items are found. If $recursive is true, then this function will
+///   only return true if ALL the list values are found within the other list.
+///
+/// @example scss - Usage
+///   $list1 : contains(a b c d, a);
+///   $list2 : contains(a b c d, a b);
+///   $list3 : contains(a b c d, a b f);
+///   $list4 : contains(a b c d, a b f, true);
+///
+/// @example scss - Output
+///   $list1 : true;
+///   $list2 : true;
+///   $list3 : true;
+///   $list4 : false;
+///
+/// @return {bool}
+
+@function contains($list, $values, $recursive:false) {
+
+  @if is-string($values) or is-number($values) or is-list($values) or $recursive {
+    // Convert all list and values items to strings.
+    $temp-list : list-items-to-strings($list);
+    $temp-values : list-items-to-strings($values);
+
+    @if $recursive {
+
+      @if length($values) == length($list) {
+
+        @each $value in $temp-values {
+          @if not index($temp-list, $value) {
+            @return false;
+          }
+        }
+        @return true;
+      } @else {
+        @return false;
+      }
+
+    } @else {
+
+      @each $value in $temp-list {
+        @if index($temp-values, $value) {
+          @return true;
+        }
+      }
+
+      @return false;
+    }
+  } @else {
+
+    @return false;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// First                                                                 #first
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Simple function for targeting the first list item
+///
+/// @author Hugo Giraudel
+///
+/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#selecting-values-from-list
+///
+
+///
+/// @group helpers-lists
+///
+/// @param {list}
+///
+/// @return {list}
+
+@function first($list) {
+  @if length($list) >= 1 {
+    @return nth($list, 1);
+  } @else {
+    @return null;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Function To List                                           #function-to-list
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Convert a function to a list format.
+/// Designed so that Bourbon and other framework syntaxes can be combined with my own.
+///
+/// @author Mark Notton
+///
+
+///
+/// @return {list}
+///
+/// @group helpers-lists
+///
+
+@function function-to-list($function, $separator:space) {
+
+  $function-list : ();
+
+  @if is-string($function) {
+
+    $first-brace : str-index($function, '(');
+    $last-brace : str-index($function, ')');
+
+    @if $first-brace and $last-brace {
+      // Gets everything before the first open bracket
+      $function-name : str-slice($function, 1, $first-brace - 1);
+
+      // Adds the function name to functions-list
+      $function-list : append($function-list, $function-name, $separator);
+
+      // Gets everything after the first open bracket, and before the last closed bracket
+      $function-value : str-slice($function, $first-brace + 1, $last-brace - 1);
+
+      // Explode the values into a list, delimated by a comma
+      $values : _string-explode($function-value);
+
+      // Add each value to the function list
+      @each $value in $values {
+
+        $value : if(is-number($value), to-number($value), $value);
+
+        $function-list : append($function-list, $value, $separator);
+      }
+
+      // Return the function to list cast
+      @return $function-list;
+
+    } @else {
+
+      // If the first argument passed isn't determined to be a function, the original function will be returned.
+      @return $function;
+
+    }
+  } @else {
+
+    // If the first argument passed isn't determined to be a function, the original function will be returned.
+    // Try casting the function to a string first
+    @return $function;
+
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Insert Nth                                                       #insert-nth
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Insert a value at nth index in a list
+///
+/// @author Hugo Giraudel
+///
+/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#adding-values-to-a-list
+///
+
+///
+/// @group helpers-lists
+///
+
+@function insert-nth($list, $index, $value) {
+  $result: null;
+
+  @if type-of($index) != number {
+    @if $warnings {
+      @warn "$index: #{quote($index)} is not a number for `insert-nth`.";
+    }
+  }
+
+  @else if $index < 1 {
+    @if $warnings {
+      @warn "List index 0 must be a non-zero integer for `insert-nth`";
+    }
+  }
+
+  @else if $index > length($list) {
+    @if $warnings {
+      @warn "List index is #{$index} but list is only #{length($list)} item long for `insert-nth'.";
+    }
+  }
+
+  @else {
+    $result: ();
+
+    @for $i from 1 through length($list) {
+      @if $i == $index {
+        $result: append($result, $value);
+      }
+
+      $result: append($result, nth($list, $i));
+    }
+  }
+
+  @return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Last                                                                   #last
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Simple function for targeting the last list item
+///
+/// @author Hugo Giraudel
+///
+/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#selecting-values-from-list
+///
+
+///
+/// @group helpers-lists
+///
+
+@function last($list) {
+  @return nth($list, length($list));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// List Items To Strings                                 #list-items-to-strings
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @group helpers-lists
+///
+
+@function list-items-to-strings($list, $seperator:auto) {
+  $temp-list : $list;
+  $list : ();
+  @each $value in $temp-list {
+    $list : append($list, to-string($value), $seperator);
+  }
+  @return $list;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// List Items To Strings                                 #list-items-to-strings
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Turn non comma delimited list into comma delimited list
+///
+/// @group helpers-lists
+///
+
+@function list-undelimited-to-comma-delimited($list) {
+  @if ( length($list) == 1 and is-list($list) ) {
+    @return list-items-to-strings(nth($list, 1), comma);
+  } @else {
+    @return $list;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Merge                                                                 #merge
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Merge any number of lists together
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-lists
+///
+/// @param (arglist) $lists - Add as many lists that you are want to merge. Separate lists should be comma-delimited.
+///
+/// @example scss - Usage
+///   $list1 : a b c;
+///   $list2 : 1 2 3;
+///   $new-list : merge($list1, $list2);
+///
+/// @example scss - Usage
+///   $new-list : (a b c 1 2 3);
+///
+/// @return {list}
+
+@function merge($lists...) {
+
+  $new-list : ();
+
+  @each $lists in arglist-to-list($lists...) {
+    @each $list in $lists {
+      $new-list : join($new-list, $list);
+    }
+  }
+
+  @return $new-list;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Prepend                                                             #prepend
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Add an item to the begining of a list
+///
+/// @author Hugo Giraudel
+///
+/// @group helpers-lists
+///
+/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#adding-values-to-a-list
+///
+
+
+@function prepend($list, $value, $seporator:auto) {
+  @return join($value, $list, $seporator);
+}
+
+/// @see https://hugogiraudel.com/2013/10/09/advanced-sass-list-functions-again/
+@function remove-duplicates($list, $recursive: false) {
+  $result: ();
+
+  @each $item in $list {
+    @if not index($result, $item) {
+      @if length($item) > 1 and $recursive {
+        $result: append($result, remove-duplicates($item, $recursive));
+      } @else {
+        $result: append($result, $item);
+      }
+    }
+  }
+
+  @return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Remove Nth                                                       #remove-nth
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Remove nth item from a list
+///
+/// @author Hugo Giraudel
+///
+/// @group helpers-lists
+///
+/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#removing-values-from-list
+///
+/// @example scss - Usage
+///   $list: a, b, z, c, d, e, f;
+///   $new-list: remove-nth($list,   3);
+///   $new-list: remove-nth($list,   0);
+///   $new-list: remove-nth($list,  -2);
+///   $new-list: remove-nth($list, -10);
+///   $new-list: remove-nth($list, 100);
+///   $new-list: remove-nth($list, zog);
+///
+/// @example scss - Output
+///   $new-list: a, b, c, d, e, f
+///   $new-list: error
+///   $new-list: a, b, z, c, d, f
+///   $new-list: error
+///   $new-list: error
+///   $new-list: error
+///
+
+@function remove-nth($list, $index) {
+  $result: null;
+
+  @if type-of($index) != number {
+    @if $warnings {
+      @warn "$index: #{quote($index)} is not a number for `remove-nth`.";
+    }
+  }
+
+  @else if $index == 0 {
+    @if $warnings {
+      @warn "List index 0 must be a non-zero integer for `remove-nth`.";
+    }
+  }
+
+  @else if abs($index) > length($list) {
+    @if $warnings {
+      @warn "List index is #{$index} but list is only #{length($list)} item long for `remove-nth`.";
+    }
+  }
+
+  @else {
+    $result: ();
+    $index: if($index < 0, length($list) + $index + 1, $index);
+
+    @for $i from 1 through length($list) {
+      @if $i != $index {
+        $result: append($result, nth($list, $i));
+      }
+    }
+  }
+
+  @return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Remove                                                               #remove
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Remove an item from a list
+///
+/// @author Hugo Giraudel
+///
+/// @group helpers-lists
+///
+/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#removing-values-from-list
+///
+/// @example scss - Usage
+///   $list: a, b z, c, z, d, z, e, f;
+///   $new-list: remove($list, z);
+///   $new-list: remove($list, z, true);
+///
+/// @example scss - Output
+///   $new-list: a, b z, c, d, e, f;
+///   $new-list: a, b, c, d, e, f;
+///
+
+@function remove($list, $value, $recursive: false, $separator:auto) {
+  $result: ();
+
+  @for $i from 1 through length($list) {
+    @if type-of(nth($list, $i)) == list and $recursive {
+      $result: append($result, remove(nth($list, $i), $value, $recursive), $separator);
+    }
+
+    @else if nth($list, $i) != $value {
+      $result: append($result, nth($list, $i), $separator);
+    }
+  }
+
+  @return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Replace Nth                                                     #replace-nth
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Replace a value at nth index in a list
+///
+/// @author Hugo Giraudel
+///
+/// @group helpers-lists
+///
+/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#replacing-values-from-list
+///
+/// @example scss - Usage
+///   $list: a, b, z, d, e, f;
+///   $new-list: replace-nth($list,   3, c);
+///   $new-list: replace-nth($list,   0, c);
+///   $new-list: replace-nth($list,  -2, c);
+///   $new-list: replace-nth($list, -10, c);
+///   $new-list: replace-nth($list, 100, c);
+///   $new-list: replace-nth($list, zog, c);
+///
+/// @example scss - Output
+///   $new-list: a, b, c, d, e, f
+///   $new-list: error
+///   $new-list: a, b, c, d, z, f
+///   $new-list: error
+///   $new-list: error
+///   $new-list: error
+///
+
+@function replace-nth($list, $index, $value) {
+  $result: null;
+
+  @if type-of($index) != number {
+    @if $warnings {
+      @warn "$index: #{quote($index)} is not a number for `replace-nth`.";
+    }
+  }
+
+  @else if $index == 0 {
+    @if $warnings {
+      @warn "List index 0 must be a non-zero integer for `replace-nth`.";
+    }
+  }
+
+  @else if abs($index) > length($list) {
+    @if $warnin  gs {
+    @warn "List index is #{$index} but list is only #{length($list)} item long for `replace-nth`."  ;
+  }
+  }
+
+  @else {
+    $result: ();
+    $index: if($index < 0, length($list) + $index + 1, $index);
+
+    @for $i from 1 through length($list) {
+      @if $i == $index {
+        $result: append($result, $value);
+      }
+
+      @else {
+        $result: append($result, nth($list, $i));
+      }
+    }
+  }
+
+  @return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Replace                                                             #replace
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Replacing values in a list
+///
+/// @author Hugo Giraudel
+///
+/// @group helpers-lists
+///
+/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#replacing-values-from-list
+///
+/// @example scss - Usage
+///   $list: a, b, r, a, c a, d a, b, r, a;
+///   $new-list1: replace($list, a, u);
+///   $new-list2: replace($list, a, u, true);
+///
+/// @example scss - Output
+///   $new-list1: u, b, r, u, c a, d a, b, r, u;
+///   $new-list2: u, b, r, u, c u, d u, b, r, u;
+///
+
+@function replace($list, $old-value, $new-value, $recursive: false) {
+  $result: ();
+
+  @for $i from 1 through length($list) {
+    @if type-of(nth($list, $i)) == list and $recursive {
+      $result: append($result, replace(nth($list, $i), $old-value, $new-value, $recursive));
+    }
+
+    @else {
+      @if nth($list, $i) == $old-value {
+        $result: append($result, $new-value);
+      }
+
+      @else {
+        $result: append($result, nth($list, $i));
+      }
+    }
+  }
+
+  @return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Reverse                                                             #reverse
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Reverse a lsit
+///
+/// @author Hugo Giraudel
+///
+/// @group helpers-lists
+///
+/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#miscellaneous
+///
+/// @example scss - Usage
+///   $list: a, b, c d e, f, g, h;
+///   $new-list: reverse($list);
+///   $new-list: reverse($list, true);
+///
+/// @example scss - Output
+///   $list: a, b, c d e, f, g, h;
+///   $new-list: h, g, f, c d e, b, a
+///   $new-list: h, g, f, e d c, b, a
+///
+
+@function reverse($list, $recursive: false) {
+   $result: ();
+
+   @for $i from length($list)*-1 through -1 {
+      @if type-of(nth($list, abs($i))) == list and $recursive {
+        $result: append($result, reverse(nth($list, abs($i)), $recursive));
+      }
+
+      @else {
+        $result: append($result, nth($list, abs($i)));
+      }
+   }
+
+   @return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Shift                                                                 #shift
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Shift the index of a list
+///
+/// @author Ana Tudor
+///
+/// @group helpers-lists
+///
+/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#miscellaneous
+///
+/// @example scss - Usage
+///   $list: a, b, c, d, e, f;
+///   $new-list: loop($list, 1);
+///   $new-list: loop($list, -3);
+///
+/// @example scss - Output
+///   $new-list: f, a, b, c, d, e
+///   $new-list: d, e, f, a, b, c
+///
+
+@function loop($list, $value: 1) {
+  $result: ();
+
+  @for $i from 0 to length($list) {
+    $result: append($result, nth($list, ($i - $value) % length($list) + 1));
+  }
+
+  @return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Slice                                                                 #slice
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Slice a list
+///
+/// @author Hugo Giraudel
+///
+/// @group helpers-lists
+///
+/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#miscellaneous
+///
+/// @example scss - Usage
+///   $list: a, b, c, d, e, f;
+///   $new-list: slice($list, 3, 5);
+///   $new-list: slice($list, 4, 4);
+///   $new-list: slice($list, 5, 3);
+///   $new-list: slice($list, -1, 10);
+///
+/// @example scss - Output
+///   $new-list: c, d, e
+///   $new-list: d
+///   $new-list: error
+///   $new-list: error
+///
+
+@function slice($list, $start: 1, $end: length($list)) {
+  $result: null;
+
+  @if type-of($start) != number or type-of($end) != number {
+    @if $warnings {
+      @warn "Either $start or $end are not a number for `slice`.";
+    }
+  }
+
+  @else if $start > $end {
+    @if $warnings {
+      @warn "The start index has to be lesser than or equals to the end index for `slice`.";
+    }
+  }
+
+  @else if $start < 1 or $end < 1 {
+    @if $warnings {
+      @warn "List indexes must be non-zero integers for `slice`.";
+    }
+  }
+
+  @else if $start > length($list) {
+    @if $warnings {
+      @warn "List index is #{$start} but list is only #{length($list)} item long for `slice`.";
+    }
+  }
+
+  @else if $end > length($list) {
+    @if $warnings {
+      @warn "List index is #{$end} but list is only #{length($list)} item long for `slice`.";
+    }
+  }
+
+  @else {
+    $result: ();
+
+    @for $i from $start through $end {
+      $result: append($result, nth($list, $i));
+    }
+  }
+
+  @return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Sort                                                                   #sort
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Sort list in a particular order.
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/sorting-function/
+///
+
+///
+/// @group helpers-lists
+///
+/// @param {list} $list - list to sort
+///
+/// @param {list} $order - Order to use for sorting - Default is $default-order;
+///
+/// @require {function} string-compare
+/// @require {variable} default-order
+///
+/// @return {list}
+
+@function sort($list, $order: "!" "#" "$" "%" "&" "'" "(" ")" "*" "+" "," "-" "." "/" "[" "]" "^" "_" "{" "|" "}" "~" "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z") {
+  $less:  ();
+  $equal: ();
+  $large: ();
+
+  @if length($list) > 1 {
+    $seed: nth($list, ceil(length($list) / 2));
+
+    @each $item in $list {
+      @if $item == $seed {
+        $equal: append($equal, $item, list-separator($list));
+      } @else if string-compare($item, $seed, $order) {
+        $less: append($less, $item, list-separator($list));
+      } @else if not string-compare($item, $seed, $order) {
+        $large: append($large, $item, list-separator($list));
+      }
+    }
+
+    @return join(join(sort($less, $order), $equal), sort($large, $order));
+  }
+
+  @return $list;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Deep Get                                                   #map-deep-get
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Fetch nested keys in a map
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+
+///
+/// @group helpers-maps
+///
+/// @param (map) $map - Usually a variable name
+///
+/// @param (arglist) $keys - With comma delimination write the path to the disired map element
+///
+/// @return {*}
+///
+/// @example scss - Usage
+/// $foo: (
+///   bar: (
+///     lorem : (
+///       test1: #dcfac0,
+///       test2: #00968b,
+///     ),
+///     ipsom: (
+///       test1: #f4fac7,
+///       test2: #c2454e,
+///     )
+///   )
+/// );
+/// color: map-fetch($foo, bar, lorem, test1);
+///
+/// @example css - Output
+/// color:#dcfac0;
+///
+
+@function map-deep-get($map, $keys...) {
+  @each $key in $keys {
+    $map: map-get($map, $key);
+  }
+  @return $map;
+}
+
+/// @alias map-deep-get
+///
+
+///
+/// @require {function} map-deep-get
+///
+/// @return {*}
+
+@function map-fetch($map, $keys...) {
+  @return map-deep-get($map, $keys...);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Deep Merge                                               #map-deep-merge
+////////////////////////////////////////////////////////////////////////////////
+
+/// @name Map Deep Merge
+/// @author Zsolt Pentz
+/// @see https://medium.com/@pentzzsolt/a-non-destructive-map-merge-function-for-sass-f91637f87b2e
+
+@function map-deep-merge($parent-map, $child-map) {
+	$result: $parent-map;
+	@each $key, $value in $child-map {
+		@if (not map-has-key($result, $key)) or (type-of(map-get($result, $key)) != type-of($value)) or (not (type-of(map-get($result, $key)) == map and type-of($value) == map)) {
+			$result: map-merge($result, ($key: $value));
+		}
+		@else {
+			$result: map-merge($result, ($key: map-deep-merge(map-get($result, $key), $value)));
+		}
+	}
+	@return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Deep Set                                                   #map-deep-set
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Update a key deeply nested
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+
+///
+/// @group helpers-maps
+///
+/// @param {map} $map - Map to update
+///
+/// @param {arglist} $keys - Keys to access to value to update
+///
+/// @param {*} $value - New value (last member of `$keys`)
+///
+/// @return {map} - Updated map
+
+@function map-deep-set($map, $keys.../*, $value */) {
+  $map-list: ($map,);
+  $result: null;
+
+  @if length($keys) == 2 {
+    @return map-merge($map, (nth($keys, 1): nth($keys, -1)));
+  }
+
+  @for $i from 1 through length($keys) - 2 {
+    $map-list: append($map-list, map-get(nth($map-list, -1), nth($keys, $i)));
+  }
+
+  @for $i from length($map-list) through 1 {
+    $result: map-merge(nth($map-list, $i), (nth($keys, $i): if($i == length($map-list), nth($keys, -1), $result)));
+  }
+
+  @return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Depth                                                         #map-depth
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Compute the maximum depth of a map
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+
+///
+/// @group helpers-maps
+///
+/// @param {map} $map
+///
+/// @return {number} max depth of `$map`
+
+@function map-depth($map) {
+  $level: 1;
+
+  @each $key, $value in $map {
+    @if type-of($value) == "map" {
+      $level: max(map-depth($value) + 1, $level);
+    }
+  }
+
+  @return $level;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Extend                                                       #map-extend
+////////////////////////////////////////////////////////////////////////////////
+///
+/// jQuery-style extend function
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+
+///
+/// @group helpers-maps
+///
+/// @param {map} $map - first map
+///
+/// @param {arglist} $maps - other maps
+///
+/// @param {bool} $deep - recursive mode
+///
+/// @return {map}
+
+@function map-extend($map, $maps.../*, $deep */) {
+  $last: nth($maps, -1);
+  $deep: $last == true;
+  $max: if($deep, length($maps) - 1, length($maps));
+
+  // Loop through all maps in $maps...
+  @for $i from 1 through $max {
+    // Store current map
+    $current: nth($maps, $i);
+
+    // If not in deep mode, simply merge current map with map
+    @if not $deep {
+      $map: map-merge($map, $current);
+    } @else {
+      // If in deep mode, loop through all tuples in current map
+      @each $key, $value in $current {
+
+        // If value is a nested map and same key from map is a nested map as well
+        @if type-of($value) == "map" and type-of(map-get($map, $key)) == "map" {
+          // Recursive extend
+          $value: map-extend(map-get($map, $key), $value, true);
+        }
+
+        // Merge current tuple with map
+        $map: map-merge($map, ($key: $value));
+      }
+    }
+  }
+
+  @return $map;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Has Keys                                                   #map-has-keys
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Test if map got all `$keys` at first level
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+/// @group helpers-maps
+///
+/// @param {map} $map - Map
+///
+/// @param {arglist} $keys - Keys to test
+///
+/// @return {bool}
+
+@function map-has-keys($map, $keys...) {
+  @each $key in $keys {
+    @if not map-has-key($map, $key) {
+      @return false;
+    }
+  }
+
+  @return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Has Nested Keys                                     #map-has-nested-keys
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Test if map got all `$keys` nested with each others
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+
+///
+/// @group helpers-maps
+///
+/// @param {map} $map - Map
+///
+/// @param {arglist} $keys - Keys to test
+///
+/// @return {bool}
+
+@function map-has-nested-keys($map, $keys...) {
+  @each $key in $keys {
+    @if not map-has-key($map, $key) {
+      @return false;
+    }
+    $map: map-get($map, $key);
+  }
+
+  @return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Set                                                             #map-set
+////////////////////////////////////////////////////////////////////////////////
+///
+/// A quick way of adding a key and value to the end of a map
+///
+/// @author Mark Notton
+///
+/// @group helpers-maps
+///
+/// @return {map}
+
+@function map-set($map, $key, $value) {
+  @return map-merge($map, ($key: $value));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Zip                                                             #map-zip
+////////////////////////////////////////////////////////////////////////////////
+///
+/// An equivalent of `zip` function but for maps.
+/// I wrote my own version of this before realising Hugo had done something similar.
+/// I have kept the name, but used my own.
+///
+/// @author Mark Notton
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+/// @link http://sass-lang.com/documentation/Sass/Script/Functions.html#zip-instance_method
+///
+
+///
+/// @group helpers-maps
+///
+/// @param {list} $list1 - Keys for map
+///
+/// @param {list} $list2 - Values for map
+///
+/// @param {bool} $swappable - Swap variables around so list1 has the most values. Default is true.
+///
+/// @return {map} Freshly created map
+
+@function map-zip($list1, $list2, $swappable:true) {
+
+  $map : ();
+
+  $list1-size : length($list1);
+  $list2-size : length($list2);
+
+  $count : if($list1-size < $list2-size, $list1-size, $list2-size);
+
+
+  @if ($list1-size < $list2-size and $swappable) {
+    $temp : $list1;
+    $list1 : $list2;
+    $list2 : $temp;
+  }
+
+  @if $warnings {
+    @if ($list1-size < $list2-size) {
+      @if $warnings {
+        @warn('The second list had '+($list2-size - $list1-size)+' more value'+ if($list2-size - $list1-size != 1, 's', '') +' than the first list');
+      }
+    } @elseif ($list1-size > $list2-size) {
+      @if $warnings {
+        @warn('The first list had '+($list1-size - $list2-size)+' more value'+ if($list1-size - $list2-size != 1, 's', '') +' than the second list');
+      }
+    }
+  }
+
+  @for $i from 1 through $count {
+    $map : map-set($map, nth($list1, $i), nth($list2, $i));
+  }
+
+  @return $map;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// Check                                                                 #check
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1240,560 +2980,6 @@ $sc-non-strict-defaults: (
 
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Brightness                                                       #brightness
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Calculates a colours brightness
-///
-/// @author David Halford
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
-///
-/// @return {number}
-
-@function brightness($colour) {
-  @return abs(round((red($colour) * 299) + (green($colour) * 587) + (blue($colour) * 114) / 1000));
-}
-
-/// Compares contrast of a given colour and returns the most appropriate given colour that contrasts it.
-///
-/// @author David Halford
-///
-
-///
-/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
-///
-/// @param {color} $colour - Define a colour that you want to check is dark or light
-///
-/// @param {list | colour} - Define up to two seperate colours. Each one will be checked for their lightness or darkness
-///    If one of the colours is not dark enough it will revert to black;
-///    If the other colour is not light enough it will revert to white;
-///
-/// @require {function} is-colour
-/// @require {function} is-dark
-/// @require {function} is-light
-/// @require {function} brightness
-/// @require {function} lightness
-///
-/// @return {number}
-///
-/// @example {scss} - Usage
-///   color : colour-contrast(red, purple yellow);
-///
-/// @example {scss} - Output
-///   color : yellow;
-
-@function colour-contrast($colour, $text-colours:null) {
-
-  $dark-text : black;
-  $light-text : white;
-
-  $colour : get-variable-colour-value($colour);
-
-  @if is-colour($colour) {
-
-    @each $setting in $text-colours {
-      @if is-colour($setting) {
-        @if $dark-text == black {
-          $dark-text: $setting;
-        }
-        @elseif $light-text == white {
-          $light-text: $setting;
-        }
-      }
-    }
-
-    $dark-text : if(is-dark($dark-text), $dark-text, black);
-    $light-text : if(is-light($light-text), $light-text, white);
-
-    @return if(brightness($colour) <  lightness(), $light-text, $dark-text);
-
-  } @else {
-
-    @return $dark-text;
-  }
-}
-
-/// @alias contrasting-colour
-///
-
-///
-/// @require {function} contrasting-colour
-///
-/// @return {color}
-
-@function color-contrast($colour, $light:white, $dark:dark) {
-  @return colour-contrast($colour, $light, $dark);
-}
-
-/// An alternative to the native rgba function. With a few extra checks.
-///
-/// @author Mark Notton
-///
-
-///
-/// @param {color} Hex colour
-///
-/// @require {function} percent-to-decimal
-///
-/// @param {opacity} $opacity
-///   This can be as a percentage or a standard single decimal unit.
-///
-/// @return {color}
-///
-
-@function colour($colour:random-colour(), $opacity:1) {
-
-  @if str-index(#{$colour}, 'rgba') {
-    @return $colour;
-  }
-  @else {
-    @return rgba($colour, percent-to-decimal($opacity));
-  }
-}
-
-/// @alias colour
-///
-
-///
-/// @require {function} colour
-///
-/// @return {bool}colour
-
-@function color($colour:random-colour(), $opacity:1) {
-  @return colour($colour, $opacity);
-}
-
-
-/// @alias colour
-///
-
-///
-/// @require {function} colour
-///
-/// @return {bool}
-
-@function col($colour:random-colour(), $opacity:1) {
-  @return colour($colour, $opacity);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Get Colour Value                                           #get-colour-value
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Cast a stringified number / stringified percentage into number type
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @param {string} $string - string
-///
-/// @return {number} - unitless number or percentage
-///
-/// @require {function} to-number
-
-@function get-colour-value($string) {
-  $first: str-slice($string, 1, 1);
-
-  @if $first == '.' {
-    $string: '0' + $string;
-  }
-
-  $last: str-slice($string, -1, -1);
-
-  @return if($last == '%', to-number(str-slice($string, 1, -2), 2) * 1%, to-number($string));
-}
-
-/// Get Color Value =========================================== #get-color-value
-///
-/// @alias get-colour-value
-///
-
-///
-/// @group helpers-colours
-///
-/// @require {function} get-colour-value
-///
-/// @return {colour}
-
-@function get-color-value($string) {
-  @return get-colour-value($string);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Get Variable Colour Value                         #get-variable-colour-value
-////////////////////////////////////////////////////////////////////////////////
-///
-
-///
-/// @group helpers-colours
-///
-/// @require {function} get-variable-colour-value
-///
-/// @return {colour}
-
-@function get-variable-colour-value($colour, $opacity:1) {
-
-  @if not is-colour($colour) and variable-exists(variables) {
-
-    $value : map-get($variables, get-var-variable($colour));
-
-    @if not is-null($value) {
-
-      @if is-list($value) {
-        $red:   nth($value, 1);
-        $green: nth($value, 2);
-        $blue:  nth($value, 3);
-        $value : rgba($red, $green, $blue, $opacity);
-      }
-
-      $colour : $value;
-    }
-
-  }
-
-  @return $colour;
-
-}
-
-///  Get Variable Color Value ======================== #get-variable-color-value
-///
-/// @alias get-variable-colour-value
-///
-
-///
-/// @group helpers-colours
-///
-/// @require {function} get-variable-colour-value
-///
-/// @return {colour}
-
-@function get-variable-color-value($colour, $opacity:1) {
-  @return get-variable-colour-value($colour, $opacity);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Gradient Properties                                     #gradient-properties
-////////////////////////////////////////////////////////////////////////////////
-///
-// Add each argument into a single comma delimited list
-///
-/// @group helpers-colours
-///
-
-@function gradient-properties($args...) {
-  $properties : ();
-
-  $args: if(length($args) > 0, $args, null);
-
-  @for $i from 1 through length($args) {
-    $properties : append($properties, nth($args, $i), comma);
-  }
-
-  @return $properties;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Hash Fix                                                           #hash-fix
-////////////////////////////////////////////////////////////////////////////////
-///
-/// For reasons specific to Firefox (currently version 45),
-/// SVG's require all hash symbols to be replaced with '%23'. This includes hex
-/// colours and <use> xlinks This function will find and replace that hash
-/// symbol with the appropriate new string (which also works in other browsers)
-///
-/// @author Mark Notton
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @link http://stackoverflow.com/questions/28588050/how-to-use-a-hex-value-for-svg-in-firefox#answer-28588194
-///
-/// @return {string} - Without "#" as the first character
-
-@function hash-fix($string) {
-  @if get-var-value($string) {
-    @return str-replace(to-string(get-var-value($string)), '#', '%23');
-  } @else {
-    @return if(is-first-character($string, '#'), str-replace(#{$string}, '#', '%23'), $string);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Hexadecimal to Decimal                                           #hex-to-dec
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Convert an hexadecimal number to a decimal number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @param {string} $string - string
-///
-/// @param {string} $string - hexadecimal value
-///
-/// @return {number} - decimal number
-
-@function hex-to-dec($string){
-  $hex: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f";
-  $string: to-lower-case($string);
-  $length: str-length($string);
-
-  $dec: 0;
-  @for $i from 1 through $length {
-    $factor: 1 + ( 15 * ( $length - $i ));
-    $index: index($hex, str-slice($string, $i, $i));
-    $dec: $dec + $factor * ($index - 1);
-  }
-
-  @return $dec;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Hexadecimal to RGBA                                             #hex-to-rgba
-////////////////////////////////////////////////////////////////////////////////
-///
-/// @group helpers-colours
-///
-
-@function hex-to-rgba($colour, $opacity:1) {
-
-  @if is-hex($colour) {
-
-    $red:   red($colour);
-    $green: green($colour);
-    $blue:  blue($colour);
-
-    @return unquote("rgba(#{$red}, #{$green}, #{$blue}, #{$opacity})");
-
-  } @else {
-
-    @return $colour;
-
-  }
-
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Lightness                                                         #lightness
-////////////////////////////////////////////////////////////////////////////////
-///
-/// A smart calculation to what lightness is
-///
-/// @notice This could just be a variable, but for potential future minipulation I've left it as a function
-///
-/// @author David Halford
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
-///
-/// @return {number}
-
-@function lightness() {
-  @return round((red(#ffffff) * 299) + (green(#ffffff) * 587) + (blue(#ffffff) * 114) / 1000)/2;
-}
-
-/// Random colour.
-///
-/// @author Pankaj Parashar
-///
-
-///
-/// @author https://pankajparashar.com/posts/random-colors-sass/
-///
-/// @param {number} $opacity - Amend the opacity of the colour that is returned. Default is 1
-///
-/// @example scss - Usage
-///   random-colour(0.5);
-///
-/// @example css - Output
-///   rgba(38, 153, 180, 0.5);
-///
-/// @return {color}
-
-@function random-colour($opacity:1) {
-  @return rgba(random(256) - 1, random(256) - 1, random(256) - 1, $opacity);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Get Var Value                                                 #get-var-value
-////////////////////////////////////////////////////////////////////////////////
-///
-/// @group helpers-misc
-///
-/// $return-all - Set to true if you want to return all value from a var(...),
-/// by default this will loop through all variables to see if one matches
-/// anything fomr the custom properties array.
-
-@function get-var-value($variable, $return-all : false) {
-
-  @if is-var($variable) {
-
-		@if map-has-keys($custom-properties, $variable) {
-			@return map-get($custom-properties, $variable);
-		}
-
-		@elseif string-starts-with(quote($variable), 'var(--') {
-			$variable : str-replace($variable, 'var(--', '');
-			$variable : str-replace($variable, ')', '');
-
-			$variables : string-explode(get-var-value($variable), ', ');
-
-			@if $return-all == false {
-				@each $var in $variables {
-					@if map-has-keys($custom-properties, $var) {
-						@return map-get($custom-properties, $var);
-					}
-				}
-			}
-
-			@if length($variables) > 1 {
-				@return $variables;
-			}
-
-			@return $variable;
-		}
-
-  } @else {
-    @return $variable
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Var Value                                                         #var-value
-////////////////////////////////////////////////////////////////////////////////
-
-/// @group helpers-misc
-
-@function var-value($variable:primary, $opacity:1, $fallback:true) {
-
-  $variable-value : $variable;
-  $fallback-value : null;
-
-  // If varuable is a standard colour, just use that colour as normal. Opacity is not used.
-  @if is-colour($variable) {
-
-    @if is-hex($variable) {
-      $variable-value : rgba($variable, $opacity);
-    } @else {
-      $variable-value : $variable;
-    }
-
-  } @else {
-
-    // Check the variables map to help generate a fallback colour
-    $fallback-value : get-variable-colour-value($variable, $opacity);
-
-    @if is-var($variable) {
-
-      // If a hardcoded 'var(--XXX)' is passed, extract the variable name and check if
-      // it's part of the variables map. If it is, use this hardcoded colour as a fallback.
-      // Add opacity is one if provided.
-
-      @if $support-css-variable-alpha-colours {
-
-        $variable-value : rgba($variable, $opacity);
-
-      } @else {
-
-        @if not is-null($fallback-value) {
-          $variable-value : str-replace($variable, ')', ', ' + $fallback-value + ')');
-        } @else {
-          $variable-value : $variable;
-        }
-
-      }
-
-    } @else {
-
-      // If a string was passed as the string. Assume this is a shorthand to search
-      // the variables map for the right variable then apply the fallback.
-
-      @if $support-css-variable-alpha-colours {
-        $variable-value : rgba(unquote('var(--' + $variable + ')'), $opacity);
-      } @else {
-
-        @if not is-null($fallback-value) {
-          $variable-value : unquote('var(--' + $variable + ', '+ $fallback-value +')');
-        } @else {
-          $variable-value : unquote('var(--' + $variable + ')');
-        }
-      }
-    }
-
-  }
-
-  @if ( not is-null($fallback-value) and $fallback ) {
-    @return ($variable-value, $fallback-value);
-  }
-
-  @return $variable-value;
-
-}
-
-@function var($args...) {
-
-	$custom-property : ();
-	$fallback : null;
-	$variables : ();
-	$suffix : '';
-
-	// List valid custom properties names
-	@each $value in $args {
-		@if is-string($value) and not is-number($value) {
-			$variables : append($variables, string-replace($value, '--'));
-			$suffix : $suffix + ')';
-		} @else {
-			$fallback : $value;
-		}
-	}
-
-	@if length($variables) > 0 {
-		@for $i from 1 through length($variables) {
-
-			$variable : nth($variables, $i);
-			$last : $i == length($variables);
-
-			@if $last and map-has-keys($custom-properties, $variable) {
-				$fallback : map-get($custom-properties, $variable);
-			}
-
-			$custom-property : append($custom-property, unquote('var(--' + $variable + ','));
-
-		}
-	}
-
-	@if not is-null($fallback) {
-		$custom-property : $custom-property + ' ' + $fallback;
-	}
-
-	$result : to-string($custom-property) + $suffix;
-
-	$result : string-replace($result, ',)', ')');
-
-	@return unquote($result);
-
-}
-
 /// @author Mark Notton
 /// @link http://www.w3schools.com/charsets/ref_html_utf8.asp
 /// @type variables
@@ -2212,1057 +3398,6 @@ $quare-3 :              "\25A2"; // ▢
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Add                                                                     #add
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Extends the default append function, with an option to ignore the
-/// first list value if it is null
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-lists
-///
-/// @param (list) $list
-/// @param (mix) $val
-/// @param (string) $seperator
-/// @param (bool) $remove-first-if-null
-///
-/// @return {list}
-
-@function add($val, $list, $seperator:space, $remove-first-if-null:true) {
-
-  @if length($list) == 1 and is-null(nth($list, 1)) and $remove-first-if-null == true {
-    $list : remove-nth($list, 1);
-  }
-
-  @return append($list, $val, $seperator);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Arglist to List                                             #arglist-to-list
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Casts a list of arguments into a single list of lists.
-///
-/// @author Mark Notton
-///
-/// @access private
-///
-/// @group helpers-lists
-///
-/// @argument {arglist} $values
-///
-/// @example scss - Usage
-///   arglist-to-list((foo bar), lorem ipsum, 1 2 3, red);
-///
-/// @example scss - Output
-///   ((foo bar) (lorem ipsum) (1 2 3) (red));
-///
-/// @return {list}
-
-@function arglist-to-list($args...) {
-
-  $args: if(length($args) > 0, $args, null);
-
-  $lists : ();
-
-  @for $i from 1 through length($args) {
-
-    $setting : nth($args, $i);
-    @if is-arglist($setting) {
-      @each $set in $setting {
-        $lists : append($lists, $set);
-      }
-    } @else {
-      $lists : append($lists, $setting);
-    }
-  }
-
-  @return $lists;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Contains                                                           #contains
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Checks to see if a given value exists within a list
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-lists
-///
-/// @param {list} $list - List to be crossed referenced to
-///
-/// @param {string | number | list} $values - These are the values that will be checked within the list from the first param.
-///   All list and value items will be cast to strings. Specificially useful is a list of numbers are compared
-///   to a list of stringed numbers for example.
-///
-/// @param {bool} $recursive - If a list is being cross referenced to another list, this function will
-///   return true if just one of the items are found. If $recursive is true, then this function will
-///   only return true if ALL the list values are found within the other list.
-///
-/// @example scss - Usage
-///   $list1 : contains(a b c d, a);
-///   $list2 : contains(a b c d, a b);
-///   $list3 : contains(a b c d, a b f);
-///   $list4 : contains(a b c d, a b f, true);
-///
-/// @example scss - Output
-///   $list1 : true;
-///   $list2 : true;
-///   $list3 : true;
-///   $list4 : false;
-///
-/// @return {bool}
-
-@function contains($list, $values, $recursive:false) {
-
-  @if is-string($values) or is-number($values) or is-list($values) or $recursive {
-    // Convert all list and values items to strings.
-    $temp-list : list-items-to-strings($list);
-    $temp-values : list-items-to-strings($values);
-
-    @if $recursive {
-
-      @if length($values) == length($list) {
-
-        @each $value in $temp-values {
-          @if not index($temp-list, $value) {
-            @return false;
-          }
-        }
-        @return true;
-      } @else {
-        @return false;
-      }
-
-    } @else {
-
-      @each $value in $temp-list {
-        @if index($temp-values, $value) {
-          @return true;
-        }
-      }
-
-      @return false;
-    }
-  } @else {
-
-    @return false;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// First                                                                 #first
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Simple function for targeting the first list item
-///
-/// @author Hugo Giraudel
-///
-/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#selecting-values-from-list
-///
-
-///
-/// @group helpers-lists
-///
-/// @param {list}
-///
-/// @return {list}
-
-@function first($list) {
-  @if length($list) >= 1 {
-    @return nth($list, 1);
-  } @else {
-    @return null;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Function To List                                           #function-to-list
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Convert a function to a list format.
-/// Designed so that Bourbon and other framework syntaxes can be combined with my own.
-///
-/// @author Mark Notton
-///
-
-///
-/// @return {list}
-///
-/// @group helpers-lists
-///
-
-@function function-to-list($function, $separator:space) {
-
-  $function-list : ();
-
-  @if is-string($function) {
-
-    $first-brace : str-index($function, '(');
-    $last-brace : str-index($function, ')');
-
-    @if $first-brace and $last-brace {
-      // Gets everything before the first open bracket
-      $function-name : str-slice($function, 1, $first-brace - 1);
-
-      // Adds the function name to functions-list
-      $function-list : append($function-list, $function-name, $separator);
-
-      // Gets everything after the first open bracket, and before the last closed bracket
-      $function-value : str-slice($function, $first-brace + 1, $last-brace - 1);
-
-      // Explode the values into a list, delimated by a comma
-      $values : _string-explode($function-value);
-
-      // Add each value to the function list
-      @each $value in $values {
-
-        $value : if(is-number($value), to-number($value), $value);
-
-        $function-list : append($function-list, $value, $separator);
-      }
-
-      // Return the function to list cast
-      @return $function-list;
-
-    } @else {
-
-      // If the first argument passed isn't determined to be a function, the original function will be returned.
-      @return $function;
-
-    }
-  } @else {
-
-    // If the first argument passed isn't determined to be a function, the original function will be returned.
-    // Try casting the function to a string first
-    @return $function;
-
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Insert Nth                                                       #insert-nth
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Insert a value at nth index in a list
-///
-/// @author Hugo Giraudel
-///
-/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#adding-values-to-a-list
-///
-
-///
-/// @group helpers-lists
-///
-
-@function insert-nth($list, $index, $value) {
-  $result: null;
-
-  @if type-of($index) != number {
-    @if $warnings {
-      @warn "$index: #{quote($index)} is not a number for `insert-nth`.";
-    }
-  }
-
-  @else if $index < 1 {
-    @if $warnings {
-      @warn "List index 0 must be a non-zero integer for `insert-nth`";
-    }
-  }
-
-  @else if $index > length($list) {
-    @if $warnings {
-      @warn "List index is #{$index} but list is only #{length($list)} item long for `insert-nth'.";
-    }
-  }
-
-  @else {
-    $result: ();
-
-    @for $i from 1 through length($list) {
-      @if $i == $index {
-        $result: append($result, $value);
-      }
-
-      $result: append($result, nth($list, $i));
-    }
-  }
-
-  @return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Last                                                                   #last
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Simple function for targeting the last list item
-///
-/// @author Hugo Giraudel
-///
-/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#selecting-values-from-list
-///
-
-///
-/// @group helpers-lists
-///
-
-@function last($list) {
-  @return nth($list, length($list));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// List Items To Strings                                 #list-items-to-strings
-////////////////////////////////////////////////////////////////////////////////
-///
-/// @group helpers-lists
-///
-
-@function list-items-to-strings($list, $seperator:auto) {
-  $temp-list : $list;
-  $list : ();
-  @each $value in $temp-list {
-    $list : append($list, to-string($value), $seperator);
-  }
-  @return $list;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// List Items To Strings                                 #list-items-to-strings
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Turn non comma delimited list into comma delimited list
-///
-/// @group helpers-lists
-///
-
-@function list-undelimited-to-comma-delimited($list) {
-  @if ( length($list) == 1 and is-list($list) ) {
-    @return list-items-to-strings(nth($list, 1), comma);
-  } @else {
-    @return $list;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Merge                                                                 #merge
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Merge any number of lists together
-///
-/// @author Mark Notton
-///
-
-///
-/// @group helpers-lists
-///
-/// @param (arglist) $lists - Add as many lists that you are want to merge. Separate lists should be comma-delimited.
-///
-/// @example scss - Usage
-///   $list1 : a b c;
-///   $list2 : 1 2 3;
-///   $new-list : merge($list1, $list2);
-///
-/// @example scss - Usage
-///   $new-list : (a b c 1 2 3);
-///
-/// @return {list}
-
-@function merge($lists...) {
-
-  $new-list : ();
-
-  @each $lists in arglist-to-list($lists...) {
-    @each $list in $lists {
-      $new-list : join($new-list, $list);
-    }
-  }
-
-  @return $new-list;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Prepend                                                             #prepend
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Add an item to the begining of a list
-///
-/// @author Hugo Giraudel
-///
-/// @group helpers-lists
-///
-/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#adding-values-to-a-list
-///
-
-
-@function prepend($list, $value, $seporator:auto) {
-  @return join($value, $list, $seporator);
-}
-
-/// @see https://hugogiraudel.com/2013/10/09/advanced-sass-list-functions-again/
-@function remove-duplicates($list, $recursive: false) {
-  $result: ();
-
-  @each $item in $list {
-    @if not index($result, $item) {
-      @if length($item) > 1 and $recursive {
-        $result: append($result, remove-duplicates($item, $recursive));
-      } @else {
-        $result: append($result, $item);
-      }
-    }
-  }
-
-  @return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Remove Nth                                                       #remove-nth
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Remove nth item from a list
-///
-/// @author Hugo Giraudel
-///
-/// @group helpers-lists
-///
-/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#removing-values-from-list
-///
-/// @example scss - Usage
-///   $list: a, b, z, c, d, e, f;
-///   $new-list: remove-nth($list,   3);
-///   $new-list: remove-nth($list,   0);
-///   $new-list: remove-nth($list,  -2);
-///   $new-list: remove-nth($list, -10);
-///   $new-list: remove-nth($list, 100);
-///   $new-list: remove-nth($list, zog);
-///
-/// @example scss - Output
-///   $new-list: a, b, c, d, e, f
-///   $new-list: error
-///   $new-list: a, b, z, c, d, f
-///   $new-list: error
-///   $new-list: error
-///   $new-list: error
-///
-
-@function remove-nth($list, $index) {
-  $result: null;
-
-  @if type-of($index) != number {
-    @if $warnings {
-      @warn "$index: #{quote($index)} is not a number for `remove-nth`.";
-    }
-  }
-
-  @else if $index == 0 {
-    @if $warnings {
-      @warn "List index 0 must be a non-zero integer for `remove-nth`.";
-    }
-  }
-
-  @else if abs($index) > length($list) {
-    @if $warnings {
-      @warn "List index is #{$index} but list is only #{length($list)} item long for `remove-nth`.";
-    }
-  }
-
-  @else {
-    $result: ();
-    $index: if($index < 0, length($list) + $index + 1, $index);
-
-    @for $i from 1 through length($list) {
-      @if $i != $index {
-        $result: append($result, nth($list, $i));
-      }
-    }
-  }
-
-  @return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Remove                                                               #remove
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Remove an item from a list
-///
-/// @author Hugo Giraudel
-///
-/// @group helpers-lists
-///
-/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#removing-values-from-list
-///
-/// @example scss - Usage
-///   $list: a, b z, c, z, d, z, e, f;
-///   $new-list: remove($list, z);
-///   $new-list: remove($list, z, true);
-///
-/// @example scss - Output
-///   $new-list: a, b z, c, d, e, f;
-///   $new-list: a, b, c, d, e, f;
-///
-
-@function remove($list, $value, $recursive: false, $separator:auto) {
-  $result: ();
-
-  @for $i from 1 through length($list) {
-    @if type-of(nth($list, $i)) == list and $recursive {
-      $result: append($result, remove(nth($list, $i), $value, $recursive), $separator);
-    }
-
-    @else if nth($list, $i) != $value {
-      $result: append($result, nth($list, $i), $separator);
-    }
-  }
-
-  @return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Replace Nth                                                     #replace-nth
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Replace a value at nth index in a list
-///
-/// @author Hugo Giraudel
-///
-/// @group helpers-lists
-///
-/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#replacing-values-from-list
-///
-/// @example scss - Usage
-///   $list: a, b, z, d, e, f;
-///   $new-list: replace-nth($list,   3, c);
-///   $new-list: replace-nth($list,   0, c);
-///   $new-list: replace-nth($list,  -2, c);
-///   $new-list: replace-nth($list, -10, c);
-///   $new-list: replace-nth($list, 100, c);
-///   $new-list: replace-nth($list, zog, c);
-///
-/// @example scss - Output
-///   $new-list: a, b, c, d, e, f
-///   $new-list: error
-///   $new-list: a, b, c, d, z, f
-///   $new-list: error
-///   $new-list: error
-///   $new-list: error
-///
-
-@function replace-nth($list, $index, $value) {
-  $result: null;
-
-  @if type-of($index) != number {
-    @if $warnings {
-      @warn "$index: #{quote($index)} is not a number for `replace-nth`.";
-    }
-  }
-
-  @else if $index == 0 {
-    @if $warnings {
-      @warn "List index 0 must be a non-zero integer for `replace-nth`.";
-    }
-  }
-
-  @else if abs($index) > length($list) {
-    @if $warnin  gs {
-    @warn "List index is #{$index} but list is only #{length($list)} item long for `replace-nth`."  ;
-  }
-  }
-
-  @else {
-    $result: ();
-    $index: if($index < 0, length($list) + $index + 1, $index);
-
-    @for $i from 1 through length($list) {
-      @if $i == $index {
-        $result: append($result, $value);
-      }
-
-      @else {
-        $result: append($result, nth($list, $i));
-      }
-    }
-  }
-
-  @return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Replace                                                             #replace
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Replacing values in a list
-///
-/// @author Hugo Giraudel
-///
-/// @group helpers-lists
-///
-/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#replacing-values-from-list
-///
-/// @example scss - Usage
-///   $list: a, b, r, a, c a, d a, b, r, a;
-///   $new-list1: replace($list, a, u);
-///   $new-list2: replace($list, a, u, true);
-///
-/// @example scss - Output
-///   $new-list1: u, b, r, u, c a, d a, b, r, u;
-///   $new-list2: u, b, r, u, c u, d u, b, r, u;
-///
-
-@function replace($list, $old-value, $new-value, $recursive: false) {
-  $result: ();
-
-  @for $i from 1 through length($list) {
-    @if type-of(nth($list, $i)) == list and $recursive {
-      $result: append($result, replace(nth($list, $i), $old-value, $new-value, $recursive));
-    }
-
-    @else {
-      @if nth($list, $i) == $old-value {
-        $result: append($result, $new-value);
-      }
-
-      @else {
-        $result: append($result, nth($list, $i));
-      }
-    }
-  }
-
-  @return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Reverse                                                             #reverse
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Reverse a lsit
-///
-/// @author Hugo Giraudel
-///
-/// @group helpers-lists
-///
-/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#miscellaneous
-///
-/// @example scss - Usage
-///   $list: a, b, c d e, f, g, h;
-///   $new-list: reverse($list);
-///   $new-list: reverse($list, true);
-///
-/// @example scss - Output
-///   $list: a, b, c d e, f, g, h;
-///   $new-list: h, g, f, c d e, b, a
-///   $new-list: h, g, f, e d c, b, a
-///
-
-@function reverse($list, $recursive: false) {
-   $result: ();
-
-   @for $i from length($list)*-1 through -1 {
-      @if type-of(nth($list, abs($i))) == list and $recursive {
-        $result: append($result, reverse(nth($list, abs($i)), $recursive));
-      }
-
-      @else {
-        $result: append($result, nth($list, abs($i)));
-      }
-   }
-
-   @return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Shift                                                                 #shift
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Shift the index of a list
-///
-/// @author Ana Tudor
-///
-/// @group helpers-lists
-///
-/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#miscellaneous
-///
-/// @example scss - Usage
-///   $list: a, b, c, d, e, f;
-///   $new-list: loop($list, 1);
-///   $new-list: loop($list, -3);
-///
-/// @example scss - Output
-///   $new-list: f, a, b, c, d, e
-///   $new-list: d, e, f, a, b, c
-///
-
-@function loop($list, $value: 1) {
-  $result: ();
-
-  @for $i from 0 to length($list) {
-    $result: append($result, nth($list, ($i - $value) % length($list) + 1));
-  }
-
-  @return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Slice                                                                 #slice
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Slice a list
-///
-/// @author Hugo Giraudel
-///
-/// @group helpers-lists
-///
-/// @link http://hugogiraudel.com/2013/08/08/advanced-sass-list-functions/#miscellaneous
-///
-/// @example scss - Usage
-///   $list: a, b, c, d, e, f;
-///   $new-list: slice($list, 3, 5);
-///   $new-list: slice($list, 4, 4);
-///   $new-list: slice($list, 5, 3);
-///   $new-list: slice($list, -1, 10);
-///
-/// @example scss - Output
-///   $new-list: c, d, e
-///   $new-list: d
-///   $new-list: error
-///   $new-list: error
-///
-
-@function slice($list, $start: 1, $end: length($list)) {
-  $result: null;
-
-  @if type-of($start) != number or type-of($end) != number {
-    @if $warnings {
-      @warn "Either $start or $end are not a number for `slice`.";
-    }
-  }
-
-  @else if $start > $end {
-    @if $warnings {
-      @warn "The start index has to be lesser than or equals to the end index for `slice`.";
-    }
-  }
-
-  @else if $start < 1 or $end < 1 {
-    @if $warnings {
-      @warn "List indexes must be non-zero integers for `slice`.";
-    }
-  }
-
-  @else if $start > length($list) {
-    @if $warnings {
-      @warn "List index is #{$start} but list is only #{length($list)} item long for `slice`.";
-    }
-  }
-
-  @else if $end > length($list) {
-    @if $warnings {
-      @warn "List index is #{$end} but list is only #{length($list)} item long for `slice`.";
-    }
-  }
-
-  @else {
-    $result: ();
-
-    @for $i from $start through $end {
-      $result: append($result, nth($list, $i));
-    }
-  }
-
-  @return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Sort                                                                   #sort
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Sort list in a particular order.
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/sorting-function/
-///
-
-///
-/// @group helpers-lists
-///
-/// @param {list} $list - list to sort
-///
-/// @param {list} $order - Order to use for sorting - Default is $default-order;
-///
-/// @require {function} string-compare
-/// @require {variable} default-order
-///
-/// @return {list}
-
-@function sort($list, $order: "!" "#" "$" "%" "&" "'" "(" ")" "*" "+" "," "-" "." "/" "[" "]" "^" "_" "{" "|" "}" "~" "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z") {
-  $less:  ();
-  $equal: ();
-  $large: ();
-
-  @if length($list) > 1 {
-    $seed: nth($list, ceil(length($list) / 2));
-
-    @each $item in $list {
-      @if $item == $seed {
-        $equal: append($equal, $item, list-separator($list));
-      } @else if string-compare($item, $seed, $order) {
-        $less: append($less, $item, list-separator($list));
-      } @else if not string-compare($item, $seed, $order) {
-        $large: append($large, $item, list-separator($list));
-      }
-    }
-
-    @return join(join(sort($less, $order), $equal), sort($large, $order));
-  }
-
-  @return $list;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Add Unit                                                           #add-unit
-////////////////////////////////////////////////////////////////////////////////
-
-/// Adds a default unit to a number if one is not used.
-/// @author Mark Notton
-/// @group helpers-numbers
-/// @param {number} $value
-/// @param {string} $unit - If a value is unitless add the default unit.
-/// @param {bool} $force - If the value already has a unit, and a different unit was specifically
-///   supplied, this boolean desides wether to forcibly replace the unit.
-/// @param {bool} $convert - Is a var(...) was passed, add units to all numbers.
-///   setting this to false will instead pass back the first number in the var(...)
-///   and return that single number with the unit.
-/// @require {variable} default-unit
-/// @require {variable} $relative-lengths
-/// @require {variable} $abolute-lengths
-/// @require {function} is-unit
-/// @require {function} is-number
-/// @require {function} strip
-///
-/// @example scss - Usage
-///   add-unit(50)
-///   add-unit(50px)
-///   add-unit(50, %)
-///   add-unit(50px, %)
-///
-/// @output scss - Output
-///   50px
-///   50px
-///   50%
-///   50%
-
-@function add-unit($value, $args...) {
-
-  $defaults : (
-    unit  : $default-unit,
-    force : false,
-		convert : true
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $unit    : map-get($settings, unit);
-  $force   : map-get($settings, force);
-  $convert : map-get($settings, convert);
-
-	// Manage var(...) values ----------------------------------------------------
-
-  @if is-var($value) {
-
-		$variables : get-var-value($value, false);
-
-		@if $convert == false {
-
-			// If the variables is a list, run through them all and use the first number
-			// as the value that needs to have a unit added. Return only that value;
-
-			$var-value : null;
-
-			@if ( is-list($variables)) {
-				@each $variable in $variables {
-					@if is-null($var-value) and is-number($variable) {
-						$var-value : to-number($variable);
-					}
-				}
-				@if not is-null($var-value) {
-					$value : $var-value;
-				}
-			} @else {
-				$value : $variables;
-			}
-
-		} @else {
-
-			$var-values : ();
-
-			@if ( is-list($variables)) {
-				@each $variable in $variables {
-					@debug $variable;
-					@if is-number($variable) {
-						$var-values : append($var-values, add-unit(to-number($variable)), comma);
-					} @else {
-						$var-values : append($var-values, $variable, comma);
-					}
-				}
-				@return unquote('var(--' + to-string($var-values) + ')');
-			} @else {
-				$value : $variables;
-			}
-
-		}
-  }
-
-  @if is-number($value) {
-    @if unitless($value) {
-      @return to-number($value + if($unit == null, $default-unit, $unit));
-    }
-    @elseif is-unit($value) {
-      @if $force and $unit != null {
-        @return to-number(remove-unit($value) + $unit);
-      } @else {
-        @return to-number($value);
-      }
-    }
-  } @else {
-    @return $value;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Find Digits                                                     #find-digits
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Finding the digits part of a stringified number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-numbers
-///
-/// @param {string} $source - string source
-///
-/// @param {number} $pointer - current pointer
-///
-/// @return {list} - new pointer, parsed number
-
-@function find-digits($source, $pointer) {
-  $source: to-lower-case($source);
-  $length: str-length($source);
-  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
-  $result: 0;
-  $runs: 1;
-
-  @while $pointer <= $length {
-    $token: str-slice($source, $pointer, $pointer);
-    $index: index($numbers, $token);
-
-    @if $token == "." {
-      // @continue;
-    }
-    @else if $index and $index > 0 {
-      $runs: $runs * 10;
-      $result: $result * 10 + ($index - 1);
-    }
-    @else {
-      @return $pointer, $result / $runs;
-    }
-
-    $pointer: $pointer + 1;
-  }
-
-  @return $pointer, $result / $runs;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Find Interger                                                  #find-integer
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Finding the digits part of a stringified number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-numbers
-///
-/// @param {string} $source  - string source
-///
-/// @param {number} $pointer - current pointer
-///
-/// @return {list} new pointer, parsed number
-
-@function find-integer($source, $pointer) {
-  $source: to-lower-case($source);
-  $length: str-length($source);
-  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
-  $result: 0;
-
-  @while $pointer <= $length {
-    $token: str-slice($source, $pointer, $pointer);
-    $index: index($numbers, $token);
-
-    @if $token == "-" {
-      // @continue;
-    }
-    @else if $index {
-      $result: $result * 10 + ($index - 1);
-    }
-    @else {
-      @return $pointer, $result;
-    }
-
-    $pointer: $pointer + 1;
-  }
-
-  @return $pointer, $result;
-}
-
-/// Strips any units from a number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/remove-unit-function/
-///
-/// @param {string} $number
-///
-/// @return {number}
-///
-/// @require {function} is-number
-/// @require {function} to-number
-///
-/// @example scss - Usage
-///   remove-unit(50px)
-///
-/// @example scss - Output
-///   50
-///
-
-@function remove-unit($number) {
-
-  @if not is-number($number) {
-    $number : to-number($number);
-  }
-
-  @if is-number($number) and not unitless($number) {
-    @return ($number / ($number * 0 + 1));
-  }
-
-  @return $number;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Added Extension                                               #add-extension
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -3348,13 +3483,13 @@ $quare-3 :              "\25A2"; // ▢
 /// @param {string} $string - The string or array being searched and replaced on
 /// @return {List}
 
-@function string-explode($string, $delimiter: "") {
+@function string-explode($string, $delimiter: "", $seperator : space) {
   $result: ();
   $length: str-length($string);
 
   @if str-length($delimiter) == 0 {
     @for $i from 1 through $length {
-      $result: append($result, str-slice($string, $i, $i));
+      $result: append($result, str-slice($string, $i, $i), $seperator);
     }
 
     @return $result;
@@ -3368,14 +3503,22 @@ $quare-3 :              "\25A2"; // ▢
 
     @if $index {
       $slice: str-slice($remaining, 1, $index - 1);
-      $result: append($result, $slice);
+      $result: append($result, $slice, $seperator);
       $remaining: str-slice($remaining, $index + str-length($delimiter));
     } @else {
       $running: false;
     }
   }
 
-  @return append($result, $remaining);
+  @return append($result, $remaining, $seperator);
+}
+
+@function string-remove-whitespace($str) {
+  @while (str-index($str, ' ') != null) {
+    $index: str-index($str, ' ');
+    $str: #{str-slice($str, 0, $index - 1)}#{str-slice($str, $index + 1)};
+  }
+  @return $str;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -3578,342 +3721,76 @@ $quare-3 :              "\25A2"; // ▢
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Map Deep Get                                                   #map-deep-get
+/// Add Unit                                                           #add-unit
 ////////////////////////////////////////////////////////////////////////////////
-///
-/// Fetch nested keys in a map
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
 
-///
-/// @group helpers-maps
-///
-/// @param (map) $map - Usually a variable name
-///
-/// @param (arglist) $keys - With comma delimination write the path to the disired map element
-///
-/// @return {*}
+/// Adds a default unit to a number if one is not used.
+/// @author Mark Notton
+/// @group helpers-numbers
+/// @param {number} $value
+/// @param {string} $unit - If a value is unitless add the default unit.
+/// @param {bool} $force - If the value already has a unit, and a different unit was specifically
+///   supplied, this boolean desides wether to forcibly replace the unit.
+/// @require {variable} default-unit
+/// @require {variable} $relative-lengths
+/// @require {variable} $abolute-lengths
+/// @require {function} is-unit
+/// @require {function} is-number
+/// @require {function} strip
 ///
 /// @example scss - Usage
-/// $foo: (
-///   bar: (
-///     lorem : (
-///       test1: #dcfac0,
-///       test2: #00968b,
-///     ),
-///     ipsom: (
-///       test1: #f4fac7,
-///       test2: #c2454e,
-///     )
-///   )
-/// );
-/// color: map-fetch($foo, bar, lorem, test1);
+///   add-unit(50)
+///   add-unit(50px)
+///   add-unit(50, %)
+///   add-unit(50px, %)
 ///
-/// @example css - Output
-/// color:#dcfac0;
-///
+/// @output scss - Output
+///   50px
+///   50px
+///   50%
+///   50%
 
-@function map-deep-get($map, $keys...) {
-  @each $key in $keys {
-    $map: map-get($map, $key);
-  }
-  @return $map;
-}
+@function add-unit($value, $args...) {
 
-/// @alias map-deep-get
-///
+  $defaults : (
+    unit  : $default-unit,
+    force : false
+  );
 
-///
-/// @require {function} map-deep-get
-///
-/// @return {*}
+  $settings : get-settings($defaults, $args...);
 
-@function map-fetch($map, $keys...) {
-  @return map-deep-get($map, $keys...);
-}
+  $unit    : map-get($settings, unit);
+  $force   : map-get($settings, force);
 
-////////////////////////////////////////////////////////////////////////////////
-/// Map Deep Merge                                               #map-deep-merge
-////////////////////////////////////////////////////////////////////////////////
+	// Manage var(...) values ----------------------------------------------------
 
-/// @name Map Deep Merge
-/// @author Zsolt Pentz
-/// @see https://medium.com/@pentzzsolt/a-non-destructive-map-merge-function-for-sass-f91637f87b2e
+  @if is-var($value) {
 
-@function map-deep-merge($parent-map, $child-map) {
-	$result: $parent-map;
-	@each $key, $value in $child-map {
-		@if (not map-has-key($result, $key)) or (type-of(map-get($result, $key)) != type-of($value)) or (not (type-of(map-get($result, $key)) == map and type-of($value) == map)) {
-			$result: map-merge($result, ($key: $value));
+		$variables : get-var-value($value, false);
+
+		@if is-number($variables) {
+			@return string-replace(
+				$value,
+				to-string($variables),
+				to-string(add-unit($variables, $unit, $force))
+			);
 		}
-		@else {
-			$result: map-merge($result, ($key: map-deep-merge(map-get($result, $key), $value)));
-		}
-	}
-	@return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Deep Set                                                   #map-deep-set
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Update a key deeply nested
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-
-///
-/// @group helpers-maps
-///
-/// @param {map} $map - Map to update
-///
-/// @param {arglist} $keys - Keys to access to value to update
-///
-/// @param {*} $value - New value (last member of `$keys`)
-///
-/// @return {map} - Updated map
-
-@function map-deep-set($map, $keys.../*, $value */) {
-  $map-list: ($map,);
-  $result: null;
-
-  @if length($keys) == 2 {
-    @return map-merge($map, (nth($keys, 1): nth($keys, -1)));
   }
 
-  @for $i from 1 through length($keys) - 2 {
-    $map-list: append($map-list, map-get(nth($map-list, -1), nth($keys, $i)));
-  }
-
-  @for $i from length($map-list) through 1 {
-    $result: map-merge(nth($map-list, $i), (nth($keys, $i): if($i == length($map-list), nth($keys, -1), $result)));
-  }
-
-  @return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Depth                                                         #map-depth
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Compute the maximum depth of a map
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-
-///
-/// @group helpers-maps
-///
-/// @param {map} $map
-///
-/// @return {number} max depth of `$map`
-
-@function map-depth($map) {
-  $level: 1;
-
-  @each $key, $value in $map {
-    @if type-of($value) == "map" {
-      $level: max(map-depth($value) + 1, $level);
+  @if is-number($value) {
+    @if unitless($value) {
+      @return to-number($value + if($unit == null, $default-unit, $unit));
     }
-  }
-
-  @return $level;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Extend                                                       #map-extend
-////////////////////////////////////////////////////////////////////////////////
-///
-/// jQuery-style extend function
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-
-///
-/// @group helpers-maps
-///
-/// @param {map} $map - first map
-///
-/// @param {arglist} $maps - other maps
-///
-/// @param {bool} $deep - recursive mode
-///
-/// @return {map}
-
-@function map-extend($map, $maps.../*, $deep */) {
-  $last: nth($maps, -1);
-  $deep: $last == true;
-  $max: if($deep, length($maps) - 1, length($maps));
-
-  // Loop through all maps in $maps...
-  @for $i from 1 through $max {
-    // Store current map
-    $current: nth($maps, $i);
-
-    // If not in deep mode, simply merge current map with map
-    @if not $deep {
-      $map: map-merge($map, $current);
-    } @else {
-      // If in deep mode, loop through all tuples in current map
-      @each $key, $value in $current {
-
-        // If value is a nested map and same key from map is a nested map as well
-        @if type-of($value) == "map" and type-of(map-get($map, $key)) == "map" {
-          // Recursive extend
-          $value: map-extend(map-get($map, $key), $value, true);
-        }
-
-        // Merge current tuple with map
-        $map: map-merge($map, ($key: $value));
+    @elseif is-unit($value) {
+      @if $force and $unit != null {
+        @return to-number(remove-unit($value) + $unit);
+      } @else {
+        @return to-number($value);
       }
     }
+  } @else {
+    @return $value;
   }
-
-  @return $map;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Has Keys                                                   #map-has-keys
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Test if map got all `$keys` at first level
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-/// @group helpers-maps
-///
-/// @param {map} $map - Map
-///
-/// @param {arglist} $keys - Keys to test
-///
-/// @return {bool}
-
-@function map-has-keys($map, $keys...) {
-  @each $key in $keys {
-    @if not map-has-key($map, $key) {
-      @return false;
-    }
-  }
-
-  @return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Has Nested Keys                                     #map-has-nested-keys
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Test if map got all `$keys` nested with each others
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-
-///
-/// @group helpers-maps
-///
-/// @param {map} $map - Map
-///
-/// @param {arglist} $keys - Keys to test
-///
-/// @return {bool}
-
-@function map-has-nested-keys($map, $keys...) {
-  @each $key in $keys {
-    @if not map-has-key($map, $key) {
-      @return false;
-    }
-    $map: map-get($map, $key);
-  }
-
-  @return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Set                                                             #map-set
-////////////////////////////////////////////////////////////////////////////////
-///
-/// A quick way of adding a key and value to the end of a map
-///
-/// @author Mark Notton
-///
-/// @group helpers-maps
-///
-/// @return {map}
-
-@function map-set($map, $key, $value) {
-  @return map-merge($map, ($key: $value));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Zip                                                             #map-zip
-////////////////////////////////////////////////////////////////////////////////
-///
-/// An equivalent of `zip` function but for maps.
-/// I wrote my own version of this before realising Hugo had done something similar.
-/// I have kept the name, but used my own.
-///
-/// @author Mark Notton
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-/// @link http://sass-lang.com/documentation/Sass/Script/Functions.html#zip-instance_method
-///
-
-///
-/// @group helpers-maps
-///
-/// @param {list} $list1 - Keys for map
-///
-/// @param {list} $list2 - Values for map
-///
-/// @param {bool} $swappable - Swap variables around so list1 has the most values. Default is true.
-///
-/// @return {map} Freshly created map
-
-@function map-zip($list1, $list2, $swappable:true) {
-
-  $map : ();
-
-  $list1-size : length($list1);
-  $list2-size : length($list2);
-
-  $count : if($list1-size < $list2-size, $list1-size, $list2-size);
-
-
-  @if ($list1-size < $list2-size and $swappable) {
-    $temp : $list1;
-    $list1 : $list2;
-    $list2 : $temp;
-  }
-
-  @if $warnings {
-    @if ($list1-size < $list2-size) {
-      @if $warnings {
-        @warn('The second list had '+($list2-size - $list1-size)+' more value'+ if($list2-size - $list1-size != 1, 's', '') +' than the first list');
-      }
-    } @elseif ($list1-size > $list2-size) {
-      @if $warnings {
-        @warn('The first list had '+($list1-size - $list2-size)+' more value'+ if($list1-size - $list2-size != 1, 's', '') +' than the second list');
-      }
-    }
-  }
-
-  @for $i from 1 through $count {
-    $map : map-set($map, nth($list1, $i), nth($list2, $i));
-  }
-
-  @return $map;
 }
 
 /// Generate gaps from a generic unit so help continuity of paddings, margins,
@@ -4114,9 +3991,9 @@ $quare-3 :              "\25A2"; // ▢
 @function spacer($args...) {
 
   $defaults : (
-    size      : $space,
-    min       : $gap,
-    direction : vh,
+    size      : var(vertical-spacing),
+    min       : (var(gutters) / 2),
+    direction : $default-space-unit,
   );
 
   $settings : get-settings($defaults, $args...);
@@ -4127,6 +4004,133 @@ $quare-3 :              "\25A2"; // ▢
   $min       : add-unit(map-get($settings, min));
 
   @return calc(#{$size} + #{$min});
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Find Digits                                                     #find-digits
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Finding the digits part of a stringified number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-numbers
+///
+/// @param {string} $source - string source
+///
+/// @param {number} $pointer - current pointer
+///
+/// @return {list} - new pointer, parsed number
+
+@function find-digits($source, $pointer) {
+  $source: to-lower-case($source);
+  $length: str-length($source);
+  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  $result: 0;
+  $runs: 1;
+
+  @while $pointer <= $length {
+    $token: str-slice($source, $pointer, $pointer);
+    $index: index($numbers, $token);
+
+    @if $token == "." {
+      // @continue;
+    }
+    @else if $index and $index > 0 {
+      $runs: $runs * 10;
+      $result: $result * 10 + ($index - 1);
+    }
+    @else {
+      @return $pointer, $result / $runs;
+    }
+
+    $pointer: $pointer + 1;
+  }
+
+  @return $pointer, $result / $runs;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Find Interger                                                  #find-integer
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Finding the digits part of a stringified number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-numbers
+///
+/// @param {string} $source  - string source
+///
+/// @param {number} $pointer - current pointer
+///
+/// @return {list} new pointer, parsed number
+
+@function find-integer($source, $pointer) {
+  $source: to-lower-case($source);
+  $length: str-length($source);
+  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  $result: 0;
+
+  @while $pointer <= $length {
+    $token: str-slice($source, $pointer, $pointer);
+    $index: index($numbers, $token);
+
+    @if $token == "-" {
+      // @continue;
+    }
+    @else if $index {
+      $result: $result * 10 + ($index - 1);
+    }
+    @else {
+      @return $pointer, $result;
+    }
+
+    $pointer: $pointer + 1;
+  }
+
+  @return $pointer, $result;
+}
+
+/// Strips any units from a number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/remove-unit-function/
+///
+/// @param {string} $number
+///
+/// @return {number}
+///
+/// @require {function} is-number
+/// @require {function} to-number
+///
+/// @example scss - Usage
+///   remove-unit(50px)
+///
+/// @example scss - Output
+///   50
+///
+
+@function remove-unit($number) {
+
+  @if not is-number($number) {
+    $number : to-number($number);
+  }
+
+  @if is-number($number) and not unitless($number) {
+    @return ($number / ($number * 0 + 1));
+  }
+
+  @return $number;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -4150,6 +4154,9 @@ $quare-3 :              "\25A2"; // ▢
 
 	// Default units
 	$default-unit : px !default !global;
+
+	// Default spacer units
+	$default-space-unit : vh !default !global;
 
 	// Default units for fonts and line-heights
 	$default-font-unit : px !default !global;
@@ -4640,32 +4647,6 @@ $ease-in-out-back  : cubic-bezier(0.680, -0.550, 0.265, 1.550);
   text-indent:0; overflow:visible; white-space:normal; user-select:all;
 }
 
-@mixin jump($amount:10, $animation-name:jump) {
-  @include keyframes(#{$animation-name}) {
-    0%   { top:0 }
-    50%  { top:$amount + px }
-    100% { top:0 }
-  }
-}
-
-@mixin shake($amount:10, $animation-name:shake) {
-  @include keyframes(#{$animation-name}) {
-    0%   { transform:rotate(0) }
-    25%  { transform:rotate(-#{$amount}deg) }
-    75%  { transform:rotate(#{$amount}deg) }
-    100% { transform:rotate(0) }
-  }
-}
-
-@mixin wobble($amount:10, $animation-name:wobble) {
-  @include keyframes(#{$animation-name}) {
-    0%   { left:0 }
-    25%  { left:(-$amount) + px }
-    75%  { left:($amount) + px }
-    100% { left:0 }
-  }
-}
-
 @mixin break-between($min, $max) {
 
 	$min : get-breakpoint($min);
@@ -4753,6 +4734,265 @@ $ease-in-out-back  : cubic-bezier(0.680, -0.550, 0.265, 1.550);
       }
     }
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Grid Layouts                                                   #grid-layouts
+////////////////////////////////////////////////////////////////////////////////
+
+// =============================================================================
+// 2x Blocks
+// =============================================================================
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+$grid-template-2-blocks-1x2: "block1 block2";
+
+// =============================================================================
+// 3x Blocks
+// =============================================================================
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘└───┘└───┘
+$grid-template-3-blocks-1x3: "block1 block2 block3";
+
+// -----------------------------------------------------------------------------
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+// ┍────────────┐
+// │  3         │
+// └────────────┘
+$grid-template-3-blocks-1x2-3x3: "block1 block2" "block3 block3";
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  3  │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x2-1x3: "block1 block2" "block1 block3";
+
+// ┍────────────┐
+// │  1         │
+// └────────────┘
+// ┍─────┐┍─────┐
+// │  2  ││  3  │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x1-2x3: "block1 block1" "block2 block3";
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  3  ││     │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x2-3x2: "block1 block2" "block3 block2";
+
+// =============================================================================
+// 4x Blocks
+// =============================================================================
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+// ┍─────┐┍─────┐
+// │  3  ││  4  │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-3x4: "block1 block2" "block3 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  3  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  4  │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-1x3-1x4: "block1 block2" "block1 block3" "block1 block4";
+
+// ┍─────────────┐
+// │ 1           │
+// └─────────────┘
+// ┍───┐┍───┐┍───┐
+// │ 2 ││ 3 ││ 4 │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x1x1-2x3x4: "block1 block1 block1" "block2 block3 block4";
+
+// ┍─────┐┍─────┐
+// │  1  ││  4  │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  2  ││     │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  3  ││     │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-2x4-3x4: "block1 block2" "block2 block4" "block3 block4";
+
+// 270 Degrees
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘└───┘└───┘
+// ┍─────────────┐
+// │ 4           │
+// └─────────────┘
+$grid-template-4-blocks-1x2x3-4x4x4: "block1 block2 block3" "block4 block4 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   │└───┘│   │
+// │   │┍───┐│   │
+// │   ││ 4 ││   │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-1x3x3: "block1 block2 block3" "block1 block3 block3";
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// | 1  || 2  |
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x1-2x3-4x4: "block1 block1" "block2 block3" "block4 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍──────────┐
+// | 2        |
+// └──────────┘
+// ┍────┐┍────┐
+// | 3  || 4  |
+// └────┘└────┘
+$grid-template-4-blocks-1x1-2x2-3x4: "block1 block1" "block2 block2" "block3 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘│   ││   │
+// ┍───┐│   ││   │
+// │ 4 ││   ││   │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-4x2x3: "block1 block2 block3" "block4 block2 block3";
+
+// ┍────┐┍────┐
+// | 1  || 2  |
+// └────┘└────┘
+// ┍──────────┐
+// | 3        |
+// └──────────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-3x3-4x4: "block1 block2" "block3 block3" "block4 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   ││   │└───┘
+// │   ││   │┍───┐
+// │   ││   ││ 4 │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-1x2x4: "block1 block2 block3" "block1 block2 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// │ 3  ││  2 │
+// └────┘│    │
+// ┍────┐│    │
+// │ 4  ││    │
+// └────┘└────┘
+$grid-template-4-blocks-1x1-3x2-4x2: "block1 block1" "block3 block2" "block4 block2";
+
+// ┍────┐┍────┐┍────┐
+// │ 1  ││ 2  ││ 3  │
+// └────┘└────┘│    │
+// ┍──────────┐│    |
+// │ 4        ││    │
+// └──────────┘└────┘
+$grid-template-4-blocks-1x2x3-4x4x3: "block1 block2 block3" "block4 block4 block3";
+
+// ┍────┐┍────┐
+// │ 1  ││ 2  │
+// │    │└────┘
+// │    │┍────┐
+// │    ││ 3  │
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-1x3-4x4: "block1 block2" "block1 block3" "block4 block4";
+
+// ┍────┐┍──────────┐
+// │ 1  ││ 2        │
+// │    │└──────────┘
+// │    │┍────┐┍────┐
+// │    ││ 3  ││ 4  │
+// └────┘└────┘└────┘
+$grid-template-4-blocks-1x2x2-1x3x4: "block1 block2 block2" "block1 block3 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// │ 2  ││ 3  │
+// │    │└────┘
+// │    │┍────┐
+// │    ││ 4  │
+// └────┘└────┘
+$grid-template-4-blocks-1x1-2x3-2x4: "block1 block1" "block2 block3" "block2 block4";
+
+// ┍──────────┐┍────┐
+// │ 1        ││ 4  │
+// └──────────┘│    │
+// ┍────┐┍────┐│    │
+// │ 2  ││ 3  ││    │
+// └────┘└────┘└────┘
+$grid-template-4-blocks-1x1x4-2x3x4: "block1 block1 block4" "block2 block3 block4";
+
+// ┍────┐┍────┐
+// │ 1  ││ 2  │
+// └────┘│    │
+// ┍────┐│    │
+// │ 3  ││    │
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-3x2-4x4: "block1 block2" "block3 block2" "block4 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   │└───┘└───┘
+// │   |┍────────┐
+// │   ││ 4      |
+// └───┘└────────┘
+$grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block4";
+
+// =============================================================================
+// 5x Blocks
+// =============================================================================
+
+// If you want to split a column up using the repeat function, you may want to devide the min and max values by the amount of columns;
+@function grid-repeat($amount, $min:$small, $max:$max) {
+  @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
 }
 
 // Documentation: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
@@ -5187,431 +5427,30 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
   justify-content : initial $important;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Grid Layouts                                                   #grid-layouts
-////////////////////////////////////////////////////////////////////////////////
-
-// =============================================================================
-// 2x Blocks
-// =============================================================================
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-$grid-template-2-blocks-1x2: "block1 block2";
-
-// =============================================================================
-// 3x Blocks
-// =============================================================================
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘└───┘└───┘
-$grid-template-3-blocks-1x3: "block1 block2 block3";
-
-// -----------------------------------------------------------------------------
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-// ┍────────────┐
-// │  3         │
-// └────────────┘
-$grid-template-3-blocks-1x2-3x3: "block1 block2" "block3 block3";
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  3  │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x2-1x3: "block1 block2" "block1 block3";
-
-// ┍────────────┐
-// │  1         │
-// └────────────┘
-// ┍─────┐┍─────┐
-// │  2  ││  3  │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x1-2x3: "block1 block1" "block2 block3";
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  3  ││     │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x2-3x2: "block1 block2" "block3 block2";
-
-// =============================================================================
-// 4x Blocks
-// =============================================================================
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-// ┍─────┐┍─────┐
-// │  3  ││  4  │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-3x4: "block1 block2" "block3 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  3  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  4  │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-1x3-1x4: "block1 block2" "block1 block3" "block1 block4";
-
-// ┍─────────────┐
-// │ 1           │
-// └─────────────┘
-// ┍───┐┍───┐┍───┐
-// │ 2 ││ 3 ││ 4 │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x1x1-2x3x4: "block1 block1 block1" "block2 block3 block4";
-
-// ┍─────┐┍─────┐
-// │  1  ││  4  │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  2  ││     │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  3  ││     │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-2x4-3x4: "block1 block2" "block2 block4" "block3 block4";
-
-// 270 Degrees
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘└───┘└───┘
-// ┍─────────────┐
-// │ 4           │
-// └─────────────┘
-$grid-template-4-blocks-1x2x3-4x4x4: "block1 block2 block3" "block4 block4 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   │└───┘│   │
-// │   │┍───┐│   │
-// │   ││ 4 ││   │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-1x3x3: "block1 block2 block3" "block1 block3 block3";
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// | 1  || 2  |
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x1-2x3-4x4: "block1 block1" "block2 block3" "block4 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍──────────┐
-// | 2        |
-// └──────────┘
-// ┍────┐┍────┐
-// | 3  || 4  |
-// └────┘└────┘
-$grid-template-4-blocks-1x1-2x2-3x4: "block1 block1" "block2 block2" "block3 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘│   ││   │
-// ┍───┐│   ││   │
-// │ 4 ││   ││   │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-4x2x3: "block1 block2 block3" "block4 block2 block3";
-
-// ┍────┐┍────┐
-// | 1  || 2  |
-// └────┘└────┘
-// ┍──────────┐
-// | 3        |
-// └──────────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-3x3-4x4: "block1 block2" "block3 block3" "block4 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   ││   │└───┘
-// │   ││   │┍───┐
-// │   ││   ││ 4 │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-1x2x4: "block1 block2 block3" "block1 block2 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// │ 3  ││  2 │
-// └────┘│    │
-// ┍────┐│    │
-// │ 4  ││    │
-// └────┘└────┘
-$grid-template-4-blocks-1x1-3x2-4x2: "block1 block1" "block3 block2" "block4 block2";
-
-// ┍────┐┍────┐┍────┐
-// │ 1  ││ 2  ││ 3  │
-// └────┘└────┘│    │
-// ┍──────────┐│    |
-// │ 4        ││    │
-// └──────────┘└────┘
-$grid-template-4-blocks-1x2x3-4x4x3: "block1 block2 block3" "block4 block4 block3";
-
-// ┍────┐┍────┐
-// │ 1  ││ 2  │
-// │    │└────┘
-// │    │┍────┐
-// │    ││ 3  │
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-1x3-4x4: "block1 block2" "block1 block3" "block4 block4";
-
-// ┍────┐┍──────────┐
-// │ 1  ││ 2        │
-// │    │└──────────┘
-// │    │┍────┐┍────┐
-// │    ││ 3  ││ 4  │
-// └────┘└────┘└────┘
-$grid-template-4-blocks-1x2x2-1x3x4: "block1 block2 block2" "block1 block3 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// │ 2  ││ 3  │
-// │    │└────┘
-// │    │┍────┐
-// │    ││ 4  │
-// └────┘└────┘
-$grid-template-4-blocks-1x1-2x3-2x4: "block1 block1" "block2 block3" "block2 block4";
-
-// ┍──────────┐┍────┐
-// │ 1        ││ 4  │
-// └──────────┘│    │
-// ┍────┐┍────┐│    │
-// │ 2  ││ 3  ││    │
-// └────┘└────┘└────┘
-$grid-template-4-blocks-1x1x4-2x3x4: "block1 block1 block4" "block2 block3 block4";
-
-// ┍────┐┍────┐
-// │ 1  ││ 2  │
-// └────┘│    │
-// ┍────┐│    │
-// │ 3  ││    │
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-3x2-4x4: "block1 block2" "block3 block2" "block4 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   │└───┘└───┘
-// │   |┍────────┐
-// │   ││ 4      |
-// └───┘└────────┘
-$grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block4";
-
-// =============================================================================
-// 5x Blocks
-// =============================================================================
-
-// If you want to split a column up using the repeat function, you may want to devide the min and max values by the amount of columns;
-@function grid-repeat($amount, $min:$small, $max:$max) {
-  @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
-}
-
-@mixin blur($value:5px, $important:false) {
-  @include filter(blur $value $important);
-}
-
-@mixin brightness($value:0.4, $important:false) {
-  @include filter(brightness $value $important);
-}
-
-@mixin contrast($value:200%, $important:false) {
-  @include filter(contrast $value $important);
-}
-
-@mixin drop-shadow($value:16px 16px 20px blue, $important:false) {
-  @include filter(drop-shadow $value $important);
-}
-
-/// Filter mixin that allows various syntax's
-///
-/// @author Mark Notton
-///
-
-///
-/// @param {Map} $settings - Each argument should consist of a filter type and it's value
-///
-/// @require {variable} transform-types
-/// @require {variable} transform-values
-/// @require {function} arglist-to-list
-/// @require {function} contains
-/// @require {function} is-function
-/// @require {function} is-string
-///
-/// @example scss - Usage
-///   Doggy Style Syntax
-///   @include filter(blur 5, sepia 100);
-///   Bourbon Syntax
-///   @include filter(blur(5), sepia(100));
-///   Generic Syntax
-///   @include filter(blur(5) sepia(100));
-///
-/// @example css - CSS Output
-///   -webkit-filter: blur(5px) sepia(100%);
-///   -moz-filter: blur(5px) sepia(100%);
-///   filter: blur(5px) sepia(100%);
-///
-
-@mixin filter($settings...) {
-
-  $filters : ();
-  $fallback-settings : ();
-  $important : false;
-
-  @if not contains($filter-values, $settings, true) and length($settings) >= 1 {
-
-    // This is an over-engineered section of code to to allow for all types of syntaxes.
-    // Essestially making it work with Bourbon and other frameworks.
-    @if length($settings) == 1  {
-      @for $i from 1 through length($settings) {
-        @each $setting in nth($settings, $i) {
-          @if is-function($setting) {
-            $fallback-settings : append($fallback-settings, $setting, comma);
-          }
-        }
-      }
-    }
-    $settings-lists : if(length($fallback-settings) > 1, $fallback-settings,  arglist-to-list($settings));
-
-
-    @each $settings in $settings-lists {
-
-      @if is-function($settings) {
-        $settings : is-function($settings);
-      }
-
-      $filter : null;
-      $value : ();
-
-      // Check for transforms
-      @each $setting in $settings {
-        @if is-string($setting) and contains($filter-types, $setting) {
-          @if $setting == hue {
-            $filter : hue-rotate;
-          } @elseif $setting == shadow {
-            $filter : drop-shadow;
-          } @elseif $setting == greyscale {
-            $filter : grayscale;
-          } @else {
-            $filter : $setting;
-          }
-        } @elseif is-bool($setting){
-          $important : $setting;
-        }
-      }
-
-      // Check and validate all transform types
-      @each $setting in $settings {
-        @if not is-string($setting) and not is-bool($setting) {
-          @if contains($filter, (blur)) {
-            // Values that require a unit
-            $value : append($value, add-unit($setting));
-          } @elseif contains($filter, (hue-rotate)) {
-            // Values that require an angle
-            $value : append($value, add-unit($setting, deg));
-          } @elseif contains($filter, (invert opacity saturate sepia contrast grayscale)) {
-            // Values that require an percent
-            $value : append($value, add-unit($setting, %));
-          } @elseif $filter == drop-shadow {
-            // Specific for drop-shdaow
-            @each $val in $setting {
-              @if is-number($val) {
-                $value : append($value, add-unit($val));
-              } @elseif is-colour($val) {
-                $value : append($value, $val);
-              }
-            }
-
-          } @else {
-            // All other values
-            $value : append($value, $setting);
-          }
-        } @elseif contains($filter-values, $setting) {
-          // Values that are strings and are global values
-           $value : append($value, $setting);
-        }
-      }
-
-      // Append transform and value to the transforms list
-      @if $filter != null {
-        $filters : append($filters, $filter+"("+$value+")");
-      }
-
-    }
-  } @else {
-   $filters : nth($settings, 1);
+@mixin jump($amount:10, $animation-name:jump) {
+  @include keyframes(#{$animation-name}) {
+    0%   { top:0 }
+    50%  { top:$amount + px }
+    100% { top:0 }
   }
-  // @debug $filters;
-  // @debug $important;
-  filter : $filters $important;
-
 }
 
-@mixin greyscale($value:50%, $important:false) {
-  @include filter(grayscale $value $important);
+@mixin shake($amount:10, $animation-name:shake) {
+  @include keyframes(#{$animation-name}) {
+    0%   { transform:rotate(0) }
+    25%  { transform:rotate(-#{$amount}deg) }
+    75%  { transform:rotate(#{$amount}deg) }
+    100% { transform:rotate(0) }
+  }
 }
 
-@mixin hue($value:90deg, $important:false) {
-  @include filter(hue-rotate $value $important);
-}
-
-@mixin invert($value:75%, $important:false) {
-  @include filter(invert $value $important);
-}
-
-@mixin opacity($value:25%, $important:false) {
-  @include filter(opacity $value $important);
-}
-
-@mixin saturate($value:30%, $important:false) {
-  @include filter(saturate $value $important);
-}
-
-@mixin sepia($value:60%, $important:false) {
-  @include filter(sepia $value $important);
-}
-
-@mixin url($value:null, $important:false) {
-  @include filter(url $value $important);
+@mixin wobble($amount:10, $animation-name:wobble) {
+  @include keyframes(#{$animation-name}) {
+    0%   { left:0 }
+    25%  { left:(-$amount) + px }
+    75%  { left:($amount) + px }
+    100% { left:0 }
+  }
 }
 
 @mixin gradient-bottom($args...) {
@@ -6021,6 +5860,330 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
   @include transform(translateZ $value);
 }
 
+@mixin blur($value:5px, $important:false) {
+  @include filter(blur $value $important);
+}
+
+@mixin brightness($value:0.4, $important:false) {
+  @include filter(brightness $value $important);
+}
+
+@mixin contrast($value:200%, $important:false) {
+  @include filter(contrast $value $important);
+}
+
+@mixin drop-shadow($value:16px 16px 20px blue, $important:false) {
+  @include filter(drop-shadow $value $important);
+}
+
+/// Filter mixin that allows various syntax's
+///
+/// @author Mark Notton
+///
+
+///
+/// @param {Map} $settings - Each argument should consist of a filter type and it's value
+///
+/// @require {variable} transform-types
+/// @require {variable} transform-values
+/// @require {function} arglist-to-list
+/// @require {function} contains
+/// @require {function} is-function
+/// @require {function} is-string
+///
+/// @example scss - Usage
+///   Doggy Style Syntax
+///   @include filter(blur 5, sepia 100);
+///   Bourbon Syntax
+///   @include filter(blur(5), sepia(100));
+///   Generic Syntax
+///   @include filter(blur(5) sepia(100));
+///
+/// @example css - CSS Output
+///   -webkit-filter: blur(5px) sepia(100%);
+///   -moz-filter: blur(5px) sepia(100%);
+///   filter: blur(5px) sepia(100%);
+///
+
+@mixin filter($settings...) {
+
+  $filters : ();
+  $fallback-settings : ();
+  $important : false;
+
+  @if not contains($filter-values, $settings, true) and length($settings) >= 1 {
+
+    // This is an over-engineered section of code to to allow for all types of syntaxes.
+    // Essestially making it work with Bourbon and other frameworks.
+    @if length($settings) == 1  {
+      @for $i from 1 through length($settings) {
+        @each $setting in nth($settings, $i) {
+          @if is-function($setting) {
+            $fallback-settings : append($fallback-settings, $setting, comma);
+          }
+        }
+      }
+    }
+    $settings-lists : if(length($fallback-settings) > 1, $fallback-settings,  arglist-to-list($settings));
+
+
+    @each $settings in $settings-lists {
+
+      @if is-function($settings) {
+        $settings : is-function($settings);
+      }
+
+      $filter : null;
+      $value : ();
+
+      // Check for transforms
+      @each $setting in $settings {
+        @if is-string($setting) and contains($filter-types, $setting) {
+          @if $setting == hue {
+            $filter : hue-rotate;
+          } @elseif $setting == shadow {
+            $filter : drop-shadow;
+          } @elseif $setting == greyscale {
+            $filter : grayscale;
+          } @else {
+            $filter : $setting;
+          }
+        } @elseif is-bool($setting){
+          $important : $setting;
+        }
+      }
+
+      // Check and validate all transform types
+      @each $setting in $settings {
+        @if not is-string($setting) and not is-bool($setting) {
+          @if contains($filter, (blur)) {
+            // Values that require a unit
+            $value : append($value, add-unit($setting));
+          } @elseif contains($filter, (hue-rotate)) {
+            // Values that require an angle
+            $value : append($value, add-unit($setting, deg));
+          } @elseif contains($filter, (invert opacity saturate sepia contrast grayscale)) {
+            // Values that require an percent
+            $value : append($value, add-unit($setting, %));
+          } @elseif $filter == drop-shadow {
+            // Specific for drop-shdaow
+            @each $val in $setting {
+              @if is-number($val) {
+                $value : append($value, add-unit($val));
+              } @elseif is-colour($val) {
+                $value : append($value, $val);
+              }
+            }
+
+          } @else {
+            // All other values
+            $value : append($value, $setting);
+          }
+        } @elseif contains($filter-values, $setting) {
+          // Values that are strings and are global values
+           $value : append($value, $setting);
+        }
+      }
+
+      // Append transform and value to the transforms list
+      @if $filter != null {
+        $filters : append($filters, $filter+"("+$value+")");
+      }
+
+    }
+  } @else {
+   $filters : nth($settings, 1);
+  }
+  // @debug $filters;
+  // @debug $important;
+  filter : $filters $important;
+
+}
+
+@mixin greyscale($value:50%, $important:false) {
+  @include filter(grayscale $value $important);
+}
+
+@mixin hue($value:90deg, $important:false) {
+  @include filter(hue-rotate $value $important);
+}
+
+@mixin invert($value:75%, $important:false) {
+  @include filter(invert $value $important);
+}
+
+@mixin opacity($value:25%, $important:false) {
+  @include filter(opacity $value $important);
+}
+
+@mixin saturate($value:30%, $important:false) {
+  @include filter(saturate $value $important);
+}
+
+@mixin sepia($value:60%, $important:false) {
+  @include filter(sepia $value $important);
+}
+
+@mixin url($value:null, $important:false) {
+  @include filter(url $value $important);
+}
+
+@mixin browsers($args...) {
+
+  // This checks to see if the current selector is html.
+  // This can not be converted into a shorthanded if statement.
+  // $selector : null;
+  // @if not is-selector(html) { $selector : &; }
+
+	$selector : to-string(#{&});
+	$space : ' ';
+
+	@if (str-index($selector, 'html')) {
+		$selector : string-replace(#{$selector}, 'html', '');
+		@if ($selector != 'html') {
+			$space : '';
+		}
+	}
+
+	$not-all : if(is-bool(nth(nth($args, 1),1)), nth(nth($args, 1),1), false);
+
+
+  @each $settings in arglist-to-list($args...) {
+
+    $browsers-list : ();
+    $versions-list : ();
+    $not : $not-all;
+
+    @each $setting in $settings {
+      @if is-string($setting) and contains($browsers, $setting) {
+        $browsers-list : append($browsers-list, $setting);
+      }
+      @elseif is-bool($setting) {
+        $not : $setting;
+      }
+      @elseif is-number($setting) or is-list($setting){
+        @each $version in $setting {
+          $versions-list : append($versions-list, $version);
+        }
+      }
+    }
+
+    @if length($browsers-list) > 1 and length($versions-list) > 0 {
+      @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
+    } @else {
+      @if length($browsers-list) > 0 {
+        @if length($versions-list) > 0 {
+          @each $version in $versions-list {
+            @if not $not {
+              @at-root html[data-browser^="#{$browsers-list}"][data-browser$='#{$version}'] #{$selector} { @content; }
+            } @else {
+              @at-root html:not([data-browser^="#{$browsers-list}"][data-browser$='#{$version}']) #{$selector} { @content; }
+            }
+          }
+        } @else {
+					@if not $not {
+	          @each $browser in $browsers-list {
+
+              @at-root html[data-browser^="#{$browser}"]#{$space}#{$selector} { @content; }
+              // Fallback hacks should the data-browser attribute not be in the html tag
+              @if $browser == edge {
+                @supports (-ms-accelerator:true) {
+                  #{$selector} {
+                    @content;
+                  }
+                }
+              }
+              @elseif $browser == ie {
+								@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+                  @content;
+                }
+              }
+              @elseif $browser == firefox {
+                #{$selector ',  x:-moz-any-link'}{
+                  @content;
+                }
+              }
+              @elseif $browser == chrome {
+                @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
+                  @content;
+                }
+              }
+              @elseif $browser == safari {
+                @supports (overflow:-webkit-marquee) and (justify-content:inherit){
+                  #{$selector} {
+                    @content;
+                  }
+                }
+              }
+            }
+          } @else {
+
+						$nots : '';
+
+						@each $browser in $browsers-list {
+							$nots : $nots + ':not([data-browser^="#{$browser}"])';
+						}
+
+						@at-root html#{$nots}#{$space}#{$selector} { @content; }
+					}
+        }
+      }
+    }
+  }
+}
+
+@mixin is-chrome($version:null) {
+  @include browsers(chrome $version) { @content };
+}
+
+@mixin is-edge($version:null) {
+  @include browsers(edge $version) { @content };
+}
+
+@mixin is-firefox($version:null) {
+  @include browsers(firefox $version) { @content };
+}
+
+@mixin is-ie($version:null) {
+  @include browsers(ie $version) { @content };
+}
+
+@mixin is-opera($version:null) {
+  @include browsers(opera $version) { @content };
+}
+
+@mixin is-safari($version:null) {
+  @include browsers(safari $version) { @content };
+}
+
+@mixin not-browsers($args...) {
+	@include browsers(join(true, $args, comma)) { @content };
+}
+
+@mixin not-chrome($version:null) {
+  @include browsers(chrome $version true) { @content };
+}
+
+@mixin not-edge($version:null) {
+  @include browsers(edge $version true) { @content };
+}
+
+@mixin not-firefox($version:null) {
+  @include browsers(firefox $version true) { @content };
+}
+
+@mixin not-ie($version:null) {
+  @include browsers(ie $version true) { @content };
+}
+
+@mixin not-opera($version:null) {
+  @include browsers(opera $version true) { @content };
+}
+
+@mixin not-safari($version:null) {
+  @include browsers(safari $version true) { @content };
+}
+
 @mixin animation-delay($args...) {
 
 	$values : ();
@@ -6362,162 +6525,6 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
 
 	transition : $values $important;
 
-}
-
-@mixin browsers($args...) {
-
-  // This checks to see if the current selector is html.
-  // This can not be converted into a shorthanded if statement.
-  // $selector : null;
-  // @if not is-selector(html) { $selector : &; }
-
-	$selector : to-string(#{&});
-	$space : ' ';
-
-	@if (str-index($selector, 'html')) {
-		$selector : string-replace(#{$selector}, 'html', '');
-		@if ($selector != 'html') {
-			$space : '';
-		}
-	}
-
-	$not-all : if(is-bool(nth(nth($args, 1),1)), nth(nth($args, 1),1), false);
-
-
-  @each $settings in arglist-to-list($args...) {
-
-    $browsers-list : ();
-    $versions-list : ();
-    $not : $not-all;
-
-    @each $setting in $settings {
-      @if is-string($setting) and contains($browsers, $setting) {
-        $browsers-list : append($browsers-list, $setting);
-      }
-      @elseif is-bool($setting) {
-        $not : $setting;
-      }
-      @elseif is-number($setting) or is-list($setting){
-        @each $version in $setting {
-          $versions-list : append($versions-list, $version);
-        }
-      }
-    }
-
-    @if length($browsers-list) > 1 and length($versions-list) > 0 {
-      @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
-    } @else {
-      @if length($browsers-list) > 0 {
-        @if length($versions-list) > 0 {
-          @each $version in $versions-list {
-            @if not $not {
-              @at-root html[data-browser^="#{$browsers-list}"][data-browser$='#{$version}'] #{$selector} { @content; }
-            } @else {
-              @at-root html:not([data-browser^="#{$browsers-list}"][data-browser$='#{$version}']) #{$selector} { @content; }
-            }
-          }
-        } @else {
-					@if not $not {
-	          @each $browser in $browsers-list {
-
-              @at-root html[data-browser^="#{$browser}"]#{$space}#{$selector} { @content; }
-              // Fallback hacks should the data-browser attribute not be in the html tag
-              @if $browser == edge {
-                @supports (-ms-accelerator:true) {
-                  #{$selector} {
-                    @content;
-                  }
-                }
-              }
-              @elseif $browser == ie {
-								@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-                  @content;
-                }
-              }
-              @elseif $browser == firefox {
-                #{$selector ',  x:-moz-any-link'}{
-                  @content;
-                }
-              }
-              @elseif $browser == chrome {
-                @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
-                  @content;
-                }
-              }
-              @elseif $browser == safari {
-                @supports (overflow:-webkit-marquee) and (justify-content:inherit){
-                  #{$selector} {
-                    @content;
-                  }
-                }
-              }
-            }
-          } @else {
-
-						$nots : '';
-
-						@each $browser in $browsers-list {
-							$nots : $nots + ':not([data-browser^="#{$browser}"])';
-						}
-
-						@at-root html#{$nots}#{$space}#{$selector} { @content; }
-					}
-        }
-      }
-    }
-  }
-}
-
-@mixin is-chrome($version:null) {
-  @include browsers(chrome $version) { @content };
-}
-
-@mixin is-edge($version:null) {
-  @include browsers(edge $version) { @content };
-}
-
-@mixin is-firefox($version:null) {
-  @include browsers(firefox $version) { @content };
-}
-
-@mixin is-ie($version:null) {
-  @include browsers(ie $version) { @content };
-}
-
-@mixin is-opera($version:null) {
-  @include browsers(opera $version) { @content };
-}
-
-@mixin is-safari($version:null) {
-  @include browsers(safari $version) { @content };
-}
-
-@mixin not-browsers($args...) {
-	@include browsers(join(true, $args, comma)) { @content };
-}
-
-@mixin not-chrome($version:null) {
-  @include browsers(chrome $version true) { @content };
-}
-
-@mixin not-edge($version:null) {
-  @include browsers(edge $version true) { @content };
-}
-
-@mixin not-firefox($version:null) {
-  @include browsers(firefox $version true) { @content };
-}
-
-@mixin not-ie($version:null) {
-  @include browsers(ie $version true) { @content };
-}
-
-@mixin not-opera($version:null) {
-  @include browsers(opera $version true) { @content };
-}
-
-@mixin not-safari($version:null) {
-  @include browsers(safari $version true) { @content };
 }
 
 /// Create a pseudo element which will retain a parent elements' aspect ratio responsively. 

@@ -10,9 +10,9 @@
 @function spacer($args...) {
 
   $defaults : (
-    size      : $space,
-    min       : $gap,
-    direction : vh,
+    size      : var(vertical-spacing),
+    min       : (var(gutters) / 2),
+    direction : $default-space-unit,
   );
 
   $settings : get-settings($defaults, $args...);
