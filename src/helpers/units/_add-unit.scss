@@ -35,6 +35,10 @@
     force : false
   );
 
+	@if is-null($value) {
+		@return null;
+	}
+
   $settings : get-settings($defaults, $args...);
 
   $unit    : map-get($settings, unit);
@@ -47,26 +51,67 @@
 		$variables : get-var-value($value, false);
 
 		@if is-number($variables) {
-			@return string-replace(
+			$value : string-replace(
 				$value,
 				to-string($variables),
 				to-string(add-unit($variables, $unit, $force))
 			);
 		}
   }
+  @elseif is-number($value) {
 
-  @if is-number($value) {
-    @if unitless($value) {
-      @return to-number($value + if($unit == null, $default-unit, $unit));
+		$value : to-number($value);
+
+    @if unitless(to-number($value)) {
+      $value : $value + ($unit or $default-unit);
     }
     @elseif is-unit($value) {
       @if $force and $unit != null {
-        @return to-number(remove-unit($value) + $unit);
+        $value : remove-unit($value) + $unit;
       } @else {
-        @return to-number($value);
+        $value : $value;
       }
     }
-  } @else {
-    @return $value;
   }
+
+	@return to-number($value);
+}
+
+@function add-unit2($value, $args...) {
+
+  $defaults : (
+    unit  : $default-unit,
+    force : false
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $unit    : map-get($settings, unit);
+  $force   : map-get($settings, force);
+
+	// Manage var(...) values ----------------------------------------------------
+
+  @if is-var($value) {
+
+		$variables : get-var-value($value);
+
+		@if is-number($variables) {
+			$value : string-replace($value,	to-string($variables),to-string(add-unit($variables, $unit, $force)));
+		}
+  }
+  @elseif is-number($value) {
+
+    @if unitless($value) {
+      $value : $value + ($unit or $default-unit);
+    }
+    @elseif is-unit($value) {
+      @if $force and $unit != null {
+        $value : remove-unit($value) + $unit;
+      } @else {
+        $value : $value;
+      }
+    }
+  }
+
+	@return to-number($value);
 }

@@ -178,3 +178,98 @@ $sc-non-strict-defaults: (
 
   @return $result;
 }
+
+@function to-number2($value) {
+
+	$type: type-of($value);
+
+	// If the value is a number, job done.
+  @if ($type == 'number') { @return $value; }
+
+	// True booleans return 1.
+  @if ($value == true) { @return 1; }
+
+	// False booleans return 0.
+  @if ($value == false) { @return 0; }
+
+	// If the first character is a dot, suffix a 0 to save pain later on.
+	@if (str-slice($value, 1, 1) == ".") {
+		$value : 0 + $value;
+	}
+
+	// Remove white space.
+	$value : string-replace($value, ' ');
+
+	// Determine if the value is a negative number.
+	$minus : str-slice($value, 1, 1) == '-';
+
+	$result : 0;
+	$unit : '';
+	$decimal-position : null;
+	$numbers : '0' '1' '2' '3' '4' '5' '6' '7' '8' '9';
+	$units: ( 'px': 0px, 'cm': 0cm, 'mm': 0mm, '%': 0%, 'ch': 0ch, 'in': 0in,
+	'em': 0em, 'rem': 0rem, 'pt': 0pt, 'pc': 0pc, 'ex': 0ex, 'vw': 0vw, 'vh': 0vh,
+	'vmin': 0vmin, 'vmax': 0vmax, 'deg': 0deg, 'turn': 0turn, 'rad': 0rad,
+	'grad': 0grad, 's': 0s, 'ms': 0ms, 'Hz': 0Hz, 'kHz': 0kHz, 'dppx': 0dppx,
+	'dpcm': 0dpcm, 'dpi': 0dpi );
+
+	// Loop through every character in the value.
+	@for $i from 1 through str_length($value) {
+
+		// Define the character.
+		$character : str-slice($value, $i, $i);
+
+		// Ignore minus symbols.
+		@if $character != '-' {
+
+			// If the character matches a number, add it to the results,
+			// with a little magic to keep the string a number.
+			@if contains($numbers, $character) {
+				$result: $result * 10 + (index($numbers, $character) - 1);
+			}
+			// If there's a dot, log it's position so we can put it back later on.
+			@elseif $character == '.' {
+				$decimal-position: $i - 1;
+			}
+			// Any other characters are assumed to be part of the unit if given.
+			@else {
+				$unit : $unit + $character;
+			}
+
+		}
+	}
+
+	// Put the decimal point back.
+	@if not is-null($decimal-position) {
+		$n : 1;
+		@for $i from 1 through ($decimal-position - if($minus, 2, 1)) {
+      $n : $n * 10;
+    }
+		$result : round($result * $n) / $n;
+	}
+
+	// Adjust the number to a negative to reinstate the minus symbol.
+	@if ($minus) {
+		$result: ($result * -1);
+	}
+
+	// Using the list of units and their keys, apply a unit to the results.
+	@if map-has-key($units, $unit) {
+		$result : map-get($units, $unit) + $result;
+	}
+
+	@debug $decimal-position;
+	@debug $value;
+	@debug $result;
+	@debug type-of($result);
+
+	// Return the value result
+
+	@if type-of($result) == 'number' {
+		@return $result;
+	} @else {
+		@debug 'Unabled to cast the given value into a number: ' + $value;
+		@return $value;
+	}
+
+}

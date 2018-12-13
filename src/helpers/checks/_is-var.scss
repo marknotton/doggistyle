@@ -11,6 +11,6 @@
 
 @function is-var($value) {
 
-  @return string-starts-with(quote($value), 'var(--') or map-has-keys($custom-properties, $value);
+  @return string-starts-with(quote($value), 'var(') or map-has-keys($custom-properties, $value);
 
 }
