@@ -18,11 +18,17 @@
 		@if is-important($value) {
 			$important : !important;
 		}
-		@elseif is-number($value) or is-var(var($value)) {
-			@if is-null($top-left) { $top-left : add-unit(var($value)); }
-			@elseif is-null($top-right) { $top-right : add-unit(var($value)); }
-			@elseif is-null($bottom-right) { $bottom-right : add-unit(var($value)); }
-			@elseif is-null($bottom-left) { $bottom-left : add-unit(var($value)); }
+		@elseif is-number($value) {
+			@if is-null($top-left) { $top-left : add-unit($value); }
+			@elseif is-null($top-right) { $top-right : add-unit($value); }
+			@elseif is-null($bottom-right) { $bottom-right : add-unit($value); }
+			@elseif is-null($bottom-left) { $bottom-left : add-unit($value); }
+		}
+		@elseif is-var($value) {
+			@if is-null($top-left) { $top-left : var($value); }
+			@elseif is-null($top-right) { $top-right : var($value); }
+			@elseif is-null($bottom-right) { $bottom-right : var($value); }
+			@elseif is-null($bottom-left) { $bottom-left : var($value); }
 		}
 		@elseif is-string($value) {
 			@if $value == circle { $all : 50%; }

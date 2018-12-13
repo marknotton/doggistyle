@@ -32,17 +32,15 @@
 
   $defaults : (
     unit  : $default-unit,
-    force : false
+    force : false,
+		convert : true
   );
-
-	@if is-null($value) {
-		@return null;
-	}
 
   $settings : get-settings($defaults, $args...);
 
   $unit    : map-get($settings, unit);
   $force   : map-get($settings, force);
+  $convert : map-get($settings, convert);
 
 	// Manage var(...) values ----------------------------------------------------
 
@@ -50,32 +48,63 @@
 
 		$variables : get-var-value($value, false);
 
-		@if is-number($variables) {
-			$value : string-replace(
-				$value,
-				to-string($variables),
-				to-string(add-unit($variables, $unit, $force))
-			);
+		@if $convert == false {
+
+			// If the variables is a list, run through them all and use the first number
+			// as the value that needs to have a unit added. Return only that value;
+
+			$var-value : null;
+
+			@if ( is-list($variables)) {
+				@each $variable in $variables {
+					@if is-null($var-value) and is-number($variable) {
+						$var-value : to-number($variable);
+					}
+				}
+				@if not is-null($var-value) {
+					$value : $var-value;
+				}
+			} @else {
+				$value : $variables;
+			}
+
+		} @else {
+
+			$var-values : ();
+
+			@if ( is-list($variables)) {
+				@each $variable in $variables {
+					@debug $variable;
+					@if is-number($variable) {
+						$var-values : append($var-values, add-unit(to-number($variable)), comma);
+					} @else {
+						$var-values : append($var-values, $variable, comma);
+					}
+				}
+				@return unquote('var(--' + to-string($var-values) + ')');
+			} @else {
+				$value : $variables;
+			}
+
 		}
   }
-  @elseif is-number($value) {
 
-		$value : to-number($value);
-
-    @if unitless(to-number($value)) {
-      $value : $value + ($unit or $default-unit);
+  @if is-number($value) {
+    @if unitless($value) {
+      @return to-number($value + if($unit == null, $default-unit, $unit));
     }
     @elseif is-unit($value) {
       @if $force and $unit != null {
-        $value : remove-unit($value) + $unit;
+        @return to-number(remove-unit($value) + $unit);
       } @else {
-        $value : $value;
+        @return to-number($value);
       }
     }
+  } @else {
+    @return $value;
   }
-
-	@return to-number($value);
 }
+
 
 @function add-unit2($value, $args...) {
 
