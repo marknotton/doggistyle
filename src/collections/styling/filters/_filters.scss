@@ -31,7 +31,7 @@
 
   $filters : ();
   $fallback-settings : ();
-  $important : false;
+  $important : null;
 
   @if not contains($filter-values, $settings, true) and length($settings) >= 1 {
 

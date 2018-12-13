@@ -2679,133 +2679,6 @@ $quare-3 :              "\25A2"; // ▢
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Find Digits                                                     #find-digits
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Finding the digits part of a stringified number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-numbers
-///
-/// @param {string} $source - string source
-///
-/// @param {number} $pointer - current pointer
-///
-/// @return {list} - new pointer, parsed number
-
-@function find-digits($source, $pointer) {
-  $source: to-lower-case($source);
-  $length: str-length($source);
-  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
-  $result: 0;
-  $runs: 1;
-
-  @while $pointer <= $length {
-    $token: str-slice($source, $pointer, $pointer);
-    $index: index($numbers, $token);
-
-    @if $token == "." {
-      // @continue;
-    }
-    @else if $index and $index > 0 {
-      $runs: $runs * 10;
-      $result: $result * 10 + ($index - 1);
-    }
-    @else {
-      @return $pointer, $result / $runs;
-    }
-
-    $pointer: $pointer + 1;
-  }
-
-  @return $pointer, $result / $runs;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Find Interger                                                  #find-integer
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Finding the digits part of a stringified number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-numbers
-///
-/// @param {string} $source  - string source
-///
-/// @param {number} $pointer - current pointer
-///
-/// @return {list} new pointer, parsed number
-
-@function find-integer($source, $pointer) {
-  $source: to-lower-case($source);
-  $length: str-length($source);
-  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
-  $result: 0;
-
-  @while $pointer <= $length {
-    $token: str-slice($source, $pointer, $pointer);
-    $index: index($numbers, $token);
-
-    @if $token == "-" {
-      // @continue;
-    }
-    @else if $index {
-      $result: $result * 10 + ($index - 1);
-    }
-    @else {
-      @return $pointer, $result;
-    }
-
-    $pointer: $pointer + 1;
-  }
-
-  @return $pointer, $result;
-}
-
-/// Strips any units from a number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/remove-unit-function/
-///
-/// @param {string} $number
-///
-/// @return {number}
-///
-/// @require {function} is-number
-/// @require {function} to-number
-///
-/// @example scss - Usage
-///   remove-unit(50px)
-///
-/// @example scss - Output
-///   50
-///
-
-@function remove-unit($number) {
-
-  @if not is-number($number) {
-    $number : to-number($number);
-  }
-
-  @if is-number($number) and not unitless($number) {
-    @return ($number / ($number * 0 + 1));
-  }
-
-  @return $number;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Add                                                                     #add
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -3618,6 +3491,133 @@ $quare-3 :              "\25A2"; // ▢
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Find Digits                                                     #find-digits
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Finding the digits part of a stringified number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-numbers
+///
+/// @param {string} $source - string source
+///
+/// @param {number} $pointer - current pointer
+///
+/// @return {list} - new pointer, parsed number
+
+@function find-digits($source, $pointer) {
+  $source: to-lower-case($source);
+  $length: str-length($source);
+  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  $result: 0;
+  $runs: 1;
+
+  @while $pointer <= $length {
+    $token: str-slice($source, $pointer, $pointer);
+    $index: index($numbers, $token);
+
+    @if $token == "." {
+      // @continue;
+    }
+    @else if $index and $index > 0 {
+      $runs: $runs * 10;
+      $result: $result * 10 + ($index - 1);
+    }
+    @else {
+      @return $pointer, $result / $runs;
+    }
+
+    $pointer: $pointer + 1;
+  }
+
+  @return $pointer, $result / $runs;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Find Interger                                                  #find-integer
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Finding the digits part of a stringified number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-numbers
+///
+/// @param {string} $source  - string source
+///
+/// @param {number} $pointer - current pointer
+///
+/// @return {list} new pointer, parsed number
+
+@function find-integer($source, $pointer) {
+  $source: to-lower-case($source);
+  $length: str-length($source);
+  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  $result: 0;
+
+  @while $pointer <= $length {
+    $token: str-slice($source, $pointer, $pointer);
+    $index: index($numbers, $token);
+
+    @if $token == "-" {
+      // @continue;
+    }
+    @else if $index {
+      $result: $result * 10 + ($index - 1);
+    }
+    @else {
+      @return $pointer, $result;
+    }
+
+    $pointer: $pointer + 1;
+  }
+
+  @return $pointer, $result;
+}
+
+/// Strips any units from a number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/remove-unit-function/
+///
+/// @param {string} $number
+///
+/// @return {number}
+///
+/// @require {function} is-number
+/// @require {function} to-number
+///
+/// @example scss - Usage
+///   remove-unit(50px)
+///
+/// @example scss - Output
+///   50
+///
+
+@function remove-unit($number) {
+
+  @if not is-number($number) {
+    $number : to-number($number);
+  }
+
+  @if is-number($number) and not unitless($number) {
+    @return ($number / ($number * 0 + 1));
+  }
+
+  @return $number;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// Add Unit                                                           #add-unit
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -3962,19 +3962,33 @@ $quare-3 :              "\25A2"; // ▢
 @function spacer($args...) {
 
   $defaults : (
-    size      : var(vertical-spacing),
-    min       : (var(gutters) / 2),
-    direction : $default-space-unit,
+    size  : var(vertical-spacing),
+    min   : (var(gutters) / 2),
+    unit  : $default-space-unit,
+		minus : false,
   );
 
   $settings : get-settings($defaults, $args...);
 
-  $direction : map-get($settings, direction);
+  $size  : map-get($settings, size);
+  $unit  : map-get($settings, unit);
+  $min   : map-get($settings, min);
+  $minus : map-get($settings, minus);
 
-  $size      : add-unit(map-get($settings, size), $direction);
-  $min       : add-unit(map-get($settings, min));
+	@if not is-var($size) {
+		$size : add-unit($size, $unit);
+	}
 
-  @return calc(#{$size} + #{$min});
+	@if not is-var($min) {
+		$min : add-unit($min, $unit);
+	}
+
+	@if $minus {
+		@return calc((-1 * #{$size}) - #{$min});
+	} @else {
+		@return calc(#{$size} + #{$min});
+	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -5669,7 +5683,7 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
 
   $filters : ();
   $fallback-settings : ();
-  $important : false;
+  $important : null;
 
   @if not contains($filter-values, $settings, true) and length($settings) >= 1 {
 
@@ -5760,7 +5774,7 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
 
 }
 
-@mixin greyscale($value:50%, $important:false) {
+@mixin greyscale($value:50%, $important:null) {
   @include filter(grayscale $value $important);
 }
 
@@ -5786,6 +5800,163 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
 
 @mixin url($value:null, $important:false) {
   @include filter(url $value $important);
+}
+
+@mixin gradient-bottom($args...) {
+  @include gradient(linear, bottom, $args);
+}
+
+@mixin gradient-left($args...) {
+  @include gradient(linear, left, $args);
+}
+
+@mixin gradient-radial($args...) {
+  @include gradient(radial, $args...);
+}
+
+@mixin gradient-right($args...) {
+  @include gradient(linear, right, $args);
+}
+
+@mixin gradient-top($args...) {
+  @include gradient(linear, top, $args);
+}
+
+/// Create gradients
+///
+/// @author Mark Notton
+///
+/// @access private
+///
+/// @param {list} $args - Pass in the following gradient settings.
+///   [type]       - name of the graditent must be the first parameter
+///   [rule]       - Optional. If the gradient type requires it, you can add special rules. Like directions (as a string or number).
+///                  You don't need to type in 'to' for directions. This will be included automatically if necessary.
+///   [settings]   - Add a list of arguments for each colour. This can include a colour and number per argument.
+///
+/// @require {Mixin} contains
+/// @require {Mixin} prefix-values
+/// @require {Mixin} warning
+/// @require {Function} is-string
+/// @require {Function} is-number
+/// @require {Function} add-unit
+/// @require {Function} remove-nth
+/// @require {Function} replace-nth
+/// @require {Function} arglist-to-list
+///
+/// @example scss - Usage
+/// .foo {
+///   @include gradient(radial-repeat, ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+/// }
+///
+/// @example css - CSS output
+/// .foo {
+///   background: -webkit-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -moz-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -o-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -ms-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%); }
+/// }
+///
+
+@mixin gradient($args...) {
+
+  $settings : arglist-to-list($args);
+
+  $type: nth($settings, 1);
+
+  @if contains($type, $gradient-types) {
+
+    // Aliases
+    @if $type == linear-repeat {
+      $type : repeating-linear;
+    } @elseif $type == radial-repeat {
+      $type : repeating-radial;
+    } @elseif contains($type, circle) {
+      $type : radial;
+    }
+
+    $settings : remove-nth($settings, 1);
+
+  } @else {
+
+    $type : linear;
+
+    // @error "The first parameter must be the gradient type: #{$gradient-types}";
+
+  }
+
+  @if length($settings) > 1 {
+
+    @for $i from 1 through length($settings) {
+      $setting : nth($settings, $i);
+      // @debug $setting;
+      // Special first argument checks
+      @if ($i == 1) {
+        $unit : deg;
+
+        // Loop through the initial setting and check any unitless numbers has 'deg' as a default
+
+        @if contains($type, repeating-radial radial) {
+          $unit : %;
+          @if is-number($setting) {
+            @include warning($type + " can not have a number as the first parameter, it should be a colour");
+          }
+          @if contains($setting, at) {
+            $setting : replace-nth($setting, 1, add-unit(nth($setting, 1), px));
+          }
+        }
+
+        @if is-number($setting) {
+          $settings : replace-nth($settings, 1, add-unit($setting, $unit));
+        } @elseif is-list($setting) {
+          @if contains($setting, to) {
+            $setting : remove($setting, to);
+          }
+          @for $l from 1 through length($setting) {
+            $list-setting : nth($setting, $l);
+            @if is-number($list-setting) {
+              $setting : replace-nth($setting, $l, add-unit($list-setting, $unit));
+            }
+          }
+          $settings : replace-nth($settings, 1, $setting);
+        }
+      } @else {
+
+        @if is-list($setting) {
+          @for $l from 1 through length($setting) {
+            $list-setting : nth($setting, $l);
+            @if is-number($list-setting) {
+              $setting : replace-nth($setting, $l, add-unit($list-setting, %));
+            }
+          }
+          $settings : replace-nth($settings, $i, $setting);
+        }
+
+      }
+
+    }
+
+    $new-settings : ();
+    $new-generic-settings : ();
+
+    @each $set in $settings {
+      $new-settings : append($new-settings, $set, comma);
+      // Special checks for the generic syntax that requires "to" for specific direction strings
+      @if contains($set, right bottom left top) {
+        $new-generic-settings : append($new-generic-settings, to $set, comma);
+      } @else {
+        $new-generic-settings : append($new-generic-settings, $set, comma);
+      }
+
+    }
+
+    background:#{$type}-gradient($new-generic-settings);
+
+  } @else {
+    @include warning("You'll need more gradient settings than that");
+  }
+
 }
 
 @mixin matrix($args...) {
@@ -6036,163 +6207,6 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
 
 @mixin translateZ($value) {
   @include transform(translateZ $value);
-}
-
-@mixin gradient-bottom($args...) {
-  @include gradient(linear, bottom, $args);
-}
-
-@mixin gradient-left($args...) {
-  @include gradient(linear, left, $args);
-}
-
-@mixin gradient-radial($args...) {
-  @include gradient(radial, $args...);
-}
-
-@mixin gradient-right($args...) {
-  @include gradient(linear, right, $args);
-}
-
-@mixin gradient-top($args...) {
-  @include gradient(linear, top, $args);
-}
-
-/// Create gradients
-///
-/// @author Mark Notton
-///
-/// @access private
-///
-/// @param {list} $args - Pass in the following gradient settings.
-///   [type]       - name of the graditent must be the first parameter
-///   [rule]       - Optional. If the gradient type requires it, you can add special rules. Like directions (as a string or number).
-///                  You don't need to type in 'to' for directions. This will be included automatically if necessary.
-///   [settings]   - Add a list of arguments for each colour. This can include a colour and number per argument.
-///
-/// @require {Mixin} contains
-/// @require {Mixin} prefix-values
-/// @require {Mixin} warning
-/// @require {Function} is-string
-/// @require {Function} is-number
-/// @require {Function} add-unit
-/// @require {Function} remove-nth
-/// @require {Function} replace-nth
-/// @require {Function} arglist-to-list
-///
-/// @example scss - Usage
-/// .foo {
-///   @include gradient(radial-repeat, ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-/// }
-///
-/// @example css - CSS output
-/// .foo {
-///   background: -webkit-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: -moz-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: -o-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: -ms-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%); }
-/// }
-///
-
-@mixin gradient($args...) {
-
-  $settings : arglist-to-list($args);
-
-  $type: nth($settings, 1);
-
-  @if contains($type, $gradient-types) {
-
-    // Aliases
-    @if $type == linear-repeat {
-      $type : repeating-linear;
-    } @elseif $type == radial-repeat {
-      $type : repeating-radial;
-    } @elseif contains($type, circle) {
-      $type : radial;
-    }
-
-    $settings : remove-nth($settings, 1);
-
-  } @else {
-
-    $type : linear;
-
-    // @error "The first parameter must be the gradient type: #{$gradient-types}";
-
-  }
-
-  @if length($settings) > 1 {
-
-    @for $i from 1 through length($settings) {
-      $setting : nth($settings, $i);
-      // @debug $setting;
-      // Special first argument checks
-      @if ($i == 1) {
-        $unit : deg;
-
-        // Loop through the initial setting and check any unitless numbers has 'deg' as a default
-
-        @if contains($type, repeating-radial radial) {
-          $unit : %;
-          @if is-number($setting) {
-            @include warning($type + " can not have a number as the first parameter, it should be a colour");
-          }
-          @if contains($setting, at) {
-            $setting : replace-nth($setting, 1, add-unit(nth($setting, 1), px));
-          }
-        }
-
-        @if is-number($setting) {
-          $settings : replace-nth($settings, 1, add-unit($setting, $unit));
-        } @elseif is-list($setting) {
-          @if contains($setting, to) {
-            $setting : remove($setting, to);
-          }
-          @for $l from 1 through length($setting) {
-            $list-setting : nth($setting, $l);
-            @if is-number($list-setting) {
-              $setting : replace-nth($setting, $l, add-unit($list-setting, $unit));
-            }
-          }
-          $settings : replace-nth($settings, 1, $setting);
-        }
-      } @else {
-
-        @if is-list($setting) {
-          @for $l from 1 through length($setting) {
-            $list-setting : nth($setting, $l);
-            @if is-number($list-setting) {
-              $setting : replace-nth($setting, $l, add-unit($list-setting, %));
-            }
-          }
-          $settings : replace-nth($settings, $i, $setting);
-        }
-
-      }
-
-    }
-
-    $new-settings : ();
-    $new-generic-settings : ();
-
-    @each $set in $settings {
-      $new-settings : append($new-settings, $set, comma);
-      // Special checks for the generic syntax that requires "to" for specific direction strings
-      @if contains($set, right bottom left top) {
-        $new-generic-settings : append($new-generic-settings, to $set, comma);
-      } @else {
-        $new-generic-settings : append($new-generic-settings, $set, comma);
-      }
-
-    }
-
-    background:#{$type}-gradient($new-generic-settings);
-
-  } @else {
-    @include warning("You'll need more gradient settings than that");
-  }
-
 }
 
 @mixin animation-delay($args...) {
@@ -6538,6 +6552,162 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
 
 }
 
+@mixin browsers($args...) {
+
+  // This checks to see if the current selector is html.
+  // This can not be converted into a shorthanded if statement.
+  // $selector : null;
+  // @if not is-selector(html) { $selector : &; }
+
+	$selector : to-string(#{&});
+	$space : ' ';
+
+	@if (str-index($selector, 'html')) {
+		$selector : string-replace(#{$selector}, 'html', '');
+		@if ($selector != 'html') {
+			$space : '';
+		}
+	}
+
+	$not-all : if(is-bool(nth(nth($args, 1),1)), nth(nth($args, 1),1), false);
+
+
+  @each $settings in arglist-to-list($args...) {
+
+    $browsers-list : ();
+    $versions-list : ();
+    $not : $not-all;
+
+    @each $setting in $settings {
+      @if is-string($setting) and contains($browsers, $setting) {
+        $browsers-list : append($browsers-list, $setting);
+      }
+      @elseif is-bool($setting) {
+        $not : $setting;
+      }
+      @elseif is-number($setting) or is-list($setting){
+        @each $version in $setting {
+          $versions-list : append($versions-list, $version);
+        }
+      }
+    }
+
+    @if length($browsers-list) > 1 and length($versions-list) > 0 {
+      @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
+    } @else {
+      @if length($browsers-list) > 0 {
+        @if length($versions-list) > 0 {
+          @each $version in $versions-list {
+            @if not $not {
+              @at-root html[data-browser^="#{$browsers-list}"][data-browser$='#{$version}'] #{$selector} { @content; }
+            } @else {
+              @at-root html:not([data-browser^="#{$browsers-list}"][data-browser$='#{$version}']) #{$selector} { @content; }
+            }
+          }
+        } @else {
+					@if not $not {
+	          @each $browser in $browsers-list {
+
+              @at-root html[data-browser^="#{$browser}"]#{$space}#{$selector} { @content; }
+              // Fallback hacks should the data-browser attribute not be in the html tag
+              @if $browser == edge {
+                @supports (-ms-accelerator:true) {
+                  #{$selector} {
+                    @content;
+                  }
+                }
+              }
+              @elseif $browser == ie {
+								@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+                  @content;
+                }
+              }
+              @elseif $browser == firefox {
+                #{$selector ',  x:-moz-any-link'}{
+                  @content;
+                }
+              }
+              @elseif $browser == chrome {
+                @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
+                  @content;
+                }
+              }
+              @elseif $browser == safari {
+                @supports (overflow:-webkit-marquee) and (justify-content:inherit){
+                  #{$selector} {
+                    @content;
+                  }
+                }
+              }
+            }
+          } @else {
+
+						$nots : '';
+
+						@each $browser in $browsers-list {
+							$nots : $nots + ':not([data-browser^="#{$browser}"])';
+						}
+
+						@at-root html#{$nots}#{$space}#{$selector} { @content; }
+					}
+        }
+      }
+    }
+  }
+}
+
+@mixin is-chrome($version:null) {
+  @include browsers(chrome $version) { @content };
+}
+
+@mixin is-edge($version:null) {
+  @include browsers(edge $version) { @content };
+}
+
+@mixin is-firefox($version:null) {
+  @include browsers(firefox $version) { @content };
+}
+
+@mixin is-ie($version:null) {
+  @include browsers(ie $version) { @content };
+}
+
+@mixin is-opera($version:null) {
+  @include browsers(opera $version) { @content };
+}
+
+@mixin is-safari($version:null) {
+  @include browsers(safari $version) { @content };
+}
+
+@mixin not-browsers($args...) {
+	@include browsers(join(true, $args, comma)) { @content };
+}
+
+@mixin not-chrome($version:null) {
+  @include browsers(chrome $version true) { @content };
+}
+
+@mixin not-edge($version:null) {
+  @include browsers(edge $version true) { @content };
+}
+
+@mixin not-firefox($version:null) {
+  @include browsers(firefox $version true) { @content };
+}
+
+@mixin not-ie($version:null) {
+  @include browsers(ie $version true) { @content };
+}
+
+@mixin not-opera($version:null) {
+  @include browsers(opera $version true) { @content };
+}
+
+@mixin not-safari($version:null) {
+  @include browsers(safari $version true) { @content };
+}
+
 @mixin devices($args...) {
 
   // This checks to see if the current selector is html.
@@ -6817,660 +6987,6 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
       @content;
     }
   }
-}
-
-@mixin page($args...) {
-
-	$defaults : (
-		id    : null,
-		class : null,
-    except : null,
-		root  : 'body',
-	);
-
-	$settings : get-settings($defaults, $args...);
-
-	$id     : map-get( $settings, id );
-	$class  : map-get( $settings, class );
-	$except : map-get( $settings, except );
-	$root   : map-get( $settings, root );
-
-	@if not is-null($id) and string-starts-with($id, '.')  {
-		$class : $id;
-		$id : null;
-	}
-
-	@if not is-null($id) and not string-starts-with($id, '#')  {
-		$id : #{'#' + $id};
-	}
-
-	@if not is-null($class) and not string-starts-with($class, '.')  {
-		$class : #{'.' + $class}
-	}
-
-  @if not is-null($except) and $except == true {
-
-    @at-root #{$root}:not(#{$id}#{$class}) {
-      @content;
-    }
-
-  } @else {
-
-  	@at-root #{$root}#{$id}#{$class} {
-  		@content;
-  	}
-  }
-
-}
-
-@mixin set-custom-properties($args...) {
-
-	$defaults : (
-		properties : if(variable-exists(custom-properties), $custom-properties, ()),
-		root : true,
-		without-media : true,
-	);
-
-	$settings : get-settings($defaults, $args...);
-
-	$properties    : map-get($settings, properties);
-	$root          : map-get($settings, root);
-	$without-media : map-get($settings, without-media);
-
-	// Special checks if css alpha variables are supported and the variable is a colour with alpha
-
-	$temp : $properties;
-
-	@if ($support-css-variable-alpha-colours == true) {
-    @each $variable, $value in $properties {
-      @if is-colour($value) {
-        @if is-hex($value) {
-          $temp : map-set($temp, $variable, (red($value), green($value), blue($value)));
-        } @else {
-          $temp : map-set($temp, $variable, hex-to-rgba($value));
-        }
-      }
-    }
-  }
-
-	@if $root == true {
-		@if $without-media == true {
-			@at-root(without:media) :root {
-		    @each $variable, $value in $properties {
-		      #{'--' + string-replace($variable, '--')}: $value;
-		    }
-			}
-		} @else {
-		  @at-root :root {
-		    @each $variable, $value in $properties {
-		      #{'--' + string-replace($variable, '--')}: $value;
-		    }
-		  }
-		}
-	} @else {
-		@each $variable, $value in $properties {
-			#{'--' + string-replace($variable, '--')}: $value;
-		}
-	}
-
-}
-
-/// Create a triangle/carrat/arrow 
-///
-/// @param {list} $args
-///   In any order and without comma delimination, add any of the follwing arrow settings
-///   Colour { color } - Hex or RGBA
-///   Width { int } - First intiger is used as the width. 'px' units are used by defualt if not specified.
-///   Height { int } - Second intiger is used as the height. 'px' units are used by defualt if not specified. Width is used if second unit is not found.
-///   Direction { string } - top-left, up, top-right, left, right, bottom-left, down, bottom-right.
-///   Center { string } - In addition to the direction, you can add the unquote string 'center' to center the arrow
-///   Sudo { string } - Use an unquote string 'before' or 'after' to distinguish what sudo element to use
-///
-/// @param {bool} $position
-///   Determines wether the arrow should be positioned at all
-///
-/// @require {map} triangle-settings
-/// @require {function} random-color
-/// @require {function} map-fetch
-/// @require {function} is-calc
-///
-///
-/// @example {scss} - Usage
-///   @include triangle-classic(50% 20 purple right);
-///   @include triangle-classic(100 100 green up center after);
-///
-/// @return {sudo}
-
-
-@mixin triangle-classic($args...) {  
-
-  // Deafult Triangle Settings
-  $size      : ();
-  $sudo      : before;
-  $colour    : random-colour();
-  $direction : right;
-  $center    : false;
-  $triangle  : map-fetch($triangle-settings, $direction, points);
-  
-  // Deafult Position Settings
-  $position  : true;
-  $x-pos     : nth(map-fetch($triangle-settings, $direction, x), 1);
-  $x-amount  : nth(map-fetch($triangle-settings, $direction, x), 2);
-  $y-pos     : nth(map-fetch($triangle-settings, $direction, y), 1);
-  $y-amount  : nth(map-fetch($triangle-settings, $direction, y), 2);
-  
-  $args: if(length($args) > 0, $args, null); 
-
-  // Loop through and check all arguments for any special options.
-
-  @for $i from 1 through length($args) {
-    @each $option in nth($args, $i) {
-      // If there is an arugment, with just one value, and it's set to true or false.
-      // Assume this is the position condition. 
-      @if type-of($option) == bool and length(nth($args, $i)) == 1 {
-        $position : $option;
-      }
-    }
-  } 
-
-  // Check Triangle Settings
-  @each $rule in nth($args, 1) {    
-
-    @if type-of($rule) == number or is-calc($rule) and length($size) < 2 {
-      $size : append($size, $rule);
-    }
-    @elseif type-of($rule) == color {
-      $colour : $rule;
-    }
-    @elseif type-of($rule) == string {
-      @if $rule == before or $rule == after {
-        $sudo : unquote($rule);
-      }
-      @elseif $rule == center {
-        $center : true;
-      }
-      @elseif map-has-key($triangle-settings, $rule) {
-        $direction: $rule;
-
-        $x:map-fetch($triangle-settings, $direction, x);
-        $x-pos:nth($x, 1); 
-        $x-amount:nth($x, 2);
-
-        $y:map-fetch($triangle-settings, $direction, y);
-        $y-pos:nth($y, 1); 
-        $y-amount:nth($y, 2);
-      }
-    }
-  }
-
-  // Deafult size set if it remains empty
-  $size : if(length($size) == 0, 50, $size);
-  
-  // Define width and height
-  $width : nth($size, 1);
-  $height : if(length($size) == 1, $width, nth($size, 2));
-  
-  // Define all settings with strings
-  
-  &#{pseudo($sudo)} {
-    content:"";
-    position:absolute;    
-    height:0; 
-    width:0;
-    border-style:solid; 
-    border-color:transparent;
-    border-width:0;
-    pointer-events:none;
-
-    @if $center {
-      top:calc(50% - #{add-unit($height)}/2); left:calc(50% - #{add-unit($width)}/2);
-    } @elseif ($position) {
-      @if $direction == up or $direction == down {
-        #{$y-pos}:calc(#{$y-amount} - #{add-unit($width)}/2);
-        #{$x-pos}:$x-amount;
-      }
-      @elseif $direction == left {
-        #{$y-pos}:$y-amount;
-        #{$x-pos}:calc(#{$x-amount} - #{add-unit($height)}/2);
-      }
-      @elseif $direction == right {
-        #{$y-pos}:calc(#{$y-amount} - #{add-unit($height)}/2);
-        #{$x-pos}:$x-amount;
-      }
-      @else {
-        #{$y-pos}:$y-amount;
-        #{$x-pos}:$x-amount;
-      }
-    }
-
-    // Directions
-    @if $direction == left {
-      border-width:add-unit($height/2) add-unit($width) add-unit($height/2) 0;
-    }
-    @elseif $direction == right {
-      border-width:add-unit($height/2) 0 add-unit($height/2) add-unit($width);
-    }
-    @elseif $direction == up {
-      border-width:0 add-unit($width/2) add-unit($height) add-unit($width/2);
-    }
-    @elseif $direction == down {
-      border-width:add-unit($height) add-unit($width/2) 0 add-unit($width/2);
-    }
-    
-    @if contains(left right up down, $direction) {
-      border-#{opposite-direction($direction)}-color:$colour;
-    }
-    
-    @if $direction == top-left {
-      border-width:add-unit($height) add-unit($width) 0 0;
-      border-top-color:$colour;
-    }
-    @elseif $direction == top-right {
-      border-width:0 add-unit($width) add-unit($height) 0;
-      border-right-color:$colour;
-    }
-    @elseif $direction == bottom-left {
-      border-width:add-unit($height) 0 0 add-unit($width);
-      border-left-color:$colour;
-    }
-    @elseif $direction == bottom-right {
-      border-width:0 0 add-unit($height) add-unit($width);
-      border-bottom-color:$colour;
-    }
-
-     @if $direction == up { $direction : top; }
-     @if $direction == down { $direction : bottom; }
-
-
-    @content;
-  }
-}
-/// Triangle Settings
-///
-/// @author Mark Notton
-///
-/// @type variables
-
-$triangle-settings: (
-  top-left : (
-    points : "0,100 0,0 100,0",
-    y : ( left , 0 ),
-    x : ( top , 0 )
-  ),
-  up : (
-    points : "100,100 0,100 50,0",
-    y : ( left , 50% ),
-    x : ( bottom , 100% )
-  ),
-  top-right : (
-    points : "100,100 0,0 100,0",
-    y : ( right , 0 ),
-    x : ( top , 0 )
-  ),
-  left : (
-    points : "100,100 0,50 100,0",
-    y : ( right , 100% ),
-    x : ( top , 50% )
-  ),
-  right : (
-    points : "0,100 0,0 100,50",
-    y : ( top , 50% ),
-    x : ( left , 100% )
-  ),
-  bottom-left : (
-    points : "100,100 0,100 0,0",
-    y : ( left , 0 ),
-    x : ( bottom , 0 )
-  ),
-  down : (
-    points : "0,0 100,0 50,100",
-    y : ( left , 50% ),
-    x : ( top , 100% )
-  ),
-  bottom-right : (
-    points : "0,100 100,0 100,100",
-    y : ( bottom , 0 ),
-    x : ( right , 0 )
-  ),
-);
-
-
-/// Create a triangle/carrat/arrow
-///
-/// @todo Figure a way to animate the fill colour of the svg background
-/// @todo Get Stroke Alignment to work "inner".
-///
-/// @param {list} $args
-///   In any order and without comma delimination, add any of the follwing arrow settings
-///   Colour { color } - Hex or RGBA
-///   Width { int } - First intiger is used as the width. 'px' units are used by defualt if not specified.
-///   Height { int } - Second intiger is used as the height. 'px' units are used by defualt if not specified. Width is used if second unit is not found.
-///   Direction { string } - top-left, up, top-right, left, right, bottom-left, down, bottom-right.
-///   Center { string } - In addition to the direction, you can add the unquote string 'center' to center the arrow
-///   Sudo { string } - Use an unquote string 'before' or 'after' to distinguish what sudo element to use
-///
-/// @param {bool} $position
-///   Determines wether the arrow should be positioned at all
-///
-/// @require {map} triangle-settings
-/// @require {function} random-color
-/// @require {function} map-fetch
-/// @require {function} is-calc
-///
-///
-/// @example {scss} - Usage
-///   @include arrow(50% 20 purple right);
-///   @include arrow(100 100 green up center after);
-///
-/// @return {sudo}
-
-@mixin triangle($args...) {
-
-  // Deafult Triangle Settings
-  $size      : ();
-  $sudo      : before;
-  $colour    : random-colour();
-  $direction : right;
-  $center    : false;
-  $triangle  : map-fetch($triangle-settings, $direction, points);
-
-  // Deafult Position Settings
-  $position  : true;
-  $x-pos     : nth(map-fetch($triangle-settings, $direction, x), 1);
-  $x-amount  : nth(map-fetch($triangle-settings, $direction, x), 2);
-  $y-pos     : nth(map-fetch($triangle-settings, $direction, y), 1);
-  $y-amount  : nth(map-fetch($triangle-settings, $direction, y), 2);
-
-  // Deafult Stroke Settings
-  $stroke      : false;
-  $s-colour    : random-colour();
-  $s-width     : 5;
-  $s-linecap   : round;
-  $s-linejoin  : round;
-  $s-dasharray : null;
-
-  $args: if(length($args) > 0, $args, null);
-  $value-counter : 0;
-
-  // Loop through and check all arguments for any special options
-  @for $i from 1 through length($args) {
-    @each $option in nth($args, $i) {
-      @if type-of($option) == bool and length(nth($args, $i)) == 1 {
-        $position : $option;
-      } @elseif length($args) > 1 {
-        $stroke : nth($args, $i);
-      }
-    }
-  }
-
-  // Check Triangle Settings
-  @each $rule in nth($args, 1) {
-
-    @if type-of($rule) == number or is-calc($rule) and length($size) < 2 {
-      $size : append($size, $rule);
-    }
-    @elseif type-of($rule) == color {
-      $colour : $rule;
-    }
-    @elseif type-of($rule) == string {
-      @if $rule == before or $rule == after {
-        $sudo : unquote($rule);
-      }
-      @elseif $rule == center {
-        $center : true;
-      }
-      @elseif map-has-key($triangle-settings, $rule) {
-        $direction: $rule;
-        $triangle: map-fetch($triangle-settings, $direction, points);
-
-        $x:map-fetch($triangle-settings, $direction, x);
-        $x-pos:nth($x, 1);
-        $x-amount:nth($x, 2);
-
-        $y:map-fetch($triangle-settings, $direction, y);
-        $y-pos:nth($y, 1);
-        $y-amount:nth($y, 2);
-      }
-    }
-  }
-
-  // Check Stroke Settings
-  @if $stroke {
-    @each $rule in $stroke {
-      @if type-of($rule) == string {
-        @if index((butt round square), $rule) {
-          $s-linecap : $rule;
-        }
-        @if index((miter miter-clip round bevel arcs), $rule) {
-          $s-linejoin : $rule;
-        }
-      }
-      @elseif type-of($rule) == list {
-        @each $dash in $rule {
-          $s-dasharray: append($s-dasharray,  $dash, comma);
-        }
-      }
-      @elseif type-of($rule) == color {
-        $s-colour : $rule;
-      }
-      @elseif type-of($rule) == number {
-        @if $value-counter < 1 {
-          $s-width : $rule;
-          $value-counter : $value-counter + 1;
-        } @elseif $value-counter >= 1 {
-          $s-dasharray : ($rule, $rule);
-        }
-      }
-    }
-  }
-
-  // Deafult size set if it remains empty
-  $size : if(length($size) == 0, 50, $size);
-
-  // Define width and height
-  $width : nth($size, 1);
-  $height : if(length($size) == 1, $width, nth($size, 2));
-
-  // Define all settings with strings
-  $fill : "' fill='" + hash-fix($colour);
-
-  @if $stroke {
-    $s-colour    : "' stroke='" + hash-fix($s-colour);
-    $s-width     : "' stroke-width='" + remove-unit($s-width);
-    $s-alignment : "' stroke-alignment='inner";
-    $s-linecap   : if($s-linecap, "' stroke-linecap='" + $s-linecap, '');
-    $s-linejoin   : if($s-linejoin, "' stroke-linejoin='" + $s-linejoin, '');
-    $s-dasharray : if($s-dasharray, "' stroke-dasharray='" + $s-dasharray, '');
-  }
-
-  &#{pseudo($sudo)} {
-    content:"";
-    @include size($width $height);
-    position:absolute;
-    pointer-events:none;
-    background-image:svg("<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'><polygon points='" + $triangle + $fill + if($stroke, $s-colour + $s-linecap + $s-linejoin + $s-width + $s-alignment + $s-dasharray,'') + "'/></svg>");
-    background-size:100% 100%;
-    background-repeat:no-repeat;
-    @if $center {
-      top:calc(50% - #{add-unit($height)}/2); left:calc(50% - #{add-unit($width)}/2);
-    } @elseif ($position) {
-      @if $direction == up or $direction == down {
-        #{$y-pos}:calc(#{$y-amount} - #{add-unit($width)}/2);
-        #{$x-pos}:$x-amount;
-      }
-      @elseif $direction == left {
-        #{$y-pos}:$y-amount;
-        #{$x-pos}:calc(#{$x-amount} - #{add-unit($height)}/2);
-      }
-      @elseif $direction == right {
-        #{$y-pos}:calc(#{$y-amount} - #{add-unit($height)}/2);
-        #{$x-pos}:$x-amount;
-      }
-      @else {
-        #{$y-pos}:$y-amount;
-        #{$x-pos}:$x-amount;
-      }
-    }
-
-    @content;
-  }
-
-}
-
-@mixin browsers($args...) {
-
-  // This checks to see if the current selector is html.
-  // This can not be converted into a shorthanded if statement.
-  // $selector : null;
-  // @if not is-selector(html) { $selector : &; }
-
-	$selector : to-string(#{&});
-	$space : ' ';
-
-	@if (str-index($selector, 'html')) {
-		$selector : string-replace(#{$selector}, 'html', '');
-		@if ($selector != 'html') {
-			$space : '';
-		}
-	}
-
-	$not-all : if(is-bool(nth(nth($args, 1),1)), nth(nth($args, 1),1), false);
-
-
-  @each $settings in arglist-to-list($args...) {
-
-    $browsers-list : ();
-    $versions-list : ();
-    $not : $not-all;
-
-    @each $setting in $settings {
-      @if is-string($setting) and contains($browsers, $setting) {
-        $browsers-list : append($browsers-list, $setting);
-      }
-      @elseif is-bool($setting) {
-        $not : $setting;
-      }
-      @elseif is-number($setting) or is-list($setting){
-        @each $version in $setting {
-          $versions-list : append($versions-list, $version);
-        }
-      }
-    }
-
-    @if length($browsers-list) > 1 and length($versions-list) > 0 {
-      @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
-    } @else {
-      @if length($browsers-list) > 0 {
-        @if length($versions-list) > 0 {
-          @each $version in $versions-list {
-            @if not $not {
-              @at-root html[data-browser^="#{$browsers-list}"][data-browser$='#{$version}'] #{$selector} { @content; }
-            } @else {
-              @at-root html:not([data-browser^="#{$browsers-list}"][data-browser$='#{$version}']) #{$selector} { @content; }
-            }
-          }
-        } @else {
-					@if not $not {
-	          @each $browser in $browsers-list {
-
-              @at-root html[data-browser^="#{$browser}"]#{$space}#{$selector} { @content; }
-              // Fallback hacks should the data-browser attribute not be in the html tag
-              @if $browser == edge {
-                @supports (-ms-accelerator:true) {
-                  #{$selector} {
-                    @content;
-                  }
-                }
-              }
-              @elseif $browser == ie {
-								@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-                  @content;
-                }
-              }
-              @elseif $browser == firefox {
-                #{$selector ',  x:-moz-any-link'}{
-                  @content;
-                }
-              }
-              @elseif $browser == chrome {
-                @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
-                  @content;
-                }
-              }
-              @elseif $browser == safari {
-                @supports (overflow:-webkit-marquee) and (justify-content:inherit){
-                  #{$selector} {
-                    @content;
-                  }
-                }
-              }
-            }
-          } @else {
-
-						$nots : '';
-
-						@each $browser in $browsers-list {
-							$nots : $nots + ':not([data-browser^="#{$browser}"])';
-						}
-
-						@at-root html#{$nots}#{$space}#{$selector} { @content; }
-					}
-        }
-      }
-    }
-  }
-}
-
-@mixin is-chrome($version:null) {
-  @include browsers(chrome $version) { @content };
-}
-
-@mixin is-edge($version:null) {
-  @include browsers(edge $version) { @content };
-}
-
-@mixin is-firefox($version:null) {
-  @include browsers(firefox $version) { @content };
-}
-
-@mixin is-ie($version:null) {
-  @include browsers(ie $version) { @content };
-}
-
-@mixin is-opera($version:null) {
-  @include browsers(opera $version) { @content };
-}
-
-@mixin is-safari($version:null) {
-  @include browsers(safari $version) { @content };
-}
-
-@mixin not-browsers($args...) {
-	@include browsers(join(true, $args, comma)) { @content };
-}
-
-@mixin not-chrome($version:null) {
-  @include browsers(chrome $version true) { @content };
-}
-
-@mixin not-edge($version:null) {
-  @include browsers(edge $version true) { @content };
-}
-
-@mixin not-firefox($version:null) {
-  @include browsers(firefox $version true) { @content };
-}
-
-@mixin not-ie($version:null) {
-  @include browsers(ie $version true) { @content };
-}
-
-@mixin not-opera($version:null) {
-  @include browsers(opera $version true) { @content };
-}
-
-@mixin not-safari($version:null) {
-  @include browsers(safari $version true) { @content };
 }
 
 @mixin image-size($args...) {
@@ -9093,6 +8609,504 @@ $triangle-settings: (
       @warn($symbol + ' dimensions were not found in your symbols map.');
     }
   }
+}
+
+@mixin page($args...) {
+
+	$defaults : (
+		id    : null,
+		class : null,
+    except : null,
+		root  : 'body',
+	);
+
+	$settings : get-settings($defaults, $args...);
+
+	$id     : map-get( $settings, id );
+	$class  : map-get( $settings, class );
+	$except : map-get( $settings, except );
+	$root   : map-get( $settings, root );
+
+	@if not is-null($id) and string-starts-with($id, '.')  {
+		$class : $id;
+		$id : null;
+	}
+
+	@if not is-null($id) and not string-starts-with($id, '#')  {
+		$id : #{'#' + $id};
+	}
+
+	@if not is-null($class) and not string-starts-with($class, '.')  {
+		$class : #{'.' + $class}
+	}
+
+  @if not is-null($except) and $except == true {
+
+    @at-root #{$root}:not(#{$id}#{$class}) {
+      @content;
+    }
+
+  } @else {
+
+  	@at-root #{$root}#{$id}#{$class} {
+  		@content;
+  	}
+  }
+
+}
+
+@mixin set-custom-properties($args...) {
+
+	$defaults : (
+		properties : if(variable-exists(custom-properties), $custom-properties, ()),
+		root : true,
+		without-media : true,
+	);
+
+	$settings : get-settings($defaults, $args...);
+
+	$properties    : map-get($settings, properties);
+	$root          : map-get($settings, root);
+	$without-media : map-get($settings, without-media);
+
+	// Special checks if css alpha variables are supported and the variable is a colour with alpha
+
+	$temp : $properties;
+
+	@if ($support-css-variable-alpha-colours == true) {
+    @each $variable, $value in $properties {
+      @if is-colour($value) {
+        @if is-hex($value) {
+          $temp : map-set($temp, $variable, (red($value), green($value), blue($value)));
+        } @else {
+          $temp : map-set($temp, $variable, hex-to-rgba($value));
+        }
+      }
+    }
+  }
+
+	@if $root == true {
+		@if $without-media == true {
+			@at-root(without:media) :root {
+		    @each $variable, $value in $properties {
+		      #{'--' + string-replace($variable, '--')}: $value;
+		    }
+			}
+		} @else {
+		  @at-root :root {
+		    @each $variable, $value in $properties {
+		      #{'--' + string-replace($variable, '--')}: $value;
+		    }
+		  }
+		}
+	} @else {
+		@each $variable, $value in $properties {
+			#{'--' + string-replace($variable, '--')}: $value;
+		}
+	}
+
+}
+
+/// Create a triangle/carrat/arrow 
+///
+/// @param {list} $args
+///   In any order and without comma delimination, add any of the follwing arrow settings
+///   Colour { color } - Hex or RGBA
+///   Width { int } - First intiger is used as the width. 'px' units are used by defualt if not specified.
+///   Height { int } - Second intiger is used as the height. 'px' units are used by defualt if not specified. Width is used if second unit is not found.
+///   Direction { string } - top-left, up, top-right, left, right, bottom-left, down, bottom-right.
+///   Center { string } - In addition to the direction, you can add the unquote string 'center' to center the arrow
+///   Sudo { string } - Use an unquote string 'before' or 'after' to distinguish what sudo element to use
+///
+/// @param {bool} $position
+///   Determines wether the arrow should be positioned at all
+///
+/// @require {map} triangle-settings
+/// @require {function} random-color
+/// @require {function} map-fetch
+/// @require {function} is-calc
+///
+///
+/// @example {scss} - Usage
+///   @include triangle-classic(50% 20 purple right);
+///   @include triangle-classic(100 100 green up center after);
+///
+/// @return {sudo}
+
+
+@mixin triangle-classic($args...) {  
+
+  // Deafult Triangle Settings
+  $size      : ();
+  $sudo      : before;
+  $colour    : random-colour();
+  $direction : right;
+  $center    : false;
+  $triangle  : map-fetch($triangle-settings, $direction, points);
+  
+  // Deafult Position Settings
+  $position  : true;
+  $x-pos     : nth(map-fetch($triangle-settings, $direction, x), 1);
+  $x-amount  : nth(map-fetch($triangle-settings, $direction, x), 2);
+  $y-pos     : nth(map-fetch($triangle-settings, $direction, y), 1);
+  $y-amount  : nth(map-fetch($triangle-settings, $direction, y), 2);
+  
+  $args: if(length($args) > 0, $args, null); 
+
+  // Loop through and check all arguments for any special options.
+
+  @for $i from 1 through length($args) {
+    @each $option in nth($args, $i) {
+      // If there is an arugment, with just one value, and it's set to true or false.
+      // Assume this is the position condition. 
+      @if type-of($option) == bool and length(nth($args, $i)) == 1 {
+        $position : $option;
+      }
+    }
+  } 
+
+  // Check Triangle Settings
+  @each $rule in nth($args, 1) {    
+
+    @if type-of($rule) == number or is-calc($rule) and length($size) < 2 {
+      $size : append($size, $rule);
+    }
+    @elseif type-of($rule) == color {
+      $colour : $rule;
+    }
+    @elseif type-of($rule) == string {
+      @if $rule == before or $rule == after {
+        $sudo : unquote($rule);
+      }
+      @elseif $rule == center {
+        $center : true;
+      }
+      @elseif map-has-key($triangle-settings, $rule) {
+        $direction: $rule;
+
+        $x:map-fetch($triangle-settings, $direction, x);
+        $x-pos:nth($x, 1); 
+        $x-amount:nth($x, 2);
+
+        $y:map-fetch($triangle-settings, $direction, y);
+        $y-pos:nth($y, 1); 
+        $y-amount:nth($y, 2);
+      }
+    }
+  }
+
+  // Deafult size set if it remains empty
+  $size : if(length($size) == 0, 50, $size);
+  
+  // Define width and height
+  $width : nth($size, 1);
+  $height : if(length($size) == 1, $width, nth($size, 2));
+  
+  // Define all settings with strings
+  
+  &#{pseudo($sudo)} {
+    content:"";
+    position:absolute;    
+    height:0; 
+    width:0;
+    border-style:solid; 
+    border-color:transparent;
+    border-width:0;
+    pointer-events:none;
+
+    @if $center {
+      top:calc(50% - #{add-unit($height)}/2); left:calc(50% - #{add-unit($width)}/2);
+    } @elseif ($position) {
+      @if $direction == up or $direction == down {
+        #{$y-pos}:calc(#{$y-amount} - #{add-unit($width)}/2);
+        #{$x-pos}:$x-amount;
+      }
+      @elseif $direction == left {
+        #{$y-pos}:$y-amount;
+        #{$x-pos}:calc(#{$x-amount} - #{add-unit($height)}/2);
+      }
+      @elseif $direction == right {
+        #{$y-pos}:calc(#{$y-amount} - #{add-unit($height)}/2);
+        #{$x-pos}:$x-amount;
+      }
+      @else {
+        #{$y-pos}:$y-amount;
+        #{$x-pos}:$x-amount;
+      }
+    }
+
+    // Directions
+    @if $direction == left {
+      border-width:add-unit($height/2) add-unit($width) add-unit($height/2) 0;
+    }
+    @elseif $direction == right {
+      border-width:add-unit($height/2) 0 add-unit($height/2) add-unit($width);
+    }
+    @elseif $direction == up {
+      border-width:0 add-unit($width/2) add-unit($height) add-unit($width/2);
+    }
+    @elseif $direction == down {
+      border-width:add-unit($height) add-unit($width/2) 0 add-unit($width/2);
+    }
+    
+    @if contains(left right up down, $direction) {
+      border-#{opposite-direction($direction)}-color:$colour;
+    }
+    
+    @if $direction == top-left {
+      border-width:add-unit($height) add-unit($width) 0 0;
+      border-top-color:$colour;
+    }
+    @elseif $direction == top-right {
+      border-width:0 add-unit($width) add-unit($height) 0;
+      border-right-color:$colour;
+    }
+    @elseif $direction == bottom-left {
+      border-width:add-unit($height) 0 0 add-unit($width);
+      border-left-color:$colour;
+    }
+    @elseif $direction == bottom-right {
+      border-width:0 0 add-unit($height) add-unit($width);
+      border-bottom-color:$colour;
+    }
+
+     @if $direction == up { $direction : top; }
+     @if $direction == down { $direction : bottom; }
+
+
+    @content;
+  }
+}
+/// Triangle Settings
+///
+/// @author Mark Notton
+///
+/// @type variables
+
+$triangle-settings: (
+  top-left : (
+    points : "0,100 0,0 100,0",
+    y : ( left , 0 ),
+    x : ( top , 0 )
+  ),
+  up : (
+    points : "100,100 0,100 50,0",
+    y : ( left , 50% ),
+    x : ( bottom , 100% )
+  ),
+  top-right : (
+    points : "100,100 0,0 100,0",
+    y : ( right , 0 ),
+    x : ( top , 0 )
+  ),
+  left : (
+    points : "100,100 0,50 100,0",
+    y : ( right , 100% ),
+    x : ( top , 50% )
+  ),
+  right : (
+    points : "0,100 0,0 100,50",
+    y : ( top , 50% ),
+    x : ( left , 100% )
+  ),
+  bottom-left : (
+    points : "100,100 0,100 0,0",
+    y : ( left , 0 ),
+    x : ( bottom , 0 )
+  ),
+  down : (
+    points : "0,0 100,0 50,100",
+    y : ( left , 50% ),
+    x : ( top , 100% )
+  ),
+  bottom-right : (
+    points : "0,100 100,0 100,100",
+    y : ( bottom , 0 ),
+    x : ( right , 0 )
+  ),
+);
+
+
+/// Create a triangle/carrat/arrow
+///
+/// @todo Figure a way to animate the fill colour of the svg background
+/// @todo Get Stroke Alignment to work "inner".
+///
+/// @param {list} $args
+///   In any order and without comma delimination, add any of the follwing arrow settings
+///   Colour { color } - Hex or RGBA
+///   Width { int } - First intiger is used as the width. 'px' units are used by defualt if not specified.
+///   Height { int } - Second intiger is used as the height. 'px' units are used by defualt if not specified. Width is used if second unit is not found.
+///   Direction { string } - top-left, up, top-right, left, right, bottom-left, down, bottom-right.
+///   Center { string } - In addition to the direction, you can add the unquote string 'center' to center the arrow
+///   Sudo { string } - Use an unquote string 'before' or 'after' to distinguish what sudo element to use
+///
+/// @param {bool} $position
+///   Determines wether the arrow should be positioned at all
+///
+/// @require {map} triangle-settings
+/// @require {function} random-color
+/// @require {function} map-fetch
+/// @require {function} is-calc
+///
+///
+/// @example {scss} - Usage
+///   @include arrow(50% 20 purple right);
+///   @include arrow(100 100 green up center after);
+///
+/// @return {sudo}
+
+@mixin triangle($args...) {
+
+  // Deafult Triangle Settings
+  $size      : ();
+  $sudo      : before;
+  $colour    : random-colour();
+  $direction : right;
+  $center    : false;
+  $triangle  : map-fetch($triangle-settings, $direction, points);
+
+  // Deafult Position Settings
+  $position  : true;
+  $x-pos     : nth(map-fetch($triangle-settings, $direction, x), 1);
+  $x-amount  : nth(map-fetch($triangle-settings, $direction, x), 2);
+  $y-pos     : nth(map-fetch($triangle-settings, $direction, y), 1);
+  $y-amount  : nth(map-fetch($triangle-settings, $direction, y), 2);
+
+  // Deafult Stroke Settings
+  $stroke      : false;
+  $s-colour    : random-colour();
+  $s-width     : 5;
+  $s-linecap   : round;
+  $s-linejoin  : round;
+  $s-dasharray : null;
+
+  $args: if(length($args) > 0, $args, null);
+  $value-counter : 0;
+
+  // Loop through and check all arguments for any special options
+  @for $i from 1 through length($args) {
+    @each $option in nth($args, $i) {
+      @if type-of($option) == bool and length(nth($args, $i)) == 1 {
+        $position : $option;
+      } @elseif length($args) > 1 {
+        $stroke : nth($args, $i);
+      }
+    }
+  }
+
+  // Check Triangle Settings
+  @each $rule in nth($args, 1) {
+
+    @if type-of($rule) == number or is-calc($rule) and length($size) < 2 {
+      $size : append($size, $rule);
+    }
+    @elseif type-of($rule) == color {
+      $colour : $rule;
+    }
+    @elseif type-of($rule) == string {
+      @if $rule == before or $rule == after {
+        $sudo : unquote($rule);
+      }
+      @elseif $rule == center {
+        $center : true;
+      }
+      @elseif map-has-key($triangle-settings, $rule) {
+        $direction: $rule;
+        $triangle: map-fetch($triangle-settings, $direction, points);
+
+        $x:map-fetch($triangle-settings, $direction, x);
+        $x-pos:nth($x, 1);
+        $x-amount:nth($x, 2);
+
+        $y:map-fetch($triangle-settings, $direction, y);
+        $y-pos:nth($y, 1);
+        $y-amount:nth($y, 2);
+      }
+    }
+  }
+
+  // Check Stroke Settings
+  @if $stroke {
+    @each $rule in $stroke {
+      @if type-of($rule) == string {
+        @if index((butt round square), $rule) {
+          $s-linecap : $rule;
+        }
+        @if index((miter miter-clip round bevel arcs), $rule) {
+          $s-linejoin : $rule;
+        }
+      }
+      @elseif type-of($rule) == list {
+        @each $dash in $rule {
+          $s-dasharray: append($s-dasharray,  $dash, comma);
+        }
+      }
+      @elseif type-of($rule) == color {
+        $s-colour : $rule;
+      }
+      @elseif type-of($rule) == number {
+        @if $value-counter < 1 {
+          $s-width : $rule;
+          $value-counter : $value-counter + 1;
+        } @elseif $value-counter >= 1 {
+          $s-dasharray : ($rule, $rule);
+        }
+      }
+    }
+  }
+
+  // Deafult size set if it remains empty
+  $size : if(length($size) == 0, 50, $size);
+
+  // Define width and height
+  $width : nth($size, 1);
+  $height : if(length($size) == 1, $width, nth($size, 2));
+
+  // Define all settings with strings
+  $fill : "' fill='" + hash-fix($colour);
+
+  @if $stroke {
+    $s-colour    : "' stroke='" + hash-fix($s-colour);
+    $s-width     : "' stroke-width='" + remove-unit($s-width);
+    $s-alignment : "' stroke-alignment='inner";
+    $s-linecap   : if($s-linecap, "' stroke-linecap='" + $s-linecap, '');
+    $s-linejoin   : if($s-linejoin, "' stroke-linejoin='" + $s-linejoin, '');
+    $s-dasharray : if($s-dasharray, "' stroke-dasharray='" + $s-dasharray, '');
+  }
+
+  &#{pseudo($sudo)} {
+    content:"";
+    @include size($width $height);
+    position:absolute;
+    pointer-events:none;
+    background-image:svg("<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'><polygon points='" + $triangle + $fill + if($stroke, $s-colour + $s-linecap + $s-linejoin + $s-width + $s-alignment + $s-dasharray,'') + "'/></svg>");
+    background-size:100% 100%;
+    background-repeat:no-repeat;
+    @if $center {
+      top:calc(50% - #{add-unit($height)}/2); left:calc(50% - #{add-unit($width)}/2);
+    } @elseif ($position) {
+      @if $direction == up or $direction == down {
+        #{$y-pos}:calc(#{$y-amount} - #{add-unit($width)}/2);
+        #{$x-pos}:$x-amount;
+      }
+      @elseif $direction == left {
+        #{$y-pos}:$y-amount;
+        #{$x-pos}:calc(#{$x-amount} - #{add-unit($height)}/2);
+      }
+      @elseif $direction == right {
+        #{$y-pos}:calc(#{$y-amount} - #{add-unit($height)}/2);
+        #{$x-pos}:$x-amount;
+      }
+      @else {
+        #{$y-pos}:$y-amount;
+        #{$x-pos}:$x-amount;
+      }
+    }
+
+    @content;
+  }
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////

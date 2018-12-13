@@ -10,17 +10,31 @@
 @function spacer($args...) {
 
   $defaults : (
-    size      : var(vertical-spacing),
-    min       : (var(gutters) / 2),
-    direction : $default-space-unit,
+    size  : var(vertical-spacing),
+    min   : (var(gutters) / 2),
+    unit  : $default-space-unit,
+		minus : false,
   );
 
   $settings : get-settings($defaults, $args...);
 
-  $direction : map-get($settings, direction);
+  $size  : map-get($settings, size);
+  $unit  : map-get($settings, unit);
+  $min   : map-get($settings, min);
+  $minus : map-get($settings, minus);
 
-  $size      : add-unit(map-get($settings, size), $direction);
-  $min       : add-unit(map-get($settings, min));
+	@if not is-var($size) {
+		$size : add-unit($size, $unit);
+	}
 
-  @return calc(#{$size} + #{$min});
+	@if not is-var($min) {
+		$min : add-unit($min, $unit);
+	}
+
+	@if $minus {
+		@return calc((-1 * #{$size}) - #{$min});
+	} @else {
+		@return calc(#{$size} + #{$min});
+	}
+
 }
