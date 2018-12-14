@@ -37,7 +37,9 @@
 
 	$result : to-string($custom-property) + $suffix;
 
+	$result : string-replace($result, '(var', 'var');
 	$result : string-replace($result, ',)', ')');
+	$result : string-replace($result, ',))', ')');
 
 	// If the user is passing in variables within variables using the native syntax,
 	// This function will render out a looped mess. The following does some checks,
