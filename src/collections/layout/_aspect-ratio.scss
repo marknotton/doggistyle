@@ -1,4 +1,4 @@
-/// Create a pseudo element which will retain a parent elements' aspect ratio responsively. 
+/// Create a pseudo element which will retain a parent elements' aspect ratio responsively.
 ///
 /// @author Mark Notton
 ///
@@ -36,14 +36,24 @@
 ///   padding-top: 50%;
 /// }
 
-@mixin aspect-ratio($ratio:1, $sudo:before) {
+@mixin aspect-ratio($args...) {
 
-  $width  : check(first($ratio), 1);
-  $height : check(second($ratio), first($ratio));
+	$defaults : (
+		width  : 1,
+		height : null,
+		sudo : before
+	);
+
+	$settings : get-settings($defaults, $args...);
+
+	$width     : map-get($settings, width);
+	$height    : map-get($settings, height);
+	$sudo      : map-get($settings, sudo);
+	$important : map-get($settings, important);
 
   &#{pseudo($sudo)} {
     content:"";
-    display:block;
-    padding-top: if(is-percentage($width), $width, percentage($height / $width));
+    display:block; 
+    padding-top: if(is-percentage($width), $width, percentage($height / $width)) $important;
   }
 }
