@@ -4830,6 +4830,121 @@ $ease-in-out-back  : cubic-bezier(0.680, -0.550, 0.265, 1.550);
   text-indent:0; overflow:visible; white-space:normal; user-select:all;
 }
 
+@mixin jump($amount:10, $animation-name:jump) {
+  @include keyframes(#{$animation-name}) {
+    0%   { top:0 }
+    50%  { top:$amount + px }
+    100% { top:0 }
+  }
+}
+
+@mixin shake($amount:10, $animation-name:shake) {
+  @include keyframes(#{$animation-name}) {
+    0%   { transform:rotate(0) }
+    25%  { transform:rotate(-#{$amount}deg) }
+    75%  { transform:rotate(#{$amount}deg) }
+    100% { transform:rotate(0) }
+  }
+}
+
+@mixin wobble($amount:10, $animation-name:wobble) {
+  @include keyframes(#{$animation-name}) {
+    0%   { left:0 }
+    25%  { left:(-$amount) + px }
+    75%  { left:($amount) + px }
+    100% { left:0 }
+  }
+}
+
+@mixin break-between($min, $max) {
+
+	$min : get-breakpoint($min);
+	$max : get-breakpoint($max);
+
+  @media (min-width:$min) and (max-width:$max) {
+    @content;
+  }
+}
+
+@mixin breakpoint($args...) {
+
+	$defaults : (
+    breakpoint : null,
+    rule : 'min',
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $rule : map-get($settings, rule);
+  $breakpoint : map-get($settings, breakpoint);
+
+  $breakpoint : get-breakpoint($breakpoint);
+
+	@if $rule == 'min' or $rule == '>' {
+		@media (min-width:$breakpoint - 1) {
+	    @content;
+	  }
+	}	@elseif $rule == 'max' or $rule == '<' {
+		@media (max-width:$breakpoint) {
+	    @content;
+	  }
+	}
+}
+
+// Get breakpoint from the breakpoint list, either by it's number or name
+@function get-breakpoint($break) {
+
+	$breakpoint : $break;
+
+	// If a string is passed and exists in the breakpoints map as a key, return the value
+  @if is-string($break) and map-has-key($breakpoints, $break) {
+    $breakpoint : map-get($breakpoints, $break);
+  }
+
+	// If a number is passed and it exists in the breakpoints map, return the key
+	@elseif is-number($break) {
+    $breakpoint : add-unit($break, 'px', true);
+  }
+
+	@return to-number($breakpoint);
+
+}
+
+@mixin inside-break($breakpoint) {
+	@include breakpoint($breakpoint, max) { @content; }
+}
+
+@mixin outside-break($breakpoint) {
+	@include breakpoint($breakpoint, min) { @content; }
+}
+
+@mixin show-breakpoints($sudo : before) {
+  &:#{$sudo} {
+    content:"\276F  #{add-unit($max)}";
+    background-color:darken($red, 20);
+    bottom:0;
+    right:0;
+    font-family:Arial;
+    padding:4px $gap0;
+    @include transition(background-color color);
+    pointer-events:none;
+    position:fixed;
+    z-index:9999;
+    font-size:12px;
+    line-height:16px;
+    color:white;
+    text-align:center;
+    @each $name, $value in $breakpoints {
+      $random-color: random-colour();
+      @include breakpoint($value, '>') {
+        content:"#{$name} #{add-unit($value)}";
+        background-color:$random-color;
+        color:colour-contrast($random-color);
+      }
+    }
+  }
+}
+
 // Documentation: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
 
 // Container properties
@@ -5262,95 +5377,6 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
   justify-content : initial $important;
 }
 
-@mixin break-between($min, $max) {
-
-	$min : get-breakpoint($min);
-	$max : get-breakpoint($max);
-
-  @media (min-width:$min) and (max-width:$max) {
-    @content;
-  }
-}
-
-@mixin breakpoint($args...) {
-
-	$defaults : (
-    breakpoint : null,
-    rule : 'min',
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $rule : map-get($settings, rule);
-  $breakpoint : map-get($settings, breakpoint);
-
-  $breakpoint : get-breakpoint($breakpoint);
-
-	@if $rule == 'min' or $rule == '>' {
-		@media (min-width:$breakpoint - 1) {
-	    @content;
-	  }
-	}	@elseif $rule == 'max' or $rule == '<' {
-		@media (max-width:$breakpoint) {
-	    @content;
-	  }
-	}
-}
-
-// Get breakpoint from the breakpoint list, either by it's number or name
-@function get-breakpoint($break) {
-
-	$breakpoint : $break;
-
-	// If a string is passed and exists in the breakpoints map as a key, return the value
-  @if is-string($break) and map-has-key($breakpoints, $break) {
-    $breakpoint : map-get($breakpoints, $break);
-  }
-
-	// If a number is passed and it exists in the breakpoints map, return the key
-	@elseif is-number($break) {
-    $breakpoint : add-unit($break, 'px', true);
-  }
-
-	@return to-number($breakpoint);
-
-}
-
-@mixin inside-break($breakpoint) {
-	@include breakpoint($breakpoint, max) { @content; }
-}
-
-@mixin outside-break($breakpoint) {
-	@include breakpoint($breakpoint, min) { @content; }
-}
-
-@mixin show-breakpoints($sudo : before) {
-  &:#{$sudo} {
-    content:"\276F  #{add-unit($max)}";
-    background-color:darken($red, 20);
-    bottom:0;
-    right:0;
-    font-family:Arial;
-    padding:4px $gap0;
-    @include transition(background-color color);
-    pointer-events:none;
-    position:fixed;
-    z-index:9999;
-    font-size:12px;
-    line-height:16px;
-    color:white;
-    text-align:center;
-    @each $name, $value in $breakpoints {
-      $random-color: random-colour();
-      @include breakpoint($value, '>') {
-        content:"#{$name} #{add-unit($value)}";
-        background-color:$random-color;
-        color:colour-contrast($random-color);
-      }
-    }
-  }
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 /// Grid Layouts                                                   #grid-layouts
 ////////////////////////////////////////////////////////////////////////////////
@@ -5610,32 +5636,6 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
   @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
 }
 
-@mixin jump($amount:10, $animation-name:jump) {
-  @include keyframes(#{$animation-name}) {
-    0%   { top:0 }
-    50%  { top:$amount + px }
-    100% { top:0 }
-  }
-}
-
-@mixin shake($amount:10, $animation-name:shake) {
-  @include keyframes(#{$animation-name}) {
-    0%   { transform:rotate(0) }
-    25%  { transform:rotate(-#{$amount}deg) }
-    75%  { transform:rotate(#{$amount}deg) }
-    100% { transform:rotate(0) }
-  }
-}
-
-@mixin wobble($amount:10, $animation-name:wobble) {
-  @include keyframes(#{$animation-name}) {
-    0%   { left:0 }
-    25%  { left:(-$amount) + px }
-    75%  { left:($amount) + px }
-    100% { left:0 }
-  }
-}
-
 @mixin blur($value:5px, $important:false) {
   @include filter(blur $value $important);
 }
@@ -5802,163 +5802,6 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
 
 @mixin url($value:null, $important:false) {
   @include filter(url $value $important);
-}
-
-@mixin gradient-bottom($args...) {
-  @include gradient(linear, bottom, $args);
-}
-
-@mixin gradient-left($args...) {
-  @include gradient(linear, left, $args);
-}
-
-@mixin gradient-radial($args...) {
-  @include gradient(radial, $args...);
-}
-
-@mixin gradient-right($args...) {
-  @include gradient(linear, right, $args);
-}
-
-@mixin gradient-top($args...) {
-  @include gradient(linear, top, $args);
-}
-
-/// Create gradients
-///
-/// @author Mark Notton
-///
-/// @access private
-///
-/// @param {list} $args - Pass in the following gradient settings.
-///   [type]       - name of the graditent must be the first parameter
-///   [rule]       - Optional. If the gradient type requires it, you can add special rules. Like directions (as a string or number).
-///                  You don't need to type in 'to' for directions. This will be included automatically if necessary.
-///   [settings]   - Add a list of arguments for each colour. This can include a colour and number per argument.
-///
-/// @require {Mixin} contains
-/// @require {Mixin} prefix-values
-/// @require {Mixin} warning
-/// @require {Function} is-string
-/// @require {Function} is-number
-/// @require {Function} add-unit
-/// @require {Function} remove-nth
-/// @require {Function} replace-nth
-/// @require {Function} arglist-to-list
-///
-/// @example scss - Usage
-/// .foo {
-///   @include gradient(radial-repeat, ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-/// }
-///
-/// @example css - CSS output
-/// .foo {
-///   background: -webkit-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: -moz-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: -o-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: -ms-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%); }
-/// }
-///
-
-@mixin gradient($args...) {
-
-  $settings : arglist-to-list($args);
-
-  $type: nth($settings, 1);
-
-  @if contains($type, $gradient-types) {
-
-    // Aliases
-    @if $type == linear-repeat {
-      $type : repeating-linear;
-    } @elseif $type == radial-repeat {
-      $type : repeating-radial;
-    } @elseif contains($type, circle) {
-      $type : radial;
-    }
-
-    $settings : remove-nth($settings, 1);
-
-  } @else {
-
-    $type : linear;
-
-    // @error "The first parameter must be the gradient type: #{$gradient-types}";
-
-  }
-
-  @if length($settings) > 1 {
-
-    @for $i from 1 through length($settings) {
-      $setting : nth($settings, $i);
-      // @debug $setting;
-      // Special first argument checks
-      @if ($i == 1) {
-        $unit : deg;
-
-        // Loop through the initial setting and check any unitless numbers has 'deg' as a default
-
-        @if contains($type, repeating-radial radial) {
-          $unit : %;
-          @if is-number($setting) {
-            @include warning($type + " can not have a number as the first parameter, it should be a colour");
-          }
-          @if contains($setting, at) {
-            $setting : replace-nth($setting, 1, add-unit(nth($setting, 1), px));
-          }
-        }
-
-        @if is-number($setting) {
-          $settings : replace-nth($settings, 1, add-unit($setting, $unit));
-        } @elseif is-list($setting) {
-          @if contains($setting, to) {
-            $setting : remove($setting, to);
-          }
-          @for $l from 1 through length($setting) {
-            $list-setting : nth($setting, $l);
-            @if is-number($list-setting) {
-              $setting : replace-nth($setting, $l, add-unit($list-setting, $unit));
-            }
-          }
-          $settings : replace-nth($settings, 1, $setting);
-        }
-      } @else {
-
-        @if is-list($setting) {
-          @for $l from 1 through length($setting) {
-            $list-setting : nth($setting, $l);
-            @if is-number($list-setting) {
-              $setting : replace-nth($setting, $l, add-unit($list-setting, %));
-            }
-          }
-          $settings : replace-nth($settings, $i, $setting);
-        }
-
-      }
-
-    }
-
-    $new-settings : ();
-    $new-generic-settings : ();
-
-    @each $set in $settings {
-      $new-settings : append($new-settings, $set, comma);
-      // Special checks for the generic syntax that requires "to" for specific direction strings
-      @if contains($set, right bottom left top) {
-        $new-generic-settings : append($new-generic-settings, to $set, comma);
-      } @else {
-        $new-generic-settings : append($new-generic-settings, $set, comma);
-      }
-
-    }
-
-    background:#{$type}-gradient($new-generic-settings);
-
-  } @else {
-    @include warning("You'll need more gradient settings than that");
-  }
-
 }
 
 @mixin matrix($args...) {
@@ -6211,451 +6054,161 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
   @include transform(translateZ $value);
 }
 
-@mixin browsers($args...) {
-
-  // This checks to see if the current selector is html.
-  // This can not be converted into a shorthanded if statement.
-  // $selector : null;
-  // @if not is-selector(html) { $selector : &; }
-
-	$selector : to-string(#{&});
-	$space : ' ';
-
-	@if (str-index($selector, 'html')) {
-		$selector : string-replace(#{$selector}, 'html', '');
-		@if ($selector != 'html') {
-			$space : '';
-		}
-	}
-
-	$not-all : if(is-bool(nth(nth($args, 1),1)), nth(nth($args, 1),1), false);
-
-
-  @each $settings in arglist-to-list($args...) {
-
-    $browsers-list : ();
-    $versions-list : ();
-    $not : $not-all;
-
-    @each $setting in $settings {
-      @if is-string($setting) and contains($browsers, $setting) {
-        $browsers-list : append($browsers-list, $setting);
-      }
-      @elseif is-bool($setting) {
-        $not : $setting;
-      }
-      @elseif is-number($setting) or is-list($setting){
-        @each $version in $setting {
-          $versions-list : append($versions-list, $version);
-        }
-      }
-    }
-
-    @if length($browsers-list) > 1 and length($versions-list) > 0 {
-      @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
-    } @else {
-      @if length($browsers-list) > 0 {
-        @if length($versions-list) > 0 {
-          @each $version in $versions-list {
-            @if not $not {
-              @at-root html[data-browser^="#{$browsers-list}"][data-browser$='#{$version}'] #{$selector} { @content; }
-            } @else {
-              @at-root html:not([data-browser^="#{$browsers-list}"][data-browser$='#{$version}']) #{$selector} { @content; }
-            }
-          }
-        } @else {
-					@if not $not {
-	          @each $browser in $browsers-list {
-
-              @at-root html[data-browser^="#{$browser}"]#{$space}#{$selector} { @content; }
-              // Fallback hacks should the data-browser attribute not be in the html tag
-              @if $browser == edge {
-                @supports (-ms-accelerator:true) {
-                  #{$selector} {
-                    @content;
-                  }
-                }
-              }
-              @elseif $browser == ie {
-								@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-                  @content;
-                }
-              }
-              @elseif $browser == firefox {
-                #{$selector ',  x:-moz-any-link'}{
-                  @content;
-                }
-              }
-              @elseif $browser == chrome {
-                @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
-                  @content;
-                }
-              }
-              @elseif $browser == safari {
-                @supports (overflow:-webkit-marquee) and (justify-content:inherit){
-                  #{$selector} {
-                    @content;
-                  }
-                }
-              }
-            }
-          } @else {
-
-						$nots : '';
-
-						@each $browser in $browsers-list {
-							$nots : $nots + ':not([data-browser^="#{$browser}"])';
-						}
-
-						@at-root html#{$nots}#{$space}#{$selector} { @content; }
-					}
-        }
-      }
-    }
-  }
+@mixin gradient-bottom($args...) {
+  @include gradient(linear, bottom, $args);
 }
 
-@mixin is-chrome($version:null) {
-  @include browsers(chrome $version) { @content };
+@mixin gradient-left($args...) {
+  @include gradient(linear, left, $args);
 }
 
-@mixin is-edge($version:null) {
-  @include browsers(edge $version) { @content };
+@mixin gradient-radial($args...) {
+  @include gradient(radial, $args...);
 }
 
-@mixin is-firefox($version:null) {
-  @include browsers(firefox $version) { @content };
+@mixin gradient-right($args...) {
+  @include gradient(linear, right, $args);
 }
 
-@mixin is-ie($version:null) {
-  @include browsers(ie $version) { @content };
+@mixin gradient-top($args...) {
+  @include gradient(linear, top, $args);
 }
 
-@mixin is-opera($version:null) {
-  @include browsers(opera $version) { @content };
-}
-
-@mixin is-safari($version:null) {
-  @include browsers(safari $version) { @content };
-}
-
-@mixin not-browsers($args...) {
-	@include browsers(join(true, $args, comma)) { @content };
-}
-
-@mixin not-chrome($version:null) {
-  @include browsers(chrome $version true) { @content };
-}
-
-@mixin not-edge($version:null) {
-  @include browsers(edge $version true) { @content };
-}
-
-@mixin not-firefox($version:null) {
-  @include browsers(firefox $version true) { @content };
-}
-
-@mixin not-ie($version:null) {
-  @include browsers(ie $version true) { @content };
-}
-
-@mixin not-opera($version:null) {
-  @include browsers(opera $version true) { @content };
-}
-
-@mixin not-safari($version:null) {
-  @include browsers(safari $version true) { @content };
-}
-
-@mixin devices($args...) {
-
-  // This checks to see if the current selector is html.
-  // This can not be converted into a shorthanded if statement.
-  $selector : to-string(#{&});
-	$space : ' ';
-
-	@if (str-index($selector, 'html')) {
-		$selector : string-replace(#{$selector}, 'html', '');
-		@if ($selector != 'html') {
-			$space : '';
-		}
-	}
-
-  @each $settings in arglist-to-list($args...) {
-
-    $devices-list : ();
-    $not : true;
-
-    @each $setting in $settings {
-      @if is-string($setting) {
-        @if contains($devices, $setting) and length($devices-list) < 2 {
-          $devices-list : append($devices-list, $setting);
-        }
-      } @elseif is-bool($setting) {
-        $not : $setting;
-      }
-    }
-
-    // @if length($devices-list) > 1 and length($types-list) > 0 {
-    //   @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
-    // } @else {
-      @if length($devices-list) > 0 {
-        @each $device in $devices-list {
-          @if $not {
-            @at-root html[data-device="#{$device}"]#{$space}#{$selector}{ @content; }
-          } @else {
-            @at-root html:not([data-device="#{$device}"])#{$space}#{$selector}{ @content; }
-          }
-        }
-      }
-    // }
-  }
-}
-
-@mixin is-desktop($type:null) {
-  @include devices(desktop $type) { @content };
-}
-
-@mixin is-mobile($type:null) {
-  @include devices(mobile $type) { @content };
-}
-
-@mixin is-tablet($type:null) {
-  @include devices(tablet $type) { @content };
-}
-
-@mixin not-desktop($type:null) {
-  @include devices(desktop $type false) { @content };
-}
-
-@mixin not-mobile($type:null) {
-  @include devices(mobile $type false) { @content };
-}
-
-@mixin not-tablet($type:null) {
-  @include devices(tablet $type false) { @content };
-}
-
-/// Create a pseudo element which will retain a parent elements' aspect ratio responsively.
+/// Create gradients
 ///
 /// @author Mark Notton
 ///
-
+/// @access private
 ///
-/// @param {number | list} $ratio - Use a predefined variable, directly enter a percentage, or pass in one or two numbers to be calculated.
+/// @param {list} $args - Pass in the following gradient settings.
+///   [type]       - name of the graditent must be the first parameter
+///   [rule]       - Optional. If the gradient type requires it, you can add special rules. Like directions (as a string or number).
+///                  You don't need to type in 'to' for directions. This will be included automatically if necessary.
+///   [settings]   - Add a list of arguments for each colour. This can include a colour and number per argument.
 ///
-/// @param {string} $sudo - Set the type of pseudo to use. Defaults to "before".
-///
-/// @require {function} sudo
-/// @require {function} _unit-fallback
-/// @require {function} first
-/// @require {function} second
-/// @require {function} is-percentage
+/// @require {Mixin} contains
+/// @require {Mixin} prefix-values
+/// @require {Mixin} warning
+/// @require {Function} is-string
+/// @require {Function} is-number
+/// @require {Function} add-unit
+/// @require {Function} remove-nth
+/// @require {Function} replace-nth
+/// @require {Function} arglist-to-list
 ///
 /// @example scss - Usage
 /// .foo {
-///   @include aspect-ratio($ratio-16-9);
-/// }
-///
-/// .bar {
-///   @include aspect-ratio(2 1, after);
+///   @include gradient(radial-repeat, ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
 /// }
 ///
 /// @example css - CSS output
-/// .foo:before {
-///   content: "";
-///   display: block;
-///   padding-top: 56.25%;
+/// .foo {
+///   background: -webkit-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -moz-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -o-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -ms-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%); }
 /// }
 ///
-/// .bar:after {
-///   content: "";
-///   display: block;
-///   padding-top: 50%;
-/// }
 
-@mixin aspect-ratio($args...) {
+@mixin gradient($args...) {
 
-	$defaults : (
-		width  : 1,
-		height : null,
-		sudo : before
-	);
+  $settings : arglist-to-list($args);
 
-	$settings : get-settings($defaults, $args...);
+  $type: nth($settings, 1);
 
-	$width     : map-get($settings, width);
-	$height    : map-get($settings, height);
-	$sudo      : map-get($settings, sudo);
-	$important : map-get($settings, important);
+  @if contains($type, $gradient-types) {
 
-  &#{pseudo($sudo)} {
-    content:"";
-    display:block; 
-    padding-top: if(is-percentage($width), $width, percentage($height / $width)) $important;
-  }
-}
-
-/// 10px on each corner. Call also use the string "all"
-/// @include border-radius(10)
-/// @include border-radius( 10)
-
-@mixin border-radius($args...) {
-
-	$default : var(border-radius);
-
-	$top-left     : null;
-	$top-right    : null;
-	$bottom-right : null;
-	$bottom-left  : null;
-	$important    : null;
-	$all : null;
-	$direction : null;
-
-	@each $value in $args {
-		@if is-important($value) {
-			$important : !important;
-		}
-		@elseif is-number($value) {
-			@if is-null($top-left) { $top-left : add-unit($value); }
-			@elseif is-null($top-right) { $top-right : add-unit($value); }
-			@elseif is-null($bottom-right) { $bottom-right : add-unit($value); }
-			@elseif is-null($bottom-left) { $bottom-left : add-unit($value); }
-		}
-		@elseif is-var($value) {
-			@if is-null($top-left) { $top-left : var($value); }
-			@elseif is-null($top-right) { $top-right : var($value); }
-			@elseif is-null($bottom-right) { $bottom-right : var($value); }
-			@elseif is-null($bottom-left) { $bottom-left : var($value); }
-		}
-		@elseif is-string($value) {
-			@if $value == circle { $all : 50%; }
-			@elseif contains(top right bottom left, $value) {
-				$direction : $value;
-			}
-		}
-	}
-
-	@if is-null($all) and is-null($top-right) and is-null($bottom-right) and is-null($bottom-left) {
-		$all : if(is-null($top-left), $default, $top-left);
-	}
-
-	@if not is-null($all) and is-null($direction) {
-		border-radius:$all $important;
-	} @else {
-
-		@if not is-null($direction) {
-			$value1 : $top-left or $default;
-			$value2 : $top-right or $top-left or $default;
-			@if $direction == top or $direction == bottom {
-				border-#{$direction}-left-radius : $value1 $important;
-				border-#{$direction}-right-radius : $value2 $important;
-			} @elseif $direction == right or $direction == left {
-				border-top-#{$direction}-radius : $value1 $important;
-				border-bottom-#{$direction}-radius : $value2 $important;
-			}
-		}
-		@else {
-			border-radius:$top-left $top-right $bottom-right $bottom-left $important;
-		}
-
-	}
-
-}
-
-@mixin container($args...) {
-
-  $defaults : (
-    gutters    : var(gutters),
-    max-width  : $max
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $guts       : map-get($settings, gutters);
-  $max        : map-get($settings, max-width);
-  $important  : map-get($settings, important);
-
-  width:100%; max-width:add-unit($max);
-  position:relative;
-  display:block;
-  margin-left:auto; margin-right:auto;
-
-	@if is-number($guts) and $guts > 1 {
-		padding-left  : add-unit($gutters) $important;
-		padding-right : add-unit($gutters) $important;
-	} @elseif is-var($guts) {
-		padding-left  : $guts $important;
-		padding-right : $guts $important;
-	}
-
-}
-
-/// Sets the width and height to the same values
-/// If the second para "special" is defined as min or max, the dimenstions will be prefixed with that
-
-/// @example @include size(100, 200, max);
-/// @output max-width:100px; max-height:100px;
-
-/// @example @include size(150, important);
-/// @output width:150px !important; height:150px !important;
-
-@mixin size($args...) {
-
-  $defaults : (
-    width : null,
-    height : null,
-    prefix : null,
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $width     : map-get($settings, width);
-  $height    : check(map-get($settings, height), $width, number);
-  $prefix    : map-get($settings, prefix);
-  $important : map-get($settings, important);
-
-  $prefix : if(contains($prefix, (min, max)), $prefix + '-', null);
-
-  #{$prefix}width  : add-unit($width) $important;
-  #{$prefix}height : add-unit($height) $important;
-
-}
-
-@mixin viewport-width($args...) {
-
-  $defaults : (
-    refactor   : true,
-    breakpoint : if(variable-exists(min),$min, 320px),
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $refactor   : map-get($settings, refactor);
-  $breakpoint : map-get($settings, breakpoint);
-  $important  : map-get($settings, important);
-
-  width:100%;
-  min-width : add-unit($breakpoint);
-
-  @if not is-null($breakpoint) {
-
-    @include outside-break($breakpoint) {
-      width:100vw;
-      left:50%;
-      @include x(-50%);
+    // Aliases
+    @if $type == linear-repeat {
+      $type : repeating-linear;
+    } @elseif $type == radial-repeat {
+      $type : repeating-radial;
+    } @elseif contains($type, circle) {
+      $type : radial;
     }
 
+    $settings : remove-nth($settings, 1);
+
+  } @else {
+
+    $type : linear;
+
+    // @error "The first parameter must be the gradient type: #{$gradient-types}";
+
   }
 
-  @if ( $refactor != false ) {
-    $refactor-gap : if(is-number($refactor), add-unit($refactor), $gap);
-    @include inside-break($breakpoint) {
-      left:-$refactor-gap;
-      width:calc(100% + #{$refactor-gap*2});
-      @content;
+  @if length($settings) > 1 {
+
+    @for $i from 1 through length($settings) {
+      $setting : nth($settings, $i);
+      // @debug $setting;
+      // Special first argument checks
+      @if ($i == 1) {
+        $unit : deg;
+
+        // Loop through the initial setting and check any unitless numbers has 'deg' as a default
+
+        @if contains($type, repeating-radial radial) {
+          $unit : %;
+          @if is-number($setting) {
+            @include warning($type + " can not have a number as the first parameter, it should be a colour");
+          }
+          @if contains($setting, at) {
+            $setting : replace-nth($setting, 1, add-unit(nth($setting, 1), px));
+          }
+        }
+
+        @if is-number($setting) {
+          $settings : replace-nth($settings, 1, add-unit($setting, $unit));
+        } @elseif is-list($setting) {
+          @if contains($setting, to) {
+            $setting : remove($setting, to);
+          }
+          @for $l from 1 through length($setting) {
+            $list-setting : nth($setting, $l);
+            @if is-number($list-setting) {
+              $setting : replace-nth($setting, $l, add-unit($list-setting, $unit));
+            }
+          }
+          $settings : replace-nth($settings, 1, $setting);
+        }
+      } @else {
+
+        @if is-list($setting) {
+          @for $l from 1 through length($setting) {
+            $list-setting : nth($setting, $l);
+            @if is-number($list-setting) {
+              $setting : replace-nth($setting, $l, add-unit($list-setting, %));
+            }
+          }
+          $settings : replace-nth($settings, $i, $setting);
+        }
+
+      }
+
     }
+
+    $new-settings : ();
+    $new-generic-settings : ();
+
+    @each $set in $settings {
+      $new-settings : append($new-settings, $set, comma);
+      // Special checks for the generic syntax that requires "to" for specific direction strings
+      @if contains($set, right bottom left top) {
+        $new-generic-settings : append($new-generic-settings, to $set, comma);
+      } @else {
+        $new-generic-settings : append($new-generic-settings, $set, comma);
+      }
+
+    }
+
+    background:#{$type}-gradient($new-generic-settings);
+
+  } @else {
+    @include warning("You'll need more gradient settings than that");
   }
+
 }
 
 @mixin animation-delay($args...) {
@@ -6999,6 +6552,453 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
 
 	transition : $values $important;
 
+}
+
+@mixin devices($args...) {
+
+  // This checks to see if the current selector is html.
+  // This can not be converted into a shorthanded if statement.
+  $selector : to-string(#{&});
+	$space : ' ';
+
+	@if (str-index($selector, 'html')) {
+		$selector : string-replace(#{$selector}, 'html', '');
+		@if ($selector != 'html') {
+			$space : '';
+		}
+	}
+
+  @each $settings in arglist-to-list($args...) {
+
+    $devices-list : ();
+    $not : true;
+
+    @each $setting in $settings {
+      @if is-string($setting) {
+        @if contains($devices, $setting) and length($devices-list) < 2 {
+          $devices-list : append($devices-list, $setting);
+        }
+      } @elseif is-bool($setting) {
+        $not : $setting;
+      }
+    }
+
+    // @if length($devices-list) > 1 and length($types-list) > 0 {
+    //   @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
+    // } @else {
+      @if length($devices-list) > 0 {
+        @each $device in $devices-list {
+          @if $not {
+            @at-root html[data-device="#{$device}"]#{$space}#{$selector}{ @content; }
+          } @else {
+            @at-root html:not([data-device="#{$device}"])#{$space}#{$selector}{ @content; }
+          }
+        }
+      }
+    // }
+  }
+}
+
+@mixin is-desktop($type:null) {
+  @include devices(desktop $type) { @content };
+}
+
+@mixin is-mobile($type:null) {
+  @include devices(mobile $type) { @content };
+}
+
+@mixin is-tablet($type:null) {
+  @include devices(tablet $type) { @content };
+}
+
+@mixin not-desktop($type:null) {
+  @include devices(desktop $type false) { @content };
+}
+
+@mixin not-mobile($type:null) {
+  @include devices(mobile $type false) { @content };
+}
+
+@mixin not-tablet($type:null) {
+  @include devices(tablet $type false) { @content };
+}
+
+@mixin browsers($args...) {
+
+  // This checks to see if the current selector is html.
+  // This can not be converted into a shorthanded if statement.
+  // $selector : null;
+  // @if not is-selector(html) { $selector : &; }
+
+	$selector : to-string(#{&});
+	$space : ' ';
+
+	@if (str-index($selector, 'html')) {
+		$selector : string-replace(#{$selector}, 'html', '');
+		@if ($selector != 'html') {
+			$space : '';
+		}
+	}
+
+	$not-all : if(is-bool(nth(nth($args, 1),1)), nth(nth($args, 1),1), false);
+
+
+  @each $settings in arglist-to-list($args...) {
+
+    $browsers-list : ();
+    $versions-list : ();
+    $not : $not-all;
+
+    @each $setting in $settings {
+      @if is-string($setting) and contains($browsers, $setting) {
+        $browsers-list : append($browsers-list, $setting);
+      }
+      @elseif is-bool($setting) {
+        $not : $setting;
+      }
+      @elseif is-number($setting) or is-list($setting){
+        @each $version in $setting {
+          $versions-list : append($versions-list, $version);
+        }
+      }
+    }
+
+    @if length($browsers-list) > 1 and length($versions-list) > 0 {
+      @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
+    } @else {
+      @if length($browsers-list) > 0 {
+        @if length($versions-list) > 0 {
+          @each $version in $versions-list {
+            @if not $not {
+              @at-root html[data-browser^="#{$browsers-list}"][data-browser$='#{$version}'] #{$selector} { @content; }
+            } @else {
+              @at-root html:not([data-browser^="#{$browsers-list}"][data-browser$='#{$version}']) #{$selector} { @content; }
+            }
+          }
+        } @else {
+					@if not $not {
+	          @each $browser in $browsers-list {
+
+              @at-root html[data-browser^="#{$browser}"]#{$space}#{$selector} { @content; }
+              // Fallback hacks should the data-browser attribute not be in the html tag
+              @if $browser == edge {
+                @supports (-ms-accelerator:true) {
+                  #{$selector} {
+                    @content;
+                  }
+                }
+              }
+              @elseif $browser == ie {
+								@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+                  @content;
+                }
+              }
+              @elseif $browser == firefox {
+                #{$selector ',  x:-moz-any-link'}{
+                  @content;
+                }
+              }
+              @elseif $browser == chrome {
+                @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
+                  @content;
+                }
+              }
+              @elseif $browser == safari {
+                @supports (overflow:-webkit-marquee) and (justify-content:inherit){
+                  #{$selector} {
+                    @content;
+                  }
+                }
+              }
+            }
+          } @else {
+
+						$nots : '';
+
+						@each $browser in $browsers-list {
+							$nots : $nots + ':not([data-browser^="#{$browser}"])';
+						}
+
+						@at-root html#{$nots}#{$space}#{$selector} { @content; }
+					}
+        }
+      }
+    }
+  }
+}
+
+@mixin is-chrome($version:null) {
+  @include browsers(chrome $version) { @content };
+}
+
+@mixin is-edge($version:null) {
+  @include browsers(edge $version) { @content };
+}
+
+@mixin is-firefox($version:null) {
+  @include browsers(firefox $version) { @content };
+}
+
+@mixin is-ie($version:null) {
+  @include browsers(ie $version) { @content };
+}
+
+@mixin is-opera($version:null) {
+  @include browsers(opera $version) { @content };
+}
+
+@mixin is-safari($version:null) {
+  @include browsers(safari $version) { @content };
+}
+
+@mixin not-browsers($args...) {
+	@include browsers(join(true, $args, comma)) { @content };
+}
+
+@mixin not-chrome($version:null) {
+  @include browsers(chrome $version true) { @content };
+}
+
+@mixin not-edge($version:null) {
+  @include browsers(edge $version true) { @content };
+}
+
+@mixin not-firefox($version:null) {
+  @include browsers(firefox $version true) { @content };
+}
+
+@mixin not-ie($version:null) {
+  @include browsers(ie $version true) { @content };
+}
+
+@mixin not-opera($version:null) {
+  @include browsers(opera $version true) { @content };
+}
+
+@mixin not-safari($version:null) {
+  @include browsers(safari $version true) { @content };
+}
+
+/// Create a pseudo element which will retain a parent elements' aspect ratio responsively.
+///
+/// @author Mark Notton
+///
+
+///
+/// @param {number | list} $ratio - Use a predefined variable, directly enter a percentage, or pass in one or two numbers to be calculated.
+///
+/// @param {string} $sudo - Set the type of pseudo to use. Defaults to "before".
+///
+/// @require {function} sudo
+/// @require {function} _unit-fallback
+/// @require {function} first
+/// @require {function} second
+/// @require {function} is-percentage
+///
+/// @example scss - Usage
+/// .foo {
+///   @include aspect-ratio($ratio-16-9);
+/// }
+///
+/// .bar {
+///   @include aspect-ratio(2 1, after);
+/// }
+///
+/// @example css - CSS output
+/// .foo:before {
+///   content: "";
+///   display: block;
+///   padding-top: 56.25%;
+/// }
+///
+/// .bar:after {
+///   content: "";
+///   display: block;
+///   padding-top: 50%;
+/// }
+
+@mixin aspect-ratio($args...) {
+
+	$defaults : (
+		width  : 1,
+		height : null,
+		sudo : before
+	);
+
+	$settings : get-settings($defaults, $args...);
+
+	$width     : map-get($settings, width);
+	$height    : map-get($settings, height);
+	$sudo      : map-get($settings, sudo);
+	$important : map-get($settings, important);
+
+  &#{pseudo($sudo)} {
+    content:"";
+    display:block; 
+    padding-top: if(is-percentage($width), $width, percentage($height / $width)) $important;
+  }
+}
+
+/// 10px on each corner. Call also use the string "all"
+/// @include border-radius(10)
+/// @include border-radius( 10)
+
+@mixin border-radius($args...) {
+
+	$default : var(border-radius);
+
+	$top-left     : null;
+	$top-right    : null;
+	$bottom-right : null;
+	$bottom-left  : null;
+	$important    : null;
+	$all : null;
+	$direction : null;
+
+	@each $value in $args {
+		@if is-important($value) {
+			$important : !important;
+		}
+		@elseif is-number($value) {
+			@if is-null($top-left) { $top-left : add-unit($value); }
+			@elseif is-null($top-right) { $top-right : add-unit($value); }
+			@elseif is-null($bottom-right) { $bottom-right : add-unit($value); }
+			@elseif is-null($bottom-left) { $bottom-left : add-unit($value); }
+		}
+		@elseif is-var($value) {
+			@if is-null($top-left) { $top-left : var($value); }
+			@elseif is-null($top-right) { $top-right : var($value); }
+			@elseif is-null($bottom-right) { $bottom-right : var($value); }
+			@elseif is-null($bottom-left) { $bottom-left : var($value); }
+		}
+		@elseif is-string($value) {
+			@if $value == circle { $all : 50%; }
+			@elseif contains(top right bottom left, $value) {
+				$direction : $value;
+			}
+		}
+	}
+
+	@if is-null($all) and is-null($top-right) and is-null($bottom-right) and is-null($bottom-left) {
+		$all : if(is-null($top-left), $default, $top-left);
+	}
+
+	@if not is-null($all) and is-null($direction) {
+		border-radius:$all $important;
+	} @else {
+
+		@if not is-null($direction) {
+			$value1 : $top-left or $default;
+			$value2 : $top-right or $top-left or $default;
+			@if $direction == top or $direction == bottom {
+				border-#{$direction}-left-radius : $value1 $important;
+				border-#{$direction}-right-radius : $value2 $important;
+			} @elseif $direction == right or $direction == left {
+				border-top-#{$direction}-radius : $value1 $important;
+				border-bottom-#{$direction}-radius : $value2 $important;
+			}
+		}
+		@else {
+			border-radius:$top-left $top-right $bottom-right $bottom-left $important;
+		}
+
+	}
+
+}
+
+@mixin container($args...) {
+
+  $defaults : (
+    gutters    : var(gutters),
+    max-width  : $max
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $guts       : map-get($settings, gutters);
+  $max        : map-get($settings, max-width);
+  $important  : map-get($settings, important);
+
+  width:100%; max-width:add-unit($max);
+  position:relative;
+  display:block;
+  margin-left:auto; margin-right:auto;
+
+	@if is-number($guts) and $guts > 1 {
+		padding-left  : add-unit($gutters) $important;
+		padding-right : add-unit($gutters) $important;
+	} @elseif is-var($guts) {
+		padding-left  : $guts $important;
+		padding-right : $guts $important;
+	}
+
+}
+
+/// Sets the width and height to the same values
+/// If the second para "special" is defined as min or max, the dimenstions will be prefixed with that
+
+/// @example @include size(100, 200, max);
+/// @output max-width:100px; max-height:100px;
+
+/// @example @include size(150, important);
+/// @output width:150px !important; height:150px !important;
+
+@mixin size($args...) {
+
+  $defaults : (
+    width : null,
+    height : null,
+    prefix : null,
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $width     : map-get($settings, width);
+  $height    : check(map-get($settings, height), $width, number);
+  $prefix    : map-get($settings, prefix);
+  $important : map-get($settings, important);
+
+  $prefix : if(contains($prefix, (min, max)), $prefix + '-', null);
+
+  #{$prefix}width  : add-unit($width) $important;
+  #{$prefix}height : add-unit($height) $important;
+
+}
+
+@mixin viewport-width($args...) {
+
+  $defaults : (
+    refactor   : true,
+    breakpoint : if(variable-exists(min),$min, 320px),
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $refactor   : map-get($settings, refactor);
+  $breakpoint : map-get($settings, breakpoint);
+  $important  : map-get($settings, important);
+
+  width:100%;
+  min-width : add-unit($breakpoint);
+
+  @if not is-null($breakpoint) {
+
+    @include outside-break($breakpoint) {
+      width:100vw;
+      left:50%;
+      @include x(-50%);
+    }
+
+  }
+
+  @if ( $refactor != false ) {
+    $refactor-gap : if(is-number($refactor), add-unit($refactor), $gap);
+    @include inside-break($breakpoint) {
+      left:-$refactor-gap;
+      width:calc(100% + #{$refactor-gap*2});
+      @content;
+    }
+  }
 }
 
 @mixin page($args...) {
@@ -8283,9 +8283,7 @@ $triangle-settings: (
 			outline: 1px dotted ButtonText;
 		}
 
-		fieldset {
-			padding: 0.35em 0.75em 0.625em;
-		}
+		fieldset { padding:0;	}
 
 		legend {
 			box-sizing: border-box;
