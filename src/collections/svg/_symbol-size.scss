@@ -6,11 +6,11 @@
 
 ///
 /// @param {String} $symbol - Define the symbol name. You can ommit the prefix 'icon-'
-/// @param {Number} $new-width - Define a unitless number to adjust the scale of an SVG.
+/// @param {Number} $width - Define a unitless number to adjust the scale of an SVG.
 ///                              0.5 is half the original size where 2 is double it's original size.
 ///                              Using a unit will force the resize of the the element to a specific width,
 ///                              the height will retain it's existing aspect ratio.
-/// @param {Number} $new-height - Define a speicfic height. This will ignore the aspect ratio and force the desired width.
+/// @param {Number} $height - Define a speicfic height. This will ignore the aspect ratio and force the desired width.
 /// @param {Bool|Number|List} $transform-origin - If true, the transform-origin will be placed at the center of the div using px
 ///                                               You can pass in 2 numbers to define your own Y and X co-ordinates
 ///                                               Padding in just one number, will apply to both Y and X.
@@ -38,21 +38,21 @@
 
   $defaults : (
     symbol           : null,
-    new-width        : null,
-    new-height       : null,
+    width            : null,
+    height           : null,
     transform-origin : true
   );
 
   $settings : get-settings($defaults, $args...);
   $symbol           : map-get($settings, symbol);
-  $new-width        : map-get($settings, new-width);
-  $new-height       : map-get($settings, new-height);
+  $width        : map-get($settings, width);
+  $height       : map-get($settings, height);
   $transform-origin : map-get($settings, transform-origin);
 
   @if (map-has-key($symbols, $symbol)) {
     $svg : map-get($symbols, $symbol);
     @if (map-has-key($svg, width) and map-has-key($svg, height)) {
-      @include svg-size(map-get($svg, width), map-get($svg, height), $new-width, $new-height, $transform-origin);
+      @include svg-size(map-get($svg, width), map-get($svg, height), $width, $height, $transform-origin);
     }
   } @else {
     @if $warnings {
