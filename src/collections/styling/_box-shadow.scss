@@ -21,5 +21,5 @@
   $colour : map-get($settings, colour);
   $important : map-get($settings, important);
 
-  box-shadow: inset add-unit($x) add-unit($y) add-unit($blur) $color $important;
+  box-shadow: inset add-unit($x) add-unit($y) add-unit($blur) $colour $important;
 }
