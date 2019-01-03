@@ -198,10 +198,10 @@ $triangle-settings: (
 
   &#{pseudo($sudo)} {
     content:"";
-    @include size($width $height);
+    @include size($width, $height);
     position:absolute;
     pointer-events:none;
-    background-image:svg("<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'><polygon points='" + $triangle + $fill + if($stroke, $s-colour + $s-linecap + $s-linejoin + $s-width + $s-alignment + $s-dasharray,'') + "'/></svg>");
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'><polygon points='" + $triangle + $fill + if($stroke, $s-colour + $s-linecap + $s-linejoin + $s-width + $s-alignment + $s-dasharray,'') + "'/></svg>");
     background-size:100% 100%;
     background-repeat:no-repeat;
     @if $center {
