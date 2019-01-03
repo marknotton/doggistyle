@@ -1,7 +1,20 @@
-@mixin rotate3d($values) {
-  $x :   if( length($values) == 1, remove-unit(nth($values, 1)), 0);
-  $y :   if( length($values) > 1,  remove-unit(nth($values, 2)), 1);
-  $z :   if( length($values) > 2,  remove-unit(nth($values, 3)), 0);
-  $deg : if( length($values) > 3,  to-number(add-unit(nth($values, 4), deg)), 0);
-  @include transform(rotate3d $x $y $z $deg);
+@mixin rotate3d($args...) {
+
+  $defaults : (
+    x   : 0,
+    y   : 0,
+    z   : 0,
+    deg : 0
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $x   : map-get($settings, x);
+  $y   : map-get($settings, y);
+  $z   : map-get($settings, z);
+  $deg : map-get($settings, deg);
+  $important : map-get($settings, important);
+
+	@include transform(rotate3d $x $y $z add-unit($deg, deg));
+
 }
