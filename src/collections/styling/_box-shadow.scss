@@ -10,7 +10,8 @@
     x      : 0,
     y      : 0,
     blur   : 5,
-    colour : rgba(0,0,0,0.6)
+    colour : rgba(0,0,0,0.6),
+		inset  : null
   );
 
   $settings : get-settings($defaults, $args...);
@@ -19,7 +20,10 @@
   $y      : map-get($settings, y);
   $blur   : map-get($settings, blur);
   $colour : map-get($settings, colour);
+  $inset  : map-get($settings, inset);
   $important : map-get($settings, important);
 
-  box-shadow: inset add-unit($x) add-unit($y) add-unit($blur) $colour $important;
+	$inset : if($inset, inset, null);
+
+  box-shadow: $inset add-unit($x) add-unit($y) add-unit($blur) $colour $important;
 }
