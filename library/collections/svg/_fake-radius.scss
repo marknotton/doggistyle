@@ -7,7 +7,7 @@
 @mixin fake-radius($settings...) {
 
   /*$count : 0;
-  
+
   $corner-settings: (
     top-left : (
       color : null,
@@ -36,14 +36,14 @@
   @debug $corners;
 
   @each $settings in _arglist-to-list($settings...) {
-    $count : $count + 1; 
+    $count : $count + 1;
 
     @each $setting in $settings {
 
       // If the settings contains one of the corners types, only focus on that one corner for the remaining settings.
       @if is-string($setting) and contains($corners, $setting) {
         $corner : $setting;
-        
+
         @each $setting in $settings {
           @if is-colour($setting) and map-deep-get($corner-settings, $corner, color) == null {
             $corner-settings : map-deep-set($corner-settings, $corner, color, colour($setting, true));
@@ -61,7 +61,7 @@
         @if map-deep-get($corner-settings, $corner, color) == null {
           $corner-settings : map-deep-set($corner-settings, $corner, color, colour(red, true));
         }
-        
+
         // If not units were found at all, revert the width back to a default radius setting
         @if map-deep-get($corner-settings, $corner, width) == null {
           $corner-settings : map-deep-set($corner-settings, $corner, width, $border-radius);
@@ -74,11 +74,11 @@
 
       }
       @else {
-        
-      
+
+
       }
     }
-  
+
   }
   @debug $corner-settings;*/
 
@@ -96,7 +96,7 @@
       }
       @elseif is-number($setting) {
         @if is-percentage($setting) {
-          $size : add-unit(_min-max-number(strip($setting))/2, %);
+          $size : add-unit(_min-max-number(strip($setting))/2, '%');
         } @else {
           $size : strip($setting);
         }
@@ -118,8 +118,8 @@
   $svg : $svg + "</svg>";
 
 
-  &#{_sudo($sudo)} { 
-    @extend %sudo, %nopointerevent; 
+  &#{_sudo($sudo)} {
+    @extend %sudo, %nopointerevent;
     background-image:svg($svg); z-index:1;
     @content;
   }
@@ -128,4 +128,3 @@
 
 
    // xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:a="http://ns.adobe.com/AdobeSVGViewerExtensions/3.0/"
-
