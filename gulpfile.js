@@ -62,7 +62,7 @@ gulp.task('watch', ['compile'], () => {
 // Aliases
 // =============================================================================
 // Inject a selection of mixin and function aliases at the bottom of the output.
-// Mixins that have an array value can contain a boolean which added the @content
+// Mixins that have an array value can contain a boolean which adds the @content
 // attribute within the mixins declaration.
 
 const aliases = {

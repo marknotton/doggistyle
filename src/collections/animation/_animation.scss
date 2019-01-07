@@ -51,6 +51,8 @@
 ///
 //@include keyframes(testing) { to { @include rotate(360deg);}}
 
+$animation-names : ();
+
 @mixin animation($args...) {
 
   $animations : null;
@@ -75,8 +77,6 @@
     $state : null;
 
     @each $setting in $settings {
-
-
 
       @if contains($setting, forwards backwards both none) {
         $fill : $setting;
@@ -122,7 +122,6 @@
     $delay: if(is-null($delay), 0s, $delay);
     $iterations: if(is-null($iterations), 1, $iterations);
 
-
 		@if not is-null($name) {
   	  $animations : append($animations, $name $duration $ease $delay $iterations $direction $fill $state, comma);
 		}
@@ -130,7 +129,12 @@
   }
 	// TODO: When a later version of Sass allows you to check @content exists,
 	// apply a queiry before using this keyframes mixin;
-	@include keyframes($unique-name) { @content; }
+	// @if (content-exists()) {
+		@if (not contains($unique-name, $animation-names)) {
+			$animation-names : append($animation-names, unquote($unique-name)) !global;
+			@include keyframes($unique-name) { @content; }
+		}
+	// }
 
   @if ( not is-null($animations)) {
     animation : $animations;

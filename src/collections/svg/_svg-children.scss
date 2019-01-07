@@ -1,0 +1,77 @@
+@mixin svg-children($args...) {
+
+	$defaults : (
+		svg      : null,
+		targets  : $svg-elements,
+		offset-y : 0,
+		offset-x : 0,
+	);
+
+	$settings : get-settings($defaults, $args...);
+
+	$svg        : map-get($settings, svg);
+	$targets    : map-get($settings, targets);
+	$offset-y   : map-get($settings, offset-y);
+	$offset-x   : map-get($settings, offset-x);
+	$important  : map-get($settings, important);
+
+	@if (is-null($svg)) {
+		@error("You must pass in the name of the SVG you wat to apply the transform origins to");
+	}
+
+	@if (map-has-key($symbols, $svg)) {
+
+		$svg : map-get($symbols, $svg);
+
+		@if (map-has-key($svg, children)) {
+
+			$children : map-get($svg, children);
+
+			@if length($children) {
+
+				@for $i from 1 through length($children) {
+
+					$child       : nth($children, $i);
+					$type        : map-get($child, type);
+					$name        : if(map-has-key($child, name),        map-get($child, name), false);
+					$index       : if(map-has-key($child, index),       map-get($child, index), false);
+					$group-name  : if(map-has-key($child, group-name),  map-get($child, group-name), false);
+					$group-index : if(map-has-key($child, group-index), map-get($child, group-index), false);
+					$x           : map-get($child, x) + $offset-x;
+					$y           : map-get($child, y) + $offset-y;
+					$target      : '';
+
+					@if contains($targets, $type) {
+
+						@if $group-name {
+							$target : $group-name + ' ';
+						} @elseif $group-index {
+							$target : 'g:nth-of-type(#{$group-index}) ';
+						}
+
+						@if $name {
+							$target : $target + $name;
+						} @else {
+							$target : $target + '#{$type}:nth-of-type(#{$index})';
+						}
+
+						@if $target != '' {
+							// @debug $target;
+							#{$target} {
+								transform-origin:$x $y $important;
+								@content;
+							}
+						}
+
+					}
+
+				}
+			}
+		} @else {
+			@warn("It looks like you don't have any children data in your _symbols.scss map. Check this is enabled in your 'svg-to-symbols' Gulp task")
+		}
+	} @else {
+		@warn($svg + ' was not found in your symbols map.');
+	}
+
+}

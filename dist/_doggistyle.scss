@@ -499,201 +499,6 @@ $sc-non-strict-defaults: (
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Get Var Value                                                 #get-var-value
-////////////////////////////////////////////////////////////////////////////////
-///
-/// @group helpers-misc
-///
-/// $return-all - Set to true if you want to return all value from a var(...),
-/// by default this will loop through all variables to see if one matches
-/// anything fomr the custom properties array.
-
-@function get-var-value($variable, $return-all : false) {
-
-  @if is-var($variable) {
-
-		@if map-has-keys($custom-properties, $variable) {
-			@return map-get($custom-properties, $variable);
-		}
-
-		@elseif string-starts-with(quote($variable), 'var(--') {
-			$variable : str-replace($variable, 'var(--', '');
-			$variable : str-replace($variable, ')', '');
-
-			$variables : string-explode(get-var-value($variable), ', ');
-
-			@if $return-all == false {
-				@each $var in $variables {
-					@if map-has-keys($custom-properties, $var) {
-						@return map-get($custom-properties, $var);
-					}
-				}
-			}
-
-			@if length($variables) > 1 {
-				@return $variables;
-			}
-
-			@return $variable;
-		}
-
-  } @else {
-    @return $variable
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Var Value                                                         #var-value
-////////////////////////////////////////////////////////////////////////////////
-
-/// @group helpers-misc
-
-@function var-value($variable:primary, $opacity:1, $fallback:true) {
-
-  $variable-value : $variable;
-  $fallback-value : null;
-
-  // If varuable is a standard colour, just use that colour as normal. Opacity is not used.
-  @if is-colour($variable) {
-
-    @if is-hex($variable) {
-      $variable-value : rgba($variable, $opacity);
-    } @else {
-      $variable-value : $variable;
-    }
-
-  } @else {
-
-    // Check the variables map to help generate a fallback colour
-    $fallback-value : get-variable-colour-value($variable, $opacity);
-
-    @if is-var($variable) {
-
-      // If a hardcoded 'var(--XXX)' is passed, extract the variable name and check if
-      // it's part of the variables map. If it is, use this hardcoded colour as a fallback.
-      // Add opacity is one if provided.
-
-      @if $support-css-variable-alpha-colours {
-
-        $variable-value : rgba($variable, $opacity);
-
-      } @else {
-
-        @if not is-null($fallback-value) {
-          $variable-value : str-replace($variable, ')', ', ' + $fallback-value + ')');
-        } @else {
-          $variable-value : $variable;
-        }
-
-      }
-
-    } @else {
-
-      // If a string was passed as the string. Assume this is a shorthand to search
-      // the variables map for the right variable then apply the fallback.
-
-      @if $support-css-variable-alpha-colours {
-        $variable-value : rgba(unquote('var(--' + $variable + ')'), $opacity);
-      } @else {
-
-        @if not is-null($fallback-value) {
-          $variable-value : unquote('var(--' + $variable + ', '+ $fallback-value +')');
-        } @else {
-          $variable-value : unquote('var(--' + $variable + ')');
-        }
-      }
-    }
-
-  }
-
-  @if ( not is-null($fallback-value) and $fallback ) {
-    @return ($variable-value, $fallback-value);
-  }
-
-  @return $variable-value;
-
-}
-
-@function var($args...) {
-
-	$custom-property : ();
-	$fallback : null;
-	$variables : ();
-	$suffix : '';
-
-	// List valid custom properties names
-	@each $value in $args {
-		@if is-string($value) and not is-number($value) {
-			$value : string-replace($value, ' ');
-			$variables : append($variables, string-replace($value, '--'));
-			$suffix : $suffix + ')';
-		} @else {
-			$fallback : $value;
-		}
-	}
-
-	@if length($variables) > 0 {
-		@for $i from 1 through length($variables) {
-
-			$variable : nth($variables, $i);
-			$last : $i == length($variables);
-
-			@if $last and map-has-keys($custom-properties, $variable) {
-				$fallback : map-get($custom-properties, $variable);
-			}
-
-			$custom-property : append($custom-property, unquote('var(--' + $variable + ','));
-
-		}
-	}
-
-	@if not is-null($fallback) {
-		$custom-property : $custom-property + ' ' + $fallback;
-	}
-
-	$result : to-string($custom-property) + $suffix;
-
-	$result : string-replace($result, '(var', 'var');
-	$result : string-replace($result, ',)', ')');
-	$result : string-replace($result, ',))', ')');
-
-	// If the user is passing in variables within variables using the native syntax,
-	// This function will render out a looped mess. The following does some checks,
-	// and cleans it up. This hasn't been tested on complex variables like gradients,
-	// calcs, or anything that isn't a predefined customer-properties;
-	@if str-index($result, '--var(') {
-		$_result : string-replace($result, 'var(');
-		$_result : string-replace($_result, $suffix + ')');
-		$_result : string-remove-whitespace($_result);
-		$_fallback : null;
-		$_variables : ();
-		@each $value in string-explode($_result, ',', comma) {
-			@if string-starts-with($value, '--') {
-				$_variables : append($_variables, $value, comma);
-			} @else {
-				$_fallback : $value;
-			}
-		}
-
-		$result : unquote(var($_variables...));
-
-		@if ( not is-null($_fallback)) {
-			// When using native syntax, that has var fallbacks with vars, a
-			// given fallback is ignored. Either don't use nested vars where the
-			// fallback is important, or define a fallback before calling it this way.
-			// Ultimately this is almost never going to happen.
-			// TODO Inject the fallback so as to not break the syntax. Data is coreect, syntax isn't.
-			// $result : $result + $_fallback;
-		}
-
-		@return $result;
-	}
-
-	@return unquote($result);
-
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Brightness                                                       #brightness
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -1085,6 +890,201 @@ $sc-non-strict-defaults: (
 
 @function random-colour($opacity:1) {
   @return rgba(random(256) - 1, random(256) - 1, random(256) - 1, $opacity);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Get Var Value                                                 #get-var-value
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @group helpers-misc
+///
+/// $return-all - Set to true if you want to return all value from a var(...),
+/// by default this will loop through all variables to see if one matches
+/// anything fomr the custom properties array.
+
+@function get-var-value($variable, $return-all : false) {
+
+  @if is-var($variable) {
+
+		@if map-has-keys($custom-properties, $variable) {
+			@return map-get($custom-properties, $variable);
+		}
+
+		@elseif string-starts-with(quote($variable), 'var(--') {
+			$variable : str-replace($variable, 'var(--', '');
+			$variable : str-replace($variable, ')', '');
+
+			$variables : string-explode(get-var-value($variable), ', ');
+
+			@if $return-all == false {
+				@each $var in $variables {
+					@if map-has-keys($custom-properties, $var) {
+						@return map-get($custom-properties, $var);
+					}
+				}
+			}
+
+			@if length($variables) > 1 {
+				@return $variables;
+			}
+
+			@return $variable;
+		}
+
+  } @else {
+    @return $variable
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Var Value                                                         #var-value
+////////////////////////////////////////////////////////////////////////////////
+
+/// @group helpers-misc
+
+@function var-value($variable:primary, $opacity:1, $fallback:true) {
+
+  $variable-value : $variable;
+  $fallback-value : null;
+
+  // If varuable is a standard colour, just use that colour as normal. Opacity is not used.
+  @if is-colour($variable) {
+
+    @if is-hex($variable) {
+      $variable-value : rgba($variable, $opacity);
+    } @else {
+      $variable-value : $variable;
+    }
+
+  } @else {
+
+    // Check the variables map to help generate a fallback colour
+    $fallback-value : get-variable-colour-value($variable, $opacity);
+
+    @if is-var($variable) {
+
+      // If a hardcoded 'var(--XXX)' is passed, extract the variable name and check if
+      // it's part of the variables map. If it is, use this hardcoded colour as a fallback.
+      // Add opacity is one if provided.
+
+      @if $support-css-variable-alpha-colours {
+
+        $variable-value : rgba($variable, $opacity);
+
+      } @else {
+
+        @if not is-null($fallback-value) {
+          $variable-value : str-replace($variable, ')', ', ' + $fallback-value + ')');
+        } @else {
+          $variable-value : $variable;
+        }
+
+      }
+
+    } @else {
+
+      // If a string was passed as the string. Assume this is a shorthand to search
+      // the variables map for the right variable then apply the fallback.
+
+      @if $support-css-variable-alpha-colours {
+        $variable-value : rgba(unquote('var(--' + $variable + ')'), $opacity);
+      } @else {
+
+        @if not is-null($fallback-value) {
+          $variable-value : unquote('var(--' + $variable + ', '+ $fallback-value +')');
+        } @else {
+          $variable-value : unquote('var(--' + $variable + ')');
+        }
+      }
+    }
+
+  }
+
+  @if ( not is-null($fallback-value) and $fallback ) {
+    @return ($variable-value, $fallback-value);
+  }
+
+  @return $variable-value;
+
+}
+
+@function var($args...) {
+
+	$custom-property : ();
+	$fallback : null;
+	$variables : ();
+	$suffix : '';
+
+	// List valid custom properties names
+	@each $value in $args {
+		@if is-string($value) and not is-number($value) {
+			$value : string-replace($value, ' ');
+			$variables : append($variables, string-replace($value, '--'));
+			$suffix : $suffix + ')';
+		} @else {
+			$fallback : $value;
+		}
+	}
+
+	@if length($variables) > 0 {
+		@for $i from 1 through length($variables) {
+
+			$variable : nth($variables, $i);
+			$last : $i == length($variables);
+
+			@if $last and map-has-keys($custom-properties, $variable) {
+				$fallback : map-get($custom-properties, $variable);
+			}
+
+			$custom-property : append($custom-property, unquote('var(--' + $variable + ','));
+
+		}
+	}
+
+	@if not is-null($fallback) {
+		$custom-property : $custom-property + ' ' + $fallback;
+	}
+
+	$result : to-string($custom-property) + $suffix;
+
+	$result : string-replace($result, '(var', 'var');
+	$result : string-replace($result, ',)', ')');
+	$result : string-replace($result, ',))', ')');
+
+	// If the user is passing in variables within variables using the native syntax,
+	// This function will render out a looped mess. The following does some checks,
+	// and cleans it up. This hasn't been tested on complex variables like gradients,
+	// calcs, or anything that isn't a predefined customer-properties;
+	@if str-index($result, '--var(') {
+		$_result : string-replace($result, 'var(');
+		$_result : string-replace($_result, $suffix + ')');
+		$_result : string-remove-whitespace($_result);
+		$_fallback : null;
+		$_variables : ();
+		@each $value in string-explode($_result, ',', comma) {
+			@if string-starts-with($value, '--') {
+				$_variables : append($_variables, $value, comma);
+			} @else {
+				$_fallback : $value;
+			}
+		}
+
+		$result : unquote(var($_variables...));
+
+		@if ( not is-null($_fallback)) {
+			// When using native syntax, that has var fallbacks with vars, a
+			// given fallback is ignored. Either don't use nested vars where the
+			// fallback is important, or define a fallback before calling it this way.
+			// Ultimately this is almost never going to happen.
+			// TODO Inject the fallback so as to not break the syntax. Data is coreect, syntax isn't.
+			// $result : $result + $_fallback;
+		}
+
+		@return $result;
+	}
+
+	@return unquote($result);
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2681,6 +2681,133 @@ $quare-3 :              "\25A2"; // ▢
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Find Digits                                                     #find-digits
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Finding the digits part of a stringified number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-numbers
+///
+/// @param {string} $source - string source
+///
+/// @param {number} $pointer - current pointer
+///
+/// @return {list} - new pointer, parsed number
+
+@function find-digits($source, $pointer) {
+  $source: to-lower-case($source);
+  $length: str-length($source);
+  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  $result: 0;
+  $runs: 1;
+
+  @while $pointer <= $length {
+    $token: str-slice($source, $pointer, $pointer);
+    $index: index($numbers, $token);
+
+    @if $token == "." {
+      // @continue;
+    }
+    @else if $index and $index > 0 {
+      $runs: $runs * 10;
+      $result: $result * 10 + ($index - 1);
+    }
+    @else {
+      @return $pointer, $result / $runs;
+    }
+
+    $pointer: $pointer + 1;
+  }
+
+  @return $pointer, $result / $runs;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Find Interger                                                  #find-integer
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Finding the digits part of a stringified number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-numbers
+///
+/// @param {string} $source  - string source
+///
+/// @param {number} $pointer - current pointer
+///
+/// @return {list} new pointer, parsed number
+
+@function find-integer($source, $pointer) {
+  $source: to-lower-case($source);
+  $length: str-length($source);
+  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  $result: 0;
+
+  @while $pointer <= $length {
+    $token: str-slice($source, $pointer, $pointer);
+    $index: index($numbers, $token);
+
+    @if $token == "-" {
+      // @continue;
+    }
+    @else if $index {
+      $result: $result * 10 + ($index - 1);
+    }
+    @else {
+      @return $pointer, $result;
+    }
+
+    $pointer: $pointer + 1;
+  }
+
+  @return $pointer, $result;
+}
+
+/// Strips any units from a number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/remove-unit-function/
+///
+/// @param {string} $number
+///
+/// @return {number}
+///
+/// @require {function} is-number
+/// @require {function} to-number
+///
+/// @example scss - Usage
+///   remove-unit(50px)
+///
+/// @example scss - Output
+///   50
+///
+
+@function remove-unit($number) {
+
+  @if not is-number($number) {
+    $number : to-number($number);
+  }
+
+  @if is-number($number) and not unitless($number) {
+    @return ($number / ($number * 0 + 1));
+  }
+
+  @return $number;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// Add                                                                     #add
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -3493,130 +3620,326 @@ $quare-3 :              "\25A2"; // ▢
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Find Digits                                                     #find-digits
+/// Added Extension                                               #add-extension
 ////////////////////////////////////////////////////////////////////////////////
-///
-/// Finding the digits part of a stringified number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-numbers
-///
-/// @param {string} $source - string source
-///
-/// @param {number} $pointer - current pointer
-///
-/// @return {list} - new pointer, parsed number
 
-@function find-digits($source, $pointer) {
-  $source: to-lower-case($source);
-  $length: str-length($source);
-  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
-  $result: 0;
-  $runs: 1;
+/// Add an extension to the end of a string if it doesn't already exist
+/// @author Mark Notton
 
-  @while $pointer <= $length {
-    $token: str-slice($source, $pointer, $pointer);
-    $index: index($numbers, $token);
+/// @group helpers-strings
+/// @return {string}
 
-    @if $token == "." {
-      // @continue;
-    }
-    @else if $index and $index > 0 {
-      $runs: $runs * 10;
-      $result: $result * 10 + ($index - 1);
-    }
-    @else {
-      @return $pointer, $result / $runs;
-    }
-
-    $pointer: $pointer + 1;
+@function add-extension($string, $extension) {
+  @if is-extension($string, $extension) {
+    @return to-string($string);
+  } @else {
+    @return $string + '.' + to-lower-case($extension);
   }
-
-  @return $pointer, $result / $runs;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Find Interger                                                  #find-integer
+/// String Compare                                               #string-compare
 ////////////////////////////////////////////////////////////////////////////////
-///
-/// Finding the digits part of a stringified number
-///
+
+/// Compares two string to determine which comes first
 /// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
+/// @link https://css-tricks.com/snippets/sass/sorting-function/
 /// @access private
-///
-/// @group helpers-numbers
-///
-/// @param {string} $source  - string source
-///
-/// @param {number} $pointer - current pointer
-///
-/// @return {list} new pointer, parsed number
+/// @group helpers-strings
+/// @param {string} $a - first string
+/// @parem {string} $b - second string
+/// @param {list} $order - order to deal with
+/// @return {bool}
 
-@function find-integer($source, $pointer) {
-  $source: to-lower-case($source);
-  $length: str-length($source);
-  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
-  $result: 0;
+@function string-compare($a, $b, $order) {
 
-  @while $pointer <= $length {
-    $token: str-slice($source, $pointer, $pointer);
-    $index: index($numbers, $token);
-
-    @if $token == "-" {
-      // @continue;
-    }
-    @else if $index {
-      $result: $result * 10 + ($index - 1);
-    }
-    @else {
-      @return $pointer, $result;
-    }
-
-    $pointer: $pointer + 1;
+  @if type-of($a) == number and type-of($b) == number {
+    @return $a < $b;
   }
 
-  @return $pointer, $result;
+  $a: to-lower-case($a + unquote(""));
+  $b: to-lower-case($b + unquote(""));
+
+  @for $i from 1 through min(str-length($a), str-length($b)) {
+
+    $char-a: str-slice($a, $i, $i);
+    $char-b: str-slice($b, $i, $i);
+
+    @if $char-a and $char-b and index($order, $char-a) != index($order, $char-b) {
+      @return index($order, $char-a) < index($order, $char-b);
+    }
+
+  }
+
+  @return str-length($a) < str-length($b);
 }
 
-/// Strips any units from a number
-///
+////////////////////////////////////////////////////////////////////////////////
+/// String Ends With                                           #string-ends-with
+////////////////////////////////////////////////////////////////////////////////
+
+/// Check whether `$string` ends with `$needle`
 /// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/remove-unit-function/
-///
-/// @param {string} $number
-///
-/// @return {number}
-///
-/// @require {function} is-number
-/// @require {function} to-number
-///
-/// @example scss - Usage
-///   remove-unit(50px)
-///
-/// @example scss - Output
-///   50
-///
 
-@function remove-unit($number) {
+/// @group helpers-strings
+/// @link https://github.com/HugoGiraudel/SassyStrings/blob/master/dist/_SassyStrings.scss
+/// @param {string} $string - string to check
+/// @param {string} $needle - substring to check
+/// @return {Bool}
 
-  @if not is-number($number) {
-    $number : to-number($number);
+@function string-ends-with($string, $needle) {
+  @return str-slice($string, -1 * str-length($needle)) == $needle;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// String Explode                                               #string-explode
+////////////////////////////////////////////////////////////////////////////////
+
+/// Explode string into a list
+/// @author Hugo Giraudel
+
+/// @group helpers-strings
+/// @link https://github.com/HugoGiraudel/SassyStrings/blob/master/dist/_SassyStrings.scss
+/// @param {string} $string - String to split
+/// @param {string} $delimiter - string to use as a delimiter to split `$string`
+/// @param {string} $string - The string or array being searched and replaced on
+/// @return {List}
+
+@function string-explode($string, $delimiter: "", $seperator : space) {
+  $result: ();
+  $length: str-length($string);
+
+  @if str-length($delimiter) == 0 {
+    @for $i from 1 through $length {
+      $result: append($result, str-slice($string, $i, $i), $seperator);
+    }
+
+    @return $result;
   }
 
-  @if is-number($number) and not unitless($number) {
-    @return ($number / ($number * 0 + 1));
+  $running: true;
+  $remaining: $string;
+
+  @while $running {
+    $index: str-index($remaining, $delimiter);
+
+    @if $index {
+      $slice: str-slice($remaining, 1, $index - 1);
+      $result: append($result, $slice, $seperator);
+      $remaining: str-slice($remaining, $index + str-length($delimiter));
+    } @else {
+      $running: false;
+    }
   }
 
-  @return $number;
+  @return append($result, $remaining, $seperator);
+}
+
+@function string-remove-whitespace($str) {
+  @while (str-index($str, ' ') != null) {
+    $index: str-index($str, ' ');
+    $str: #{str-slice($str, 0, $index - 1)}#{str-slice($str, $index + 1)};
+  }
+  @return $str;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// String Replace                                               #string-replace
+////////////////////////////////////////////////////////////////////////////////
+
+/// Replace 'search' with '$replace' in '$string'. Reordered parameter order to match PHP str_replace
+/// @author Hugo Giraudel
+
+/// @group helpers-strings
+/// @link https://css-tricks.com/snippets/sass/str-replace-function
+/// @param {string} $search - The value being searched for
+/// @param {string} $replace - The replacement value that replaces found search values
+/// @param {string} $string - The string or array being searched and replaced on
+/// @return {string} - Updated string
+
+@function string-replace($string, $search, $replace:'') {
+  $index: str-index($string, $search);
+
+  @if $index {
+    @return str-slice($string, 1, $index - 1) + $replace + str-replace(str-slice($string, $index + str-length($search)), $search, $replace);
+  }
+
+  @return $string;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// String Starts With                                       #string-starts-with
+////////////////////////////////////////////////////////////////////////////////
+
+/// Check whether `$string` starts with `$needle`
+/// @author Hugo Giraudel
+
+/// @group helpers-strings
+/// @link https://github.com/HugoGiraudel/SassyStrings/blob/master/dist/_SassyStrings.scss
+/// @param {string} $string - string to check
+/// @param {string} $needle - substring to check
+/// @return {Bool}
+
+@function string-starts-with($string, $needle) {
+  @return str-slice($string, 1, str-length($needle)) == $needle;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// String To Hex                                                 #string-to-hex
+////////////////////////////////////////////////////////////////////////////////
+
+/// Cast a string into a hexadecimal color
+/// @author Hugo Giraudel
+/// @link https://github.com/HugoGiraudel/SassyCast
+/// @access private
+/// @group helpers-strings
+/// @param {string} $string - string
+/// @return {color | String} - string or hex color depending on the match
+/// @require {function} hex-to-dec
+
+@function string-to-hex($string) {
+  $string-lower: to-lower-case($string);
+  $r: "";  $g: ""; $b: "";
+  $hex: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f";
+  $length: str-length($string);
+  $max: if($length == 4, 1, 2);
+
+  // Check for length accuracy
+  @if $length != 4 and $length != 7 {
+    @return $string;
+  }
+
+  // Loop from the second character (omitting #)
+  @for $i from 2 through $length {
+    $c: str-slice($string-lower, $i, $i);
+
+    // If wrong character, return
+    @if not index($hex, $c) {
+      @return $string;
+    }
+
+    @if      str-length($r) < $max { $r: $r + $c }
+    @else if str-length($g) < $max { $g: $g + $c }
+    @else if str-length($b) < $max { $b: $b + $c }
+  }
+
+  @if $length == 4 {
+    $r: $r + $r;
+    $g: $g + $g;
+    $b: $b + $b;
+  }
+
+  @return rgb(hex-to-dec($r), hex-to-dec($g), hex-to-dec($b));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// String To HSL                                                 #string-to-hsl
+////////////////////////////////////////////////////////////////////////////////
+
+/// Cast a string into a hsl color
+/// @author Hugo Giraudel
+/// @link https://github.com/HugoGiraudel/SassyCast
+/// @access private
+/// @group helpers-strings
+/// @param {string} $string - string
+/// @return {color | String} - string or hsl color depending on the match
+/// @require {function} get-color-value
+
+@function string-to-hsl($string) {
+  $frags: ();
+  $string-lower: to-lower-case($string);
+  $is-alpha: str-slice($string-lower, 4, 4) == 'a';
+  $length: str-length($string);
+  $start: str-index($string, "(");
+
+  @for $i from $start through $length {
+    $token: str-slice($string-lower, $i, $i);
+    @if $token == ' ' {
+      // @continue;
+    }
+    @else if $token == '(' or $token == ',' {
+      $frags: append($frags, "");
+    }
+    @else if $token == ')' {
+      @if length($frags) != if($is-alpha, 4, 3) { @return $string; } // Parsing error
+      $hue: get-color-value(nth($frags, 1));
+      $saturation: get-color-value(nth($frags, 2));
+      $lightness: get-color-value(nth($frags, 3));
+
+      @if not $hue or not $saturation or not $lightness {
+        @return $string;
+      }
+
+      @if $is-alpha {
+        @if length($frags) != 4 { @return $string; } // No alpha channel found
+        $alpha: get-color-value(nth($frags, 4));
+        @if not $alpha { @return $string; } // Error parsing alpha channel
+        @return hsla($hue, $saturation, $lightness, $alpha);
+      }
+
+      @return hsl($hue, $saturation, $lightness);
+    }
+    @else {
+      $frags: set-nth($frags, length($frags), nth($frags, length($frags)) + $token);
+    }
+  }
+
+  @return $string;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// String To RGB                                                 #string-to-rgb
+////////////////////////////////////////////////////////////////////////////////
+
+/// Cast a string into a rgb color
+/// @author Hugo Giraudel
+/// @link https://github.com/HugoGiraudel/SassyCast
+/// @access private
+/// @group helpers-strings
+/// @param {string} $string - string
+/// @return {color | string} - string or rgb color depending on the match
+/// @require {function} get-color-value
+
+@function string-to-rgb($string) {
+  $string-lower: to-lower-case($string);
+  $frags: ();
+  $is-alpha: str-slice($string-lower, 4, 4) == 'a';
+  $start: str-index($string, "(");
+  $length: str-length($string);
+
+  @for $i from $start through $length {
+    $token: str-slice($string-lower, $i, $i);
+    @if $token == ' ' {
+      // @continue;
+    }
+    @else if $token == '(' or $token == ',' {
+      $frags: append($frags, "");
+    }
+    @else if $token == ')' {
+      @if length($frags) != if($is-alpha, 4, 3) { @return $string; } // Parsing error
+      $red: get-color-value(nth($frags, 1));
+      $green: get-color-value(nth($frags, 2));
+      $blue: get-color-value(nth($frags, 3));
+
+      @if not $red or not $green or not $blue {
+        @return $string;
+      }
+
+      @if $is-alpha {
+        @if length($frags) != 4 { @return $string; } // No alpha channel found
+        $alpha: get-color-value(nth($frags, 4));
+        @if not $alpha { @return $string; } // Error parsing alpha channel
+        @return rgba($red, $green, $blue, $alpha);
+      }
+
+      @return rgb($red, $green, $blue);
+    }
+    @else {
+      $frags: set-nth($frags, length($frags), nth($frags, length($frags)) + $token);
+    }
+  }
+
+  @return $string;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -3994,329 +4317,6 @@ $quare-3 :              "\25A2"; // ▢
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Added Extension                                               #add-extension
-////////////////////////////////////////////////////////////////////////////////
-
-/// Add an extension to the end of a string if it doesn't already exist
-/// @author Mark Notton
-
-/// @group helpers-strings
-/// @return {string}
-
-@function add-extension($string, $extension) {
-  @if is-extension($string, $extension) {
-    @return to-string($string);
-  } @else {
-    @return $string + '.' + to-lower-case($extension);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String Compare                                               #string-compare
-////////////////////////////////////////////////////////////////////////////////
-
-/// Compares two string to determine which comes first
-/// @author Hugo Giraudel
-/// @link https://css-tricks.com/snippets/sass/sorting-function/
-/// @access private
-/// @group helpers-strings
-/// @param {string} $a - first string
-/// @parem {string} $b - second string
-/// @param {list} $order - order to deal with
-/// @return {bool}
-
-@function string-compare($a, $b, $order) {
-
-  @if type-of($a) == number and type-of($b) == number {
-    @return $a < $b;
-  }
-
-  $a: to-lower-case($a + unquote(""));
-  $b: to-lower-case($b + unquote(""));
-
-  @for $i from 1 through min(str-length($a), str-length($b)) {
-
-    $char-a: str-slice($a, $i, $i);
-    $char-b: str-slice($b, $i, $i);
-
-    @if $char-a and $char-b and index($order, $char-a) != index($order, $char-b) {
-      @return index($order, $char-a) < index($order, $char-b);
-    }
-
-  }
-
-  @return str-length($a) < str-length($b);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String Ends With                                           #string-ends-with
-////////////////////////////////////////////////////////////////////////////////
-
-/// Check whether `$string` ends with `$needle`
-/// @author Hugo Giraudel
-
-/// @group helpers-strings
-/// @link https://github.com/HugoGiraudel/SassyStrings/blob/master/dist/_SassyStrings.scss
-/// @param {string} $string - string to check
-/// @param {string} $needle - substring to check
-/// @return {Bool}
-
-@function string-ends-with($string, $needle) {
-  @return str-slice($string, -1 * str-length($needle)) == $needle;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String Explode                                               #string-explode
-////////////////////////////////////////////////////////////////////////////////
-
-/// Explode string into a list
-/// @author Hugo Giraudel
-
-/// @group helpers-strings
-/// @link https://github.com/HugoGiraudel/SassyStrings/blob/master/dist/_SassyStrings.scss
-/// @param {string} $string - String to split
-/// @param {string} $delimiter - string to use as a delimiter to split `$string`
-/// @param {string} $string - The string or array being searched and replaced on
-/// @return {List}
-
-@function string-explode($string, $delimiter: "", $seperator : space) {
-  $result: ();
-  $length: str-length($string);
-
-  @if str-length($delimiter) == 0 {
-    @for $i from 1 through $length {
-      $result: append($result, str-slice($string, $i, $i), $seperator);
-    }
-
-    @return $result;
-  }
-
-  $running: true;
-  $remaining: $string;
-
-  @while $running {
-    $index: str-index($remaining, $delimiter);
-
-    @if $index {
-      $slice: str-slice($remaining, 1, $index - 1);
-      $result: append($result, $slice, $seperator);
-      $remaining: str-slice($remaining, $index + str-length($delimiter));
-    } @else {
-      $running: false;
-    }
-  }
-
-  @return append($result, $remaining, $seperator);
-}
-
-@function string-remove-whitespace($str) {
-  @while (str-index($str, ' ') != null) {
-    $index: str-index($str, ' ');
-    $str: #{str-slice($str, 0, $index - 1)}#{str-slice($str, $index + 1)};
-  }
-  @return $str;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String Replace                                               #string-replace
-////////////////////////////////////////////////////////////////////////////////
-
-/// Replace 'search' with '$replace' in '$string'. Reordered parameter order to match PHP str_replace
-/// @author Hugo Giraudel
-
-/// @group helpers-strings
-/// @link https://css-tricks.com/snippets/sass/str-replace-function
-/// @param {string} $search - The value being searched for
-/// @param {string} $replace - The replacement value that replaces found search values
-/// @param {string} $string - The string or array being searched and replaced on
-/// @return {string} - Updated string
-
-@function string-replace($string, $search, $replace:'') {
-  $index: str-index($string, $search);
-
-  @if $index {
-    @return str-slice($string, 1, $index - 1) + $replace + str-replace(str-slice($string, $index + str-length($search)), $search, $replace);
-  }
-
-  @return $string;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String Starts With                                       #string-starts-with
-////////////////////////////////////////////////////////////////////////////////
-
-/// Check whether `$string` starts with `$needle`
-/// @author Hugo Giraudel
-
-/// @group helpers-strings
-/// @link https://github.com/HugoGiraudel/SassyStrings/blob/master/dist/_SassyStrings.scss
-/// @param {string} $string - string to check
-/// @param {string} $needle - substring to check
-/// @return {Bool}
-
-@function string-starts-with($string, $needle) {
-  @return str-slice($string, 1, str-length($needle)) == $needle;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String To Hex                                                 #string-to-hex
-////////////////////////////////////////////////////////////////////////////////
-
-/// Cast a string into a hexadecimal color
-/// @author Hugo Giraudel
-/// @link https://github.com/HugoGiraudel/SassyCast
-/// @access private
-/// @group helpers-strings
-/// @param {string} $string - string
-/// @return {color | String} - string or hex color depending on the match
-/// @require {function} hex-to-dec
-
-@function string-to-hex($string) {
-  $string-lower: to-lower-case($string);
-  $r: "";  $g: ""; $b: "";
-  $hex: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f";
-  $length: str-length($string);
-  $max: if($length == 4, 1, 2);
-
-  // Check for length accuracy
-  @if $length != 4 and $length != 7 {
-    @return $string;
-  }
-
-  // Loop from the second character (omitting #)
-  @for $i from 2 through $length {
-    $c: str-slice($string-lower, $i, $i);
-
-    // If wrong character, return
-    @if not index($hex, $c) {
-      @return $string;
-    }
-
-    @if      str-length($r) < $max { $r: $r + $c }
-    @else if str-length($g) < $max { $g: $g + $c }
-    @else if str-length($b) < $max { $b: $b + $c }
-  }
-
-  @if $length == 4 {
-    $r: $r + $r;
-    $g: $g + $g;
-    $b: $b + $b;
-  }
-
-  @return rgb(hex-to-dec($r), hex-to-dec($g), hex-to-dec($b));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String To HSL                                                 #string-to-hsl
-////////////////////////////////////////////////////////////////////////////////
-
-/// Cast a string into a hsl color
-/// @author Hugo Giraudel
-/// @link https://github.com/HugoGiraudel/SassyCast
-/// @access private
-/// @group helpers-strings
-/// @param {string} $string - string
-/// @return {color | String} - string or hsl color depending on the match
-/// @require {function} get-color-value
-
-@function string-to-hsl($string) {
-  $frags: ();
-  $string-lower: to-lower-case($string);
-  $is-alpha: str-slice($string-lower, 4, 4) == 'a';
-  $length: str-length($string);
-  $start: str-index($string, "(");
-
-  @for $i from $start through $length {
-    $token: str-slice($string-lower, $i, $i);
-    @if $token == ' ' {
-      // @continue;
-    }
-    @else if $token == '(' or $token == ',' {
-      $frags: append($frags, "");
-    }
-    @else if $token == ')' {
-      @if length($frags) != if($is-alpha, 4, 3) { @return $string; } // Parsing error
-      $hue: get-color-value(nth($frags, 1));
-      $saturation: get-color-value(nth($frags, 2));
-      $lightness: get-color-value(nth($frags, 3));
-
-      @if not $hue or not $saturation or not $lightness {
-        @return $string;
-      }
-
-      @if $is-alpha {
-        @if length($frags) != 4 { @return $string; } // No alpha channel found
-        $alpha: get-color-value(nth($frags, 4));
-        @if not $alpha { @return $string; } // Error parsing alpha channel
-        @return hsla($hue, $saturation, $lightness, $alpha);
-      }
-
-      @return hsl($hue, $saturation, $lightness);
-    }
-    @else {
-      $frags: set-nth($frags, length($frags), nth($frags, length($frags)) + $token);
-    }
-  }
-
-  @return $string;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String To RGB                                                 #string-to-rgb
-////////////////////////////////////////////////////////////////////////////////
-
-/// Cast a string into a rgb color
-/// @author Hugo Giraudel
-/// @link https://github.com/HugoGiraudel/SassyCast
-/// @access private
-/// @group helpers-strings
-/// @param {string} $string - string
-/// @return {color | string} - string or rgb color depending on the match
-/// @require {function} get-color-value
-
-@function string-to-rgb($string) {
-  $string-lower: to-lower-case($string);
-  $frags: ();
-  $is-alpha: str-slice($string-lower, 4, 4) == 'a';
-  $start: str-index($string, "(");
-  $length: str-length($string);
-
-  @for $i from $start through $length {
-    $token: str-slice($string-lower, $i, $i);
-    @if $token == ' ' {
-      // @continue;
-    }
-    @else if $token == '(' or $token == ',' {
-      $frags: append($frags, "");
-    }
-    @else if $token == ')' {
-      @if length($frags) != if($is-alpha, 4, 3) { @return $string; } // Parsing error
-      $red: get-color-value(nth($frags, 1));
-      $green: get-color-value(nth($frags, 2));
-      $blue: get-color-value(nth($frags, 3));
-
-      @if not $red or not $green or not $blue {
-        @return $string;
-      }
-
-      @if $is-alpha {
-        @if length($frags) != 4 { @return $string; } // No alpha channel found
-        $alpha: get-color-value(nth($frags, 4));
-        @if not $alpha { @return $string; } // Error parsing alpha channel
-        @return rgba($red, $green, $blue, $alpha);
-      }
-
-      @return rgb($red, $green, $blue);
-    }
-    @else {
-      $frags: set-nth($frags, length($frags), nth($frags, length($frags)) + $token);
-    }
-  }
-
-  @return $string;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // Settings                                                            #settings
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -4686,6 +4686,8 @@ $browsers : ie edge safari firefox chrome opera;
 
 $devices : mobile tablet desktop;
 
+$svg-elements : path circle line polygon polyline rect ellipse;
+
 // Flex Container properties
 $flex-container-aliases : direction wrap flow justify items content;
 $flex-container         : display flex-direction flex-wrap flex-flow justify-content align-items align-content;
@@ -4919,30 +4921,291 @@ $ease-in-out-back  : cubic-bezier(0.680, -0.550, 0.265, 1.550);
 }
 
 @mixin show-breakpoints($sudo : before) {
-  &:#{$sudo} {
-    content:"\276F  #{add-unit($max)}";
-    background-color:darken($red, 20);
-    bottom:0;
-    right:0;
-    font-family:Arial;
-    padding:4px $gap0;
-    @include transition(background-color color);
-    pointer-events:none;
-    position:fixed;
-    z-index:9999;
-    font-size:12px;
-    line-height:16px;
-    color:white;
-    text-align:center;
-    @each $name, $value in $breakpoints {
-      $random-color: random-colour();
-      @include breakpoint($value, '>') {
-        content:"#{$name} #{add-unit($value)}";
-        background-color:$random-color;
-        color:colour-contrast($random-color);
-      }
-    }
-  }
+	@if $show-breakpoints {
+	  &:#{$sudo} {
+	    content:"\276F  #{add-unit($max)}";
+	    background-color:darken($red, 20);
+	    bottom:0;
+	    right:0;
+	    font-family:Arial;
+	    padding:4px $gap0;
+	    @include transition(background-color color);
+	    pointer-events:none;
+	    position:fixed;
+	    z-index:9999;
+	    font-size:12px;
+	    line-height:16px;
+	    color:white;
+	    text-align:center;
+	    @each $name, $value in $breakpoints {
+	      $random-color: random-colour();
+	      @include breakpoint($value, '>') {
+	        content:"#{$name} #{add-unit($value)}";
+	        background-color:$random-color;
+	        color:colour-contrast($random-color);
+	      }
+	    }
+	  }
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Grid Layouts                                                   #grid-layouts
+////////////////////////////////////////////////////////////////////////////////
+
+// =============================================================================
+// 2x Blocks
+// =============================================================================
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+$grid-template-2-blocks-1x2: "block1 block2";
+
+// =============================================================================
+// 3x Blocks
+// =============================================================================
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘└───┘└───┘
+$grid-template-3-blocks-1x3: "block1 block2 block3";
+
+// -----------------------------------------------------------------------------
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+// ┍────────────┐
+// │  3         │
+// └────────────┘
+$grid-template-3-blocks-1x2-3x3: "block1 block2" "block3 block3";
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  3  │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x2-1x3: "block1 block2" "block1 block3";
+
+// ┍────────────┐
+// │  1         │
+// └────────────┘
+// ┍─────┐┍─────┐
+// │  2  ││  3  │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x1-2x3: "block1 block1" "block2 block3";
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  3  ││     │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x2-3x2: "block1 block2" "block3 block2";
+
+// =============================================================================
+// 4x Blocks
+// =============================================================================
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+// ┍─────┐┍─────┐
+// │  3  ││  4  │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-3x4: "block1 block2" "block3 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  3  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  4  │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-1x3-1x4: "block1 block2" "block1 block3" "block1 block4";
+
+// ┍─────────────┐
+// │ 1           │
+// └─────────────┘
+// ┍───┐┍───┐┍───┐
+// │ 2 ││ 3 ││ 4 │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x1x1-2x3x4: "block1 block1 block1" "block2 block3 block4";
+
+// ┍─────┐┍─────┐
+// │  1  ││  4  │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  2  ││     │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  3  ││     │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-2x4-3x4: "block1 block2" "block2 block4" "block3 block4";
+
+// 270 Degrees
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘└───┘└───┘
+// ┍─────────────┐
+// │ 4           │
+// └─────────────┘
+$grid-template-4-blocks-1x2x3-4x4x4: "block1 block2 block3" "block4 block4 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   │└───┘│   │
+// │   │┍───┐│   │
+// │   ││ 4 ││   │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-1x3x3: "block1 block2 block3" "block1 block3 block3";
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// | 1  || 2  |
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x1-2x3-4x4: "block1 block1" "block2 block3" "block4 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍──────────┐
+// | 2        |
+// └──────────┘
+// ┍────┐┍────┐
+// | 3  || 4  |
+// └────┘└────┘
+$grid-template-4-blocks-1x1-2x2-3x4: "block1 block1" "block2 block2" "block3 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘│   ││   │
+// ┍───┐│   ││   │
+// │ 4 ││   ││   │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-4x2x3: "block1 block2 block3" "block4 block2 block3";
+
+// ┍────┐┍────┐
+// | 1  || 2  |
+// └────┘└────┘
+// ┍──────────┐
+// | 3        |
+// └──────────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-3x3-4x4: "block1 block2" "block3 block3" "block4 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   ││   │└───┘
+// │   ││   │┍───┐
+// │   ││   ││ 4 │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-1x2x4: "block1 block2 block3" "block1 block2 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// │ 3  ││  2 │
+// └────┘│    │
+// ┍────┐│    │
+// │ 4  ││    │
+// └────┘└────┘
+$grid-template-4-blocks-1x1-3x2-4x2: "block1 block1" "block3 block2" "block4 block2";
+
+// ┍────┐┍────┐┍────┐
+// │ 1  ││ 2  ││ 3  │
+// └────┘└────┘│    │
+// ┍──────────┐│    |
+// │ 4        ││    │
+// └──────────┘└────┘
+$grid-template-4-blocks-1x2x3-4x4x3: "block1 block2 block3" "block4 block4 block3";
+
+// ┍────┐┍────┐
+// │ 1  ││ 2  │
+// │    │└────┘
+// │    │┍────┐
+// │    ││ 3  │
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-1x3-4x4: "block1 block2" "block1 block3" "block4 block4";
+
+// ┍────┐┍──────────┐
+// │ 1  ││ 2        │
+// │    │└──────────┘
+// │    │┍────┐┍────┐
+// │    ││ 3  ││ 4  │
+// └────┘└────┘└────┘
+$grid-template-4-blocks-1x2x2-1x3x4: "block1 block2 block2" "block1 block3 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// │ 2  ││ 3  │
+// │    │└────┘
+// │    │┍────┐
+// │    ││ 4  │
+// └────┘└────┘
+$grid-template-4-blocks-1x1-2x3-2x4: "block1 block1" "block2 block3" "block2 block4";
+
+// ┍──────────┐┍────┐
+// │ 1        ││ 4  │
+// └──────────┘│    │
+// ┍────┐┍────┐│    │
+// │ 2  ││ 3  ││    │
+// └────┘└────┘└────┘
+$grid-template-4-blocks-1x1x4-2x3x4: "block1 block1 block4" "block2 block3 block4";
+
+// ┍────┐┍────┐
+// │ 1  ││ 2  │
+// └────┘│    │
+// ┍────┐│    │
+// │ 3  ││    │
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-3x2-4x4: "block1 block2" "block3 block2" "block4 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   │└───┘└───┘
+// │   |┍────────┐
+// │   ││ 4      |
+// └───┘└────────┘
+$grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block4";
+
+// =============================================================================
+// 5x Blocks
+// =============================================================================
+
+// If you want to split a column up using the repeat function, you may want to devide the min and max values by the amount of columns;
+@function grid-repeat($amount, $min:$small, $max:$max) {
+  @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
 }
 
 // Documentation: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
@@ -5377,266 +5640,164 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
   justify-content : initial $important;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Grid Layouts                                                   #grid-layouts
-////////////////////////////////////////////////////////////////////////////////
-
-// =============================================================================
-// 2x Blocks
-// =============================================================================
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-$grid-template-2-blocks-1x2: "block1 block2";
-
-// =============================================================================
-// 3x Blocks
-// =============================================================================
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘└───┘└───┘
-$grid-template-3-blocks-1x3: "block1 block2 block3";
-
-// -----------------------------------------------------------------------------
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-// ┍────────────┐
-// │  3         │
-// └────────────┘
-$grid-template-3-blocks-1x2-3x3: "block1 block2" "block3 block3";
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  3  │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x2-1x3: "block1 block2" "block1 block3";
-
-// ┍────────────┐
-// │  1         │
-// └────────────┘
-// ┍─────┐┍─────┐
-// │  2  ││  3  │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x1-2x3: "block1 block1" "block2 block3";
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  3  ││     │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x2-3x2: "block1 block2" "block3 block2";
-
-// =============================================================================
-// 4x Blocks
-// =============================================================================
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-// ┍─────┐┍─────┐
-// │  3  ││  4  │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-3x4: "block1 block2" "block3 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  3  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  4  │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-1x3-1x4: "block1 block2" "block1 block3" "block1 block4";
-
-// ┍─────────────┐
-// │ 1           │
-// └─────────────┘
-// ┍───┐┍───┐┍───┐
-// │ 2 ││ 3 ││ 4 │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x1x1-2x3x4: "block1 block1 block1" "block2 block3 block4";
-
-// ┍─────┐┍─────┐
-// │  1  ││  4  │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  2  ││     │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  3  ││     │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-2x4-3x4: "block1 block2" "block2 block4" "block3 block4";
-
-// 270 Degrees
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘└───┘└───┘
-// ┍─────────────┐
-// │ 4           │
-// └─────────────┘
-$grid-template-4-blocks-1x2x3-4x4x4: "block1 block2 block3" "block4 block4 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   │└───┘│   │
-// │   │┍───┐│   │
-// │   ││ 4 ││   │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-1x3x3: "block1 block2 block3" "block1 block3 block3";
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// | 1  || 2  |
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x1-2x3-4x4: "block1 block1" "block2 block3" "block4 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍──────────┐
-// | 2        |
-// └──────────┘
-// ┍────┐┍────┐
-// | 3  || 4  |
-// └────┘└────┘
-$grid-template-4-blocks-1x1-2x2-3x4: "block1 block1" "block2 block2" "block3 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘│   ││   │
-// ┍───┐│   ││   │
-// │ 4 ││   ││   │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-4x2x3: "block1 block2 block3" "block4 block2 block3";
-
-// ┍────┐┍────┐
-// | 1  || 2  |
-// └────┘└────┘
-// ┍──────────┐
-// | 3        |
-// └──────────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-3x3-4x4: "block1 block2" "block3 block3" "block4 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   ││   │└───┘
-// │   ││   │┍───┐
-// │   ││   ││ 4 │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-1x2x4: "block1 block2 block3" "block1 block2 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// │ 3  ││  2 │
-// └────┘│    │
-// ┍────┐│    │
-// │ 4  ││    │
-// └────┘└────┘
-$grid-template-4-blocks-1x1-3x2-4x2: "block1 block1" "block3 block2" "block4 block2";
-
-// ┍────┐┍────┐┍────┐
-// │ 1  ││ 2  ││ 3  │
-// └────┘└────┘│    │
-// ┍──────────┐│    |
-// │ 4        ││    │
-// └──────────┘└────┘
-$grid-template-4-blocks-1x2x3-4x4x3: "block1 block2 block3" "block4 block4 block3";
-
-// ┍────┐┍────┐
-// │ 1  ││ 2  │
-// │    │└────┘
-// │    │┍────┐
-// │    ││ 3  │
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-1x3-4x4: "block1 block2" "block1 block3" "block4 block4";
-
-// ┍────┐┍──────────┐
-// │ 1  ││ 2        │
-// │    │└──────────┘
-// │    │┍────┐┍────┐
-// │    ││ 3  ││ 4  │
-// └────┘└────┘└────┘
-$grid-template-4-blocks-1x2x2-1x3x4: "block1 block2 block2" "block1 block3 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// │ 2  ││ 3  │
-// │    │└────┘
-// │    │┍────┐
-// │    ││ 4  │
-// └────┘└────┘
-$grid-template-4-blocks-1x1-2x3-2x4: "block1 block1" "block2 block3" "block2 block4";
-
-// ┍──────────┐┍────┐
-// │ 1        ││ 4  │
-// └──────────┘│    │
-// ┍────┐┍────┐│    │
-// │ 2  ││ 3  ││    │
-// └────┘└────┘└────┘
-$grid-template-4-blocks-1x1x4-2x3x4: "block1 block1 block4" "block2 block3 block4";
-
-// ┍────┐┍────┐
-// │ 1  ││ 2  │
-// └────┘│    │
-// ┍────┐│    │
-// │ 3  ││    │
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-3x2-4x4: "block1 block2" "block3 block2" "block4 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   │└───┘└───┘
-// │   |┍────────┐
-// │   ││ 4      |
-// └───┘└────────┘
-$grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block4";
-
-// =============================================================================
-// 5x Blocks
-// =============================================================================
-
-// If you want to split a column up using the repeat function, you may want to devide the min and max values by the amount of columns;
-@function grid-repeat($amount, $min:$small, $max:$max) {
-  @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
+@mixin gradient-bottom($args...) {
+  @include gradient(linear, bottom, $args);
 }
 
-@mixin blur($value:5px, $important:false) {
+@mixin gradient-left($args...) {
+  @include gradient(linear, left, $args);
+}
+
+@mixin gradient-radial($args...) {
+  @include gradient(radial, $args...);
+}
+
+@mixin gradient-right($args...) {
+  @include gradient(linear, right, $args);
+}
+
+@mixin gradient-top($args...) {
+  @include gradient(linear, top, $args);
+}
+
+/// Create gradients
+///
+/// @author Mark Notton
+///
+/// @access private
+///
+/// @param {list} $args - Pass in the following gradient settings.
+///   [type]       - name of the graditent must be the first parameter
+///   [rule]       - Optional. If the gradient type requires it, you can add special rules. Like directions (as a string or number).
+///                  You don't need to type in 'to' for directions. This will be included automatically if necessary.
+///   [settings]   - Add a list of arguments for each colour. This can include a colour and number per argument.
+///
+/// @require {Mixin} contains
+/// @require {Mixin} prefix-values
+/// @require {Mixin} warning
+/// @require {Function} is-string
+/// @require {Function} is-number
+/// @require {Function} add-unit
+/// @require {Function} remove-nth
+/// @require {Function} replace-nth
+/// @require {Function} arglist-to-list
+///
+/// @example scss - Usage
+/// .foo {
+///   @include gradient(radial-repeat, ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+/// }
+///
+/// @example css - CSS output
+/// .foo {
+///   background: -webkit-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -moz-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -o-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -ms-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%); }
+/// }
+///
+
+@mixin gradient($args...) {
+
+  $settings : arglist-to-list($args);
+
+  $type: nth($settings, 1);
+
+  @if contains($type, $gradient-types) {
+
+    // Aliases
+    @if $type == linear-repeat {
+      $type : repeating-linear;
+    } @elseif $type == radial-repeat {
+      $type : repeating-radial;
+    } @elseif contains($type, circle) {
+      $type : radial;
+    }
+
+    $settings : remove-nth($settings, 1);
+
+  } @else {
+
+    $type : linear;
+
+    // @error "The first parameter must be the gradient type: #{$gradient-types}";
+
+  }
+
+  @if length($settings) > 1 {
+
+    @for $i from 1 through length($settings) {
+      $setting : nth($settings, $i);
+      // @debug $setting;
+      // Special first argument checks
+      @if ($i == 1) {
+        $unit : deg;
+
+        // Loop through the initial setting and check any unitless numbers has 'deg' as a default
+
+        @if contains($type, repeating-radial radial) {
+          $unit : %;
+          @if is-number($setting) {
+            @include warning($type + " can not have a number as the first parameter, it should be a colour");
+          }
+          @if contains($setting, at) {
+            $setting : replace-nth($setting, 1, add-unit(nth($setting, 1), px));
+          }
+        }
+
+        @if is-number($setting) {
+          $settings : replace-nth($settings, 1, add-unit($setting, $unit));
+        } @elseif is-list($setting) {
+          @if contains($setting, to) {
+            $setting : remove($setting, to);
+          }
+          @for $l from 1 through length($setting) {
+            $list-setting : nth($setting, $l);
+            @if is-number($list-setting) {
+              $setting : replace-nth($setting, $l, add-unit($list-setting, $unit));
+            }
+          }
+          $settings : replace-nth($settings, 1, $setting);
+        }
+      } @else {
+
+        @if is-list($setting) {
+          @for $l from 1 through length($setting) {
+            $list-setting : nth($setting, $l);
+            @if is-number($list-setting) {
+              $setting : replace-nth($setting, $l, add-unit($list-setting, %));
+            }
+          }
+          $settings : replace-nth($settings, $i, $setting);
+        }
+
+      }
+
+    }
+
+    $new-settings : ();
+    $new-generic-settings : ();
+
+    @each $set in $settings {
+      $new-settings : append($new-settings, $set, comma);
+      // Special checks for the generic syntax that requires "to" for specific direction strings
+      @if contains($set, right bottom left top) {
+        $new-generic-settings : append($new-generic-settings, to $set, comma);
+      } @else {
+        $new-generic-settings : append($new-generic-settings, $set, comma);
+      }
+
+    }
+
+    background:#{$type}-gradient($new-generic-settings);
+
+  } @else {
+    @include warning("You'll need more gradient settings than that");
+  }
+
+}
+
+@mixin blur($value:5px, $important:null) {
   @include filter(blur $value $important);
 }
 
@@ -5835,12 +5996,25 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
   @include transform(rotate $value);
 }
 
-@mixin rotate3d($values) {
-  $x :   if( length($values) == 1, remove-unit(nth($values, 1)), 0);
-  $y :   if( length($values) > 1,  remove-unit(nth($values, 2)), 1);
-  $z :   if( length($values) > 2,  remove-unit(nth($values, 3)), 0);
-  $deg : if( length($values) > 3,  to-number(add-unit(nth($values, 4), deg)), 0);
-  @include transform(rotate3d $x $y $z $deg);
+@mixin rotate3d($args...) {
+
+  $defaults : (
+    x   : 0,
+    y   : 0,
+    z   : 0,
+    deg : 0
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $x   : map-get($settings, x);
+  $y   : map-get($settings, y);
+  $z   : map-get($settings, z);
+  $deg : map-get($settings, deg);
+  $important : map-get($settings, important);
+
+	@include transform(rotate3d $x $y $z add-unit($deg, deg));
+
 }
 
 @mixin rotateX($value) {
@@ -5895,19 +6069,24 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
   @include transform(skewY add-unit($value, deg));
 }
 
-@mixin transform-origin($value: 50% 50%) {
+@mixin transform-origin($args...) {
 
-  $values : ();
+	$defaults : (
+		y : 50%,
+		x : null
+	);
 
-  @if length($value) > 1 {
-    @each $val in $value {
-      $values : append($values, add-unit($val));
-    }
-  } @else {
-    $values : add-unit($value);
-  }
+	$settings : get-settings($defaults, $args...);
 
-  transform-origin: $values;
+	$y : map-get($settings, y);
+	$x : map-get($settings, x);
+	$important : map-get($settings, important);
+
+	@if is-null($x) {
+		$x : $y;
+	}
+
+  transform-origin: $x $y $important;
 }
 
 @mixin transform-style($value) {
@@ -6054,161 +6233,73 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
   @include transform(translateZ $value);
 }
 
-@mixin gradient-bottom($args...) {
-  @include gradient(linear, bottom, $args);
-}
+@mixin devices($args...) {
 
-@mixin gradient-left($args...) {
-  @include gradient(linear, left, $args);
-}
+  // This checks to see if the current selector is html.
+  // This can not be converted into a shorthanded if statement.
+  $selector : to-string(#{&});
+	$space : ' ';
 
-@mixin gradient-radial($args...) {
-  @include gradient(radial, $args...);
-}
+	@if (str-index($selector, 'html')) {
+		$selector : string-replace(#{$selector}, 'html', '');
+		@if ($selector != 'html') {
+			$space : '';
+		}
+	}
 
-@mixin gradient-right($args...) {
-  @include gradient(linear, right, $args);
-}
+  @each $settings in arglist-to-list($args...) {
 
-@mixin gradient-top($args...) {
-  @include gradient(linear, top, $args);
-}
+    $devices-list : ();
+    $not : true;
 
-/// Create gradients
-///
-/// @author Mark Notton
-///
-/// @access private
-///
-/// @param {list} $args - Pass in the following gradient settings.
-///   [type]       - name of the graditent must be the first parameter
-///   [rule]       - Optional. If the gradient type requires it, you can add special rules. Like directions (as a string or number).
-///                  You don't need to type in 'to' for directions. This will be included automatically if necessary.
-///   [settings]   - Add a list of arguments for each colour. This can include a colour and number per argument.
-///
-/// @require {Mixin} contains
-/// @require {Mixin} prefix-values
-/// @require {Mixin} warning
-/// @require {Function} is-string
-/// @require {Function} is-number
-/// @require {Function} add-unit
-/// @require {Function} remove-nth
-/// @require {Function} replace-nth
-/// @require {Function} arglist-to-list
-///
-/// @example scss - Usage
-/// .foo {
-///   @include gradient(radial-repeat, ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-/// }
-///
-/// @example css - CSS output
-/// .foo {
-///   background: -webkit-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: -moz-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: -o-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: -ms-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%); }
-/// }
-///
-
-@mixin gradient($args...) {
-
-  $settings : arglist-to-list($args);
-
-  $type: nth($settings, 1);
-
-  @if contains($type, $gradient-types) {
-
-    // Aliases
-    @if $type == linear-repeat {
-      $type : repeating-linear;
-    } @elseif $type == radial-repeat {
-      $type : repeating-radial;
-    } @elseif contains($type, circle) {
-      $type : radial;
-    }
-
-    $settings : remove-nth($settings, 1);
-
-  } @else {
-
-    $type : linear;
-
-    // @error "The first parameter must be the gradient type: #{$gradient-types}";
-
-  }
-
-  @if length($settings) > 1 {
-
-    @for $i from 1 through length($settings) {
-      $setting : nth($settings, $i);
-      // @debug $setting;
-      // Special first argument checks
-      @if ($i == 1) {
-        $unit : deg;
-
-        // Loop through the initial setting and check any unitless numbers has 'deg' as a default
-
-        @if contains($type, repeating-radial radial) {
-          $unit : %;
-          @if is-number($setting) {
-            @include warning($type + " can not have a number as the first parameter, it should be a colour");
-          }
-          @if contains($setting, at) {
-            $setting : replace-nth($setting, 1, add-unit(nth($setting, 1), px));
-          }
+    @each $setting in $settings {
+      @if is-string($setting) {
+        @if contains($devices, $setting) and length($devices-list) < 2 {
+          $devices-list : append($devices-list, $setting);
         }
-
-        @if is-number($setting) {
-          $settings : replace-nth($settings, 1, add-unit($setting, $unit));
-        } @elseif is-list($setting) {
-          @if contains($setting, to) {
-            $setting : remove($setting, to);
-          }
-          @for $l from 1 through length($setting) {
-            $list-setting : nth($setting, $l);
-            @if is-number($list-setting) {
-              $setting : replace-nth($setting, $l, add-unit($list-setting, $unit));
-            }
-          }
-          $settings : replace-nth($settings, 1, $setting);
-        }
-      } @else {
-
-        @if is-list($setting) {
-          @for $l from 1 through length($setting) {
-            $list-setting : nth($setting, $l);
-            @if is-number($list-setting) {
-              $setting : replace-nth($setting, $l, add-unit($list-setting, %));
-            }
-          }
-          $settings : replace-nth($settings, $i, $setting);
-        }
-
+      } @elseif is-bool($setting) {
+        $not : $setting;
       }
-
     }
 
-    $new-settings : ();
-    $new-generic-settings : ();
-
-    @each $set in $settings {
-      $new-settings : append($new-settings, $set, comma);
-      // Special checks for the generic syntax that requires "to" for specific direction strings
-      @if contains($set, right bottom left top) {
-        $new-generic-settings : append($new-generic-settings, to $set, comma);
-      } @else {
-        $new-generic-settings : append($new-generic-settings, $set, comma);
+    // @if length($devices-list) > 1 and length($types-list) > 0 {
+    //   @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
+    // } @else {
+      @if length($devices-list) > 0 {
+        @each $device in $devices-list {
+          @if $not {
+            @at-root html[data-device="#{$device}"]#{$space}#{$selector}{ @content; }
+          } @else {
+            @at-root html:not([data-device="#{$device}"])#{$space}#{$selector}{ @content; }
+          }
+        }
       }
-
-    }
-
-    background:#{$type}-gradient($new-generic-settings);
-
-  } @else {
-    @include warning("You'll need more gradient settings than that");
+    // }
   }
+}
 
+@mixin is-desktop($type:null) {
+  @include devices(desktop $type) { @content };
+}
+
+@mixin is-mobile($type:null) {
+  @include devices(mobile $type) { @content };
+}
+
+@mixin is-tablet($type:null) {
+  @include devices(tablet $type) { @content };
+}
+
+@mixin not-desktop($type:null) {
+  @include devices(desktop $type false) { @content };
+}
+
+@mixin not-mobile($type:null) {
+  @include devices(mobile $type false) { @content };
+}
+
+@mixin not-tablet($type:null) {
+  @include devices(tablet $type false) { @content };
 }
 
 @mixin animation-delay($args...) {
@@ -6318,6 +6409,8 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
 ///
 //@include keyframes(testing) { to { @include rotate(360deg);}}
 
+$animation-names : ();
+
 @mixin animation($args...) {
 
   $animations : null;
@@ -6342,8 +6435,6 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
     $state : null;
 
     @each $setting in $settings {
-
-
 
       @if contains($setting, forwards backwards both none) {
         $fill : $setting;
@@ -6389,7 +6480,6 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
     $delay: if(is-null($delay), 0s, $delay);
     $iterations: if(is-null($iterations), 1, $iterations);
 
-
 		@if not is-null($name) {
   	  $animations : append($animations, $name $duration $ease $delay $iterations $direction $fill $state, comma);
 		}
@@ -6397,7 +6487,12 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
   }
 	// TODO: When a later version of Sass allows you to check @content exists,
 	// apply a queiry before using this keyframes mixin;
-	@include keyframes($unique-name) { @content; }
+	// @if (content-exists()) {
+		@if (not contains($unique-name, $animation-names)) {
+			$animation-names : append($animation-names, unquote($unique-name)) !global;
+			@include keyframes($unique-name) { @content; }
+		}
+	// }
 
   @if ( not is-null($animations)) {
     animation : $animations;
@@ -6552,75 +6647,6 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
 
 	transition : $values $important;
 
-}
-
-@mixin devices($args...) {
-
-  // This checks to see if the current selector is html.
-  // This can not be converted into a shorthanded if statement.
-  $selector : to-string(#{&});
-	$space : ' ';
-
-	@if (str-index($selector, 'html')) {
-		$selector : string-replace(#{$selector}, 'html', '');
-		@if ($selector != 'html') {
-			$space : '';
-		}
-	}
-
-  @each $settings in arglist-to-list($args...) {
-
-    $devices-list : ();
-    $not : true;
-
-    @each $setting in $settings {
-      @if is-string($setting) {
-        @if contains($devices, $setting) and length($devices-list) < 2 {
-          $devices-list : append($devices-list, $setting);
-        }
-      } @elseif is-bool($setting) {
-        $not : $setting;
-      }
-    }
-
-    // @if length($devices-list) > 1 and length($types-list) > 0 {
-    //   @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
-    // } @else {
-      @if length($devices-list) > 0 {
-        @each $device in $devices-list {
-          @if $not {
-            @at-root html[data-device="#{$device}"]#{$space}#{$selector}{ @content; }
-          } @else {
-            @at-root html:not([data-device="#{$device}"])#{$space}#{$selector}{ @content; }
-          }
-        }
-      }
-    // }
-  }
-}
-
-@mixin is-desktop($type:null) {
-  @include devices(desktop $type) { @content };
-}
-
-@mixin is-mobile($type:null) {
-  @include devices(mobile $type) { @content };
-}
-
-@mixin is-tablet($type:null) {
-  @include devices(tablet $type) { @content };
-}
-
-@mixin not-desktop($type:null) {
-  @include devices(desktop $type false) { @content };
-}
-
-@mixin not-mobile($type:null) {
-  @include devices(mobile $type false) { @content };
-}
-
-@mixin not-tablet($type:null) {
-  @include devices(tablet $type false) { @content };
 }
 
 @mixin browsers($args...) {
@@ -6999,6 +7025,71 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
       @content;
     }
   }
+}
+
+@mixin image-size($args...) {
+
+  $defaults : (
+    image    : null,
+    property : null,
+    prefix   : null,
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $image     : map-get($settings, image);
+  $property  : map-get($settings, property);
+  $prefix    : map-get($settings, prefix);
+  $important : map-get($settings, important);
+
+  $prefix : if(contains(min max, $prefix), #{$prefix + '-'}, null);
+
+  #{$prefix}height : height($image, $property) $important;
+  #{$prefix}width  : width($image, $property) $important;
+
+}
+
+/// @author Mark Notton
+/// @require postcss-inline-svg
+/// @see https://github.com/TrySound/postcss-inline-svg
+
+@mixin inline-svg($args...) {
+
+  $defaults : (
+    svg          : null,
+    fill         : null,
+    stroke       : null,
+    stroke-width : null,
+    path         : 'sprites'
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $svg          : map-get($settings, svg);
+  $fill         : map-get($settings, fill);
+  $stroke       : map-get($settings, stroke);
+  $stroke-width : map-get($settings, stroke-width);
+  $path         : map-get($settings, path);
+  $important    : map-get($settings, important);
+
+  @if not is-null($svg) {
+
+    $name     : nth(string-explode($svg, '.'), 1);
+    $filename : add-extension($svg, 'svg');
+
+    @at-root (without: media) {
+      @svg-load #{$name} url(#{if(is-null($path) or $path == false, '', $path+'/')+$filename}) {
+        fill: $fill $important;
+        stroke: $stroke $important;
+        stroke-width:add-unit($stroke-width) $important;
+        @content;
+      }
+    }
+
+    & { background-image: svg-inline(unquote($name)) $important; }
+
+  }
+
 }
 
 @mixin page($args...) {
@@ -7467,10 +7558,10 @@ $triangle-settings: (
 
   &#{pseudo($sudo)} {
     content:"";
-    @include size($width $height);
+    @include size($width, $height);
     position:absolute;
     pointer-events:none;
-    background-image:svg("<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'><polygon points='" + $triangle + $fill + if($stroke, $s-colour + $s-linecap + $s-linejoin + $s-width + $s-alignment + $s-dasharray,'') + "'/></svg>");
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'><polygon points='" + $triangle + $fill + if($stroke, $s-colour + $s-linecap + $s-linejoin + $s-width + $s-alignment + $s-dasharray,'') + "'/></svg>");
     background-size:100% 100%;
     background-repeat:no-repeat;
     @if $center {
@@ -7499,68 +7590,81 @@ $triangle-settings: (
 
 }
 
-@mixin image-size($args...) {
+@mixin svg-children($args...) {
 
-  $defaults : (
-    image    : null,
-    property : null,
-    prefix   : null,
-  );
+	$defaults : (
+		svg      : null,
+		targets  : $svg-elements,
+		offset-y : 0,
+		offset-x : 0,
+	);
 
-  $settings : get-settings($defaults, $args...);
+	$settings : get-settings($defaults, $args...);
 
-  $image     : map-get($settings, image);
-  $property  : map-get($settings, property);
-  $prefix    : map-get($settings, prefix);
-  $important : map-get($settings, important);
+	$svg        : map-get($settings, svg);
+	$targets    : map-get($settings, targets);
+	$offset-y   : map-get($settings, offset-y);
+	$offset-x   : map-get($settings, offset-x);
+	$important  : map-get($settings, important);
 
-  $prefix : if(contains(min max, $prefix), #{$prefix + '-'}, null);
+	@if (is-null($svg)) {
+		@error("You must pass in the name of the SVG you wat to apply the transform origins to");
+	}
 
-  #{$prefix}height : height($image, $property) $important;
-  #{$prefix}width  : width($image, $property) $important;
+	@if (map-has-key($symbols, $svg)) {
 
-}
+		$svg : map-get($symbols, $svg);
 
-/// @author Mark Notton
-/// @require postcss-inline-svg
-/// @see https://github.com/TrySound/postcss-inline-svg
+		@if (map-has-key($svg, children)) {
 
-@mixin inline-svg($args...) {
+			$children : map-get($svg, children);
 
-  $defaults : (
-    svg          : null,
-    fill         : null,
-    stroke       : null,
-    stroke-width : null,
-    path         : 'sprites'
-  );
+			@if length($children) {
 
-  $settings : get-settings($defaults, $args...);
+				@for $i from 1 through length($children) {
 
-  $svg          : map-get($settings, svg);
-  $fill         : map-get($settings, fill);
-  $stroke       : map-get($settings, stroke);
-  $stroke-width : map-get($settings, stroke-width);
-  $path         : map-get($settings, path);
-  $important    : map-get($settings, important);
+					$child       : nth($children, $i);
+					$type        : map-get($child, type);
+					$name        : if(map-has-key($child, name),        map-get($child, name), false);
+					$index       : if(map-has-key($child, index),       map-get($child, index), false);
+					$group-name  : if(map-has-key($child, group-name),  map-get($child, group-name), false);
+					$group-index : if(map-has-key($child, group-index), map-get($child, group-index), false);
+					$x           : map-get($child, x) + $offset-x;
+					$y           : map-get($child, y) + $offset-y;
+					$target      : '';
 
-  @if not is-null($svg) {
+					@if contains($targets, $type) {
 
-    $name     : nth(string-explode($svg, '.'), 1);
-    $filename : add-extension($svg, 'svg');
+						@if $group-name {
+							$target : $group-name + ' ';
+						} @elseif $group-index {
+							$target : 'g:nth-of-type(#{$group-index}) ';
+						}
 
-    @at-root (without: media) {
-      @svg-load #{$name} url(#{if(is-null($path) or $path == false, '', $path+'/')+$filename}) {
-        fill: $fill $important;
-        stroke: $stroke $important;
-        stroke-width:add-unit($stroke-width) $important;
-        @content;
-      }
-    }
+						@if $name {
+							$target : $target + $name;
+						} @else {
+							$target : $target + '#{$type}:nth-of-type(#{$index})';
+						}
 
-    & { background-image: svg-inline(unquote($name)) $important; }
+						@if $target != '' {
+							// @debug $target;
+							#{$target} {
+								transform-origin:$x $y $important;
+								@content;
+							}
+						}
 
-  }
+					}
+
+				}
+			}
+		} @else {
+			@warn("It looks like you don't have any children data in your _symbols.scss map. Check this is enabled in your 'svg-to-symbols' Gulp task")
+		}
+	} @else {
+		@warn($svg + ' was not found in your symbols map.');
+	}
 
 }
 
@@ -7635,17 +7739,14 @@ $triangle-settings: (
 
   // Set by width by height ratio
   @if not is-null($new-height) and is-null($new-width) {
-
     $new-width : ($new-height / $height) * $width;
-
   }
 
   // Set by height by width ratio
   @if not is-null($new-width) and is-null($new-height) {
-
     $new-height : ($new-width / $width) * $height;
-
   }
+
 
   // Fallback units
   @if is-null($width-unit) and not is-null($height-unit) {
@@ -7667,15 +7768,15 @@ $triangle-settings: (
   // Transform Origin
   @if ( $transform-origin ) {
     @if (is-bool($transform-origin) and $transform-origin == true) {
-      @include transform-origin(add-unit($new-width/2, $width-unit) add-unit($new-height/2, $height-unit));
+      @include transform-origin(($new-width/2, $width-unit), ($new-height/2, $height-unit));
     } @else {
       @include transform-origin($transform-origin);
     }
   }
 
   // Final Output
-  width :  to-number($new-width + $width-unit) $important;
-  height : to-number($new-height + $height-unit) $important;
+  width :  to-number($new-width) $important;
+  height : to-number($new-height) $important;
 
 };
 
@@ -7699,11 +7800,11 @@ $triangle-settings: (
 
 ///
 /// @param {String} $symbol - Define the symbol name. You can ommit the prefix 'icon-'
-/// @param {Number} $new-width - Define a unitless number to adjust the scale of an SVG.
+/// @param {Number} $width - Define a unitless number to adjust the scale of an SVG.
 ///                              0.5 is half the original size where 2 is double it's original size.
 ///                              Using a unit will force the resize of the the element to a specific width,
 ///                              the height will retain it's existing aspect ratio.
-/// @param {Number} $new-height - Define a speicfic height. This will ignore the aspect ratio and force the desired width.
+/// @param {Number} $height - Define a speicfic height. This will ignore the aspect ratio and force the desired width.
 /// @param {Bool|Number|List} $transform-origin - If true, the transform-origin will be placed at the center of the div using px
 ///                                               You can pass in 2 numbers to define your own Y and X co-ordinates
 ///                                               Padding in just one number, will apply to both Y and X.
@@ -7731,21 +7832,22 @@ $triangle-settings: (
 
   $defaults : (
     symbol           : null,
-    new-width        : null,
-    new-height       : null,
+    width            : null,
+    height           : null,
     transform-origin : true
   );
 
-  $settings : get-settings($defaults, $args...);
-  $symbol           : map-get($settings, symbol);
-  $new-width        : map-get($settings, new-width);
-  $new-height       : map-get($settings, new-height);
+  $settings         : get-settings($defaults, $args...);
+
+	$symbol           : map-get($settings, symbol);
+  $width            : map-get($settings, width);
+  $height           : map-get($settings, height);
   $transform-origin : map-get($settings, transform-origin);
 
   @if (map-has-key($symbols, $symbol)) {
     $svg : map-get($symbols, $symbol);
     @if (map-has-key($svg, width) and map-has-key($svg, height)) {
-      @include svg-size(map-get($svg, width), map-get($svg, height), $new-width, $new-height, $transform-origin);
+      @include svg-size(map-get($svg, width), map-get($svg, height), $width, $height, $transform-origin);
     }
   } @else {
     @if $warnings {
@@ -7792,7 +7894,8 @@ $triangle-settings: (
     x      : 0,
     y      : 0,
     blur   : 5,
-    colour : rgba(0,0,0,0.6)
+    colour : rgba(0,0,0,0.6),
+		inset  : null
   );
 
   $settings : get-settings($defaults, $args...);
@@ -7801,9 +7904,12 @@ $triangle-settings: (
   $y      : map-get($settings, y);
   $blur   : map-get($settings, blur);
   $colour : map-get($settings, colour);
+  $inset  : map-get($settings, inset);
   $important : map-get($settings, important);
 
-  box-shadow: inset add-unit($x) add-unit($y) add-unit($blur) $color $important;
+	$inset : if($inset, inset, null);
+
+  box-shadow: $inset add-unit($x) add-unit($y) add-unit($blur) $colour $important;
 }
 
 /// Define a buttons default and hover styling. Includes a support for css variables and inverting

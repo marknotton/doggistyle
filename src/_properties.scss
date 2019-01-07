@@ -34,6 +34,8 @@ $browsers : ie edge safari firefox chrome opera;
 
 $devices : mobile tablet desktop;
 
+$svg-elements : path circle line polygon polyline rect ellipse;
+
 // Flex Container properties
 $flex-container-aliases : direction wrap flow justify items content;
 $flex-container         : display flex-direction flex-wrap flex-flow justify-content align-items align-content;
