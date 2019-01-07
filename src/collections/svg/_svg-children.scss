@@ -32,31 +32,19 @@
 				@for $i from 1 through length($children) {
 
 					$child       : nth($children, $i);
+					$target      : if(map-has-key($child, target), map-get($child, target), map-get($child, type));;
 					$type        : map-get($child, type);
-					$name        : if(map-has-key($child, name),        map-get($child, name), false);
-					$index       : if(map-has-key($child, index),       map-get($child, index), false);
-					$group-name  : if(map-has-key($child, group-name),  map-get($child, group-name), false);
-					$group-index : if(map-has-key($child, group-index), map-get($child, group-index), false);
 					$x           : map-get($child, x) + $offset-x;
 					$y           : map-get($child, y) + $offset-y;
-					$target      : '';
 
+@debug $child;
+@debug $target;
+@debug $type;
+@debug $x;
+@debug $y;
 					@if contains($targets, $type) {
 
-						@if $group-name {
-							$target : $group-name + ' ';
-						} @elseif $group-index {
-							$target : 'g:nth-of-type(#{$group-index}) ';
-						}
-
-						@if $name {
-							$target : $target + $name;
-						} @else {
-							$target : $target + '#{$type}:nth-of-type(#{$index})';
-						}
-
 						@if $target != '' {
-							// @debug $target;
 							#{$target} {
 								transform-origin:$x $y $important;
 								@content;
