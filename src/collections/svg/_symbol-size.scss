@@ -43,10 +43,11 @@
     transform-origin : true
   );
 
-  $settings : get-settings($defaults, $args...);
-  $symbol           : map-get($settings, symbol);
-  $width        : map-get($settings, width);
-  $height       : map-get($settings, height);
+  $settings         : get-settings($defaults, $args...);
+
+	$symbol           : map-get($settings, symbol);
+  $width            : map-get($settings, width);
+  $height           : map-get($settings, height);
   $transform-origin : map-get($settings, transform-origin);
 
   @if (map-has-key($symbols, $symbol)) {

@@ -1,14 +1,19 @@
-@mixin transform-origin($value: 50% 50%) {
+@mixin transform-origin($args...) {
 
-  $values : ();
+	$defaults : (
+		y : 50%,
+		x : null
+	);
 
-  @if length($value) > 1 {
-    @each $val in $value {
-      $values : append($values, add-unit($val));
-    }
-  } @else {
-    $values : add-unit($value);
-  }
+	$settings : get-settings($defaults, $args...);
 
-  transform-origin: $values;
+	$y : map-get($settings, y);
+	$x : map-get($settings, x);
+	$important : map-get($settings, important);
+
+	@if is-null($x) {
+		$x : $y;
+	}
+
+  transform-origin: $x $y $important;
 }
