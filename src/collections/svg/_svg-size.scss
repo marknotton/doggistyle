@@ -77,7 +77,6 @@
     $new-height : ($new-width / $width) * $height;
   }
 
-
   // Fallback units
   @if is-null($width-unit) and not is-null($height-unit) {
     $width-unit : $height-unit;
@@ -98,14 +97,14 @@
   // Transform Origin
   @if ( $transform-origin ) {
     @if (is-bool($transform-origin) and $transform-origin == true) {
-      @include transform-origin(($new-width/2, $width-unit), ($new-height/2, $height-unit));
+      @include transform-origin(add-unit($new-width/2, $width-unit), add-unit($new-height/2, $height-unit));
     } @else {
       @include transform-origin($transform-origin);
     }
   }
 
   // Final Output
-  width :  to-number($new-width) $important;
-  height : to-number($new-height) $important;
+  width :  add-unit($new-width, $width-unit) $important;
+  height : add-unit($new-height, $height-unit) $important;
 
 };

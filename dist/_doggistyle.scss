@@ -893,6 +893,201 @@ $sc-non-strict-defaults: (
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Get Var Value                                                 #get-var-value
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @group helpers-misc
+///
+/// $return-all - Set to true if you want to return all value from a var(...),
+/// by default this will loop through all variables to see if one matches
+/// anything fomr the custom properties array.
+
+@function get-var-value($variable, $return-all : false) {
+
+  @if is-var($variable) {
+
+		@if map-has-keys($custom-properties, $variable) {
+			@return map-get($custom-properties, $variable);
+		}
+
+		@elseif string-starts-with(quote($variable), 'var(--') {
+			$variable : str-replace($variable, 'var(--', '');
+			$variable : str-replace($variable, ')', '');
+
+			$variables : string-explode(get-var-value($variable), ', ');
+
+			@if $return-all == false {
+				@each $var in $variables {
+					@if map-has-keys($custom-properties, $var) {
+						@return map-get($custom-properties, $var);
+					}
+				}
+			}
+
+			@if length($variables) > 1 {
+				@return $variables;
+			}
+
+			@return $variable;
+		}
+
+  } @else {
+    @return $variable
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Var Value                                                         #var-value
+////////////////////////////////////////////////////////////////////////////////
+
+/// @group helpers-misc
+
+@function var-value($variable:primary, $opacity:1, $fallback:true) {
+
+  $variable-value : $variable;
+  $fallback-value : null;
+
+  // If varuable is a standard colour, just use that colour as normal. Opacity is not used.
+  @if is-colour($variable) {
+
+    @if is-hex($variable) {
+      $variable-value : rgba($variable, $opacity);
+    } @else {
+      $variable-value : $variable;
+    }
+
+  } @else {
+
+    // Check the variables map to help generate a fallback colour
+    $fallback-value : get-variable-colour-value($variable, $opacity);
+
+    @if is-var($variable) {
+
+      // If a hardcoded 'var(--XXX)' is passed, extract the variable name and check if
+      // it's part of the variables map. If it is, use this hardcoded colour as a fallback.
+      // Add opacity is one if provided.
+
+      @if $support-css-variable-alpha-colours {
+
+        $variable-value : rgba($variable, $opacity);
+
+      } @else {
+
+        @if not is-null($fallback-value) {
+          $variable-value : str-replace($variable, ')', ', ' + $fallback-value + ')');
+        } @else {
+          $variable-value : $variable;
+        }
+
+      }
+
+    } @else {
+
+      // If a string was passed as the string. Assume this is a shorthand to search
+      // the variables map for the right variable then apply the fallback.
+
+      @if $support-css-variable-alpha-colours {
+        $variable-value : rgba(unquote('var(--' + $variable + ')'), $opacity);
+      } @else {
+
+        @if not is-null($fallback-value) {
+          $variable-value : unquote('var(--' + $variable + ', '+ $fallback-value +')');
+        } @else {
+          $variable-value : unquote('var(--' + $variable + ')');
+        }
+      }
+    }
+
+  }
+
+  @if ( not is-null($fallback-value) and $fallback ) {
+    @return ($variable-value, $fallback-value);
+  }
+
+  @return $variable-value;
+
+}
+
+@function var($args...) {
+
+	$custom-property : ();
+	$fallback : null;
+	$variables : ();
+	$suffix : '';
+
+	// List valid custom properties names
+	@each $value in $args {
+		@if is-string($value) and not is-number($value) {
+			$value : string-replace($value, ' ');
+			$variables : append($variables, string-replace($value, '--'));
+			$suffix : $suffix + ')';
+		} @else {
+			$fallback : $value;
+		}
+	}
+
+	@if length($variables) > 0 {
+		@for $i from 1 through length($variables) {
+
+			$variable : nth($variables, $i);
+			$last : $i == length($variables);
+
+			@if $last and map-has-keys($custom-properties, $variable) {
+				$fallback : map-get($custom-properties, $variable);
+			}
+
+			$custom-property : append($custom-property, unquote('var(--' + $variable + ','));
+
+		}
+	}
+
+	@if not is-null($fallback) {
+		$custom-property : $custom-property + ' ' + $fallback;
+	}
+
+	$result : to-string($custom-property) + $suffix;
+
+	$result : string-replace($result, '(var', 'var');
+	$result : string-replace($result, ',)', ')');
+	$result : string-replace($result, ',))', ')');
+
+	// If the user is passing in variables within variables using the native syntax,
+	// This function will render out a looped mess. The following does some checks,
+	// and cleans it up. This hasn't been tested on complex variables like gradients,
+	// calcs, or anything that isn't a predefined customer-properties;
+	@if str-index($result, '--var(') {
+		$_result : string-replace($result, 'var(');
+		$_result : string-replace($_result, $suffix + ')');
+		$_result : string-remove-whitespace($_result);
+		$_fallback : null;
+		$_variables : ();
+		@each $value in string-explode($_result, ',', comma) {
+			@if string-starts-with($value, '--') {
+				$_variables : append($_variables, $value, comma);
+			} @else {
+				$_fallback : $value;
+			}
+		}
+
+		$result : unquote(var($_variables...));
+
+		@if ( not is-null($_fallback)) {
+			// When using native syntax, that has var fallbacks with vars, a
+			// given fallback is ignored. Either don't use nested vars where the
+			// fallback is important, or define a fallback before calling it this way.
+			// Ultimately this is almost never going to happen.
+			// TODO Inject the fallback so as to not break the syntax. Data is coreect, syntax isn't.
+			// $result : $result + $_fallback;
+		}
+
+		@return $result;
+	}
+
+	@return unquote($result);
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// Check                                                                 #check
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1730,472 +1925,6 @@ $sc-non-strict-defaults: (
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Map Deep Get                                                   #map-deep-get
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Fetch nested keys in a map
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-
-///
-/// @group helpers-maps
-///
-/// @param (map) $map - Usually a variable name
-///
-/// @param (arglist) $keys - With comma delimination write the path to the disired map element
-///
-/// @return {*}
-///
-/// @example scss - Usage
-/// $foo: (
-///   bar: (
-///     lorem : (
-///       test1: #dcfac0,
-///       test2: #00968b,
-///     ),
-///     ipsom: (
-///       test1: #f4fac7,
-///       test2: #c2454e,
-///     )
-///   )
-/// );
-/// color: map-fetch($foo, bar, lorem, test1);
-///
-/// @example css - Output
-/// color:#dcfac0;
-///
-
-@function map-deep-get($map, $keys...) {
-  @each $key in $keys {
-    $map: map-get($map, $key);
-  }
-  @return $map;
-}
-
-/// @alias map-deep-get
-///
-
-///
-/// @require {function} map-deep-get
-///
-/// @return {*}
-
-@function map-fetch($map, $keys...) {
-  @return map-deep-get($map, $keys...);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Deep Merge                                               #map-deep-merge
-////////////////////////////////////////////////////////////////////////////////
-
-/// @name Map Deep Merge
-/// @author Zsolt Pentz
-/// @see https://medium.com/@pentzzsolt/a-non-destructive-map-merge-function-for-sass-f91637f87b2e
-
-@function map-deep-merge($parent-map, $child-map) {
-	$result: $parent-map;
-	@each $key, $value in $child-map {
-		@if (not map-has-key($result, $key)) or (type-of(map-get($result, $key)) != type-of($value)) or (not (type-of(map-get($result, $key)) == map and type-of($value) == map)) {
-			$result: map-merge($result, ($key: $value));
-		}
-		@else {
-			$result: map-merge($result, ($key: map-deep-merge(map-get($result, $key), $value)));
-		}
-	}
-	@return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Deep Set                                                   #map-deep-set
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Update a key deeply nested
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-
-///
-/// @group helpers-maps
-///
-/// @param {map} $map - Map to update
-///
-/// @param {arglist} $keys - Keys to access to value to update
-///
-/// @param {*} $value - New value (last member of `$keys`)
-///
-/// @return {map} - Updated map
-
-@function map-deep-set($map, $keys.../*, $value */) {
-  $map-list: ($map,);
-  $result: null;
-
-  @if length($keys) == 2 {
-    @return map-merge($map, (nth($keys, 1): nth($keys, -1)));
-  }
-
-  @for $i from 1 through length($keys) - 2 {
-    $map-list: append($map-list, map-get(nth($map-list, -1), nth($keys, $i)));
-  }
-
-  @for $i from length($map-list) through 1 {
-    $result: map-merge(nth($map-list, $i), (nth($keys, $i): if($i == length($map-list), nth($keys, -1), $result)));
-  }
-
-  @return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Depth                                                         #map-depth
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Compute the maximum depth of a map
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-
-///
-/// @group helpers-maps
-///
-/// @param {map} $map
-///
-/// @return {number} max depth of `$map`
-
-@function map-depth($map) {
-  $level: 1;
-
-  @each $key, $value in $map {
-    @if type-of($value) == "map" {
-      $level: max(map-depth($value) + 1, $level);
-    }
-  }
-
-  @return $level;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Extend                                                       #map-extend
-////////////////////////////////////////////////////////////////////////////////
-///
-/// jQuery-style extend function
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-
-///
-/// @group helpers-maps
-///
-/// @param {map} $map - first map
-///
-/// @param {arglist} $maps - other maps
-///
-/// @param {bool} $deep - recursive mode
-///
-/// @return {map}
-
-@function map-extend($map, $maps.../*, $deep */) {
-  $last: nth($maps, -1);
-  $deep: $last == true;
-  $max: if($deep, length($maps) - 1, length($maps));
-
-  // Loop through all maps in $maps...
-  @for $i from 1 through $max {
-    // Store current map
-    $current: nth($maps, $i);
-
-    // If not in deep mode, simply merge current map with map
-    @if not $deep {
-      $map: map-merge($map, $current);
-    } @else {
-      // If in deep mode, loop through all tuples in current map
-      @each $key, $value in $current {
-
-        // If value is a nested map and same key from map is a nested map as well
-        @if type-of($value) == "map" and type-of(map-get($map, $key)) == "map" {
-          // Recursive extend
-          $value: map-extend(map-get($map, $key), $value, true);
-        }
-
-        // Merge current tuple with map
-        $map: map-merge($map, ($key: $value));
-      }
-    }
-  }
-
-  @return $map;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Has Keys                                                   #map-has-keys
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Test if map got all `$keys` at first level
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-/// @group helpers-maps
-///
-/// @param {map} $map - Map
-///
-/// @param {arglist} $keys - Keys to test
-///
-/// @return {bool}
-
-@function map-has-keys($map, $keys...) {
-  @each $key in $keys {
-    @if not map-has-key($map, $key) {
-      @return false;
-    }
-  }
-
-  @return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Has Nested Keys                                     #map-has-nested-keys
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Test if map got all `$keys` nested with each others
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-
-///
-/// @group helpers-maps
-///
-/// @param {map} $map - Map
-///
-/// @param {arglist} $keys - Keys to test
-///
-/// @return {bool}
-
-@function map-has-nested-keys($map, $keys...) {
-  @each $key in $keys {
-    @if not map-has-key($map, $key) {
-      @return false;
-    }
-    $map: map-get($map, $key);
-  }
-
-  @return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Set                                                             #map-set
-////////////////////////////////////////////////////////////////////////////////
-///
-/// A quick way of adding a key and value to the end of a map
-///
-/// @author Mark Notton
-///
-/// @group helpers-maps
-///
-/// @return {map}
-
-@function map-set($map, $key, $value) {
-  @return map-merge($map, ($key: $value));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Zip                                                             #map-zip
-////////////////////////////////////////////////////////////////////////////////
-///
-/// An equivalent of `zip` function but for maps.
-/// I wrote my own version of this before realising Hugo had done something similar.
-/// I have kept the name, but used my own.
-///
-/// @author Mark Notton
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-/// @link http://sass-lang.com/documentation/Sass/Script/Functions.html#zip-instance_method
-///
-
-///
-/// @group helpers-maps
-///
-/// @param {list} $list1 - Keys for map
-///
-/// @param {list} $list2 - Values for map
-///
-/// @param {bool} $swappable - Swap variables around so list1 has the most values. Default is true.
-///
-/// @return {map} Freshly created map
-
-@function map-zip($list1, $list2, $swappable:true) {
-
-  $map : ();
-
-  $list1-size : length($list1);
-  $list2-size : length($list2);
-
-  $count : if($list1-size < $list2-size, $list1-size, $list2-size);
-
-
-  @if ($list1-size < $list2-size and $swappable) {
-    $temp : $list1;
-    $list1 : $list2;
-    $list2 : $temp;
-  }
-
-  @if $warnings {
-    @if ($list1-size < $list2-size) {
-      @if $warnings {
-        @warn('The second list had '+($list2-size - $list1-size)+' more value'+ if($list2-size - $list1-size != 1, 's', '') +' than the first list');
-      }
-    } @elseif ($list1-size > $list2-size) {
-      @if $warnings {
-        @warn('The first list had '+($list1-size - $list2-size)+' more value'+ if($list1-size - $list2-size != 1, 's', '') +' than the second list');
-      }
-    }
-  }
-
-  @for $i from 1 through $count {
-    $map : map-set($map, nth($list1, $i), nth($list2, $i));
-  }
-
-  @return $map;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Find Digits                                                     #find-digits
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Finding the digits part of a stringified number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-numbers
-///
-/// @param {string} $source - string source
-///
-/// @param {number} $pointer - current pointer
-///
-/// @return {list} - new pointer, parsed number
-
-@function find-digits($source, $pointer) {
-  $source: to-lower-case($source);
-  $length: str-length($source);
-  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
-  $result: 0;
-  $runs: 1;
-
-  @while $pointer <= $length {
-    $token: str-slice($source, $pointer, $pointer);
-    $index: index($numbers, $token);
-
-    @if $token == "." {
-      // @continue;
-    }
-    @else if $index and $index > 0 {
-      $runs: $runs * 10;
-      $result: $result * 10 + ($index - 1);
-    }
-    @else {
-      @return $pointer, $result / $runs;
-    }
-
-    $pointer: $pointer + 1;
-  }
-
-  @return $pointer, $result / $runs;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Find Interger                                                  #find-integer
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Finding the digits part of a stringified number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-numbers
-///
-/// @param {string} $source  - string source
-///
-/// @param {number} $pointer - current pointer
-///
-/// @return {list} new pointer, parsed number
-
-@function find-integer($source, $pointer) {
-  $source: to-lower-case($source);
-  $length: str-length($source);
-  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
-  $result: 0;
-
-  @while $pointer <= $length {
-    $token: str-slice($source, $pointer, $pointer);
-    $index: index($numbers, $token);
-
-    @if $token == "-" {
-      // @continue;
-    }
-    @else if $index {
-      $result: $result * 10 + ($index - 1);
-    }
-    @else {
-      @return $pointer, $result;
-    }
-
-    $pointer: $pointer + 1;
-  }
-
-  @return $pointer, $result;
-}
-
-/// Strips any units from a number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/remove-unit-function/
-///
-/// @param {string} $number
-///
-/// @return {number}
-///
-/// @require {function} is-number
-/// @require {function} to-number
-///
-/// @example scss - Usage
-///   remove-unit(50px)
-///
-/// @example scss - Output
-///   50
-///
-
-@function remove-unit($number) {
-
-  @if not is-number($number) {
-    $number : to-number($number);
-  }
-
-  @if is-number($number) and not unitless($number) {
-    @return ($number / ($number * 0 + 1));
-  }
-
-  @return $number;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Add                                                                     #add
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -3007,201 +2736,6 @@ $sc-non-strict-defaults: (
   @return $list;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Get Var Value                                                 #get-var-value
-////////////////////////////////////////////////////////////////////////////////
-///
-/// @group helpers-misc
-///
-/// $return-all - Set to true if you want to return all value from a var(...),
-/// by default this will loop through all variables to see if one matches
-/// anything fomr the custom properties array.
-
-@function get-var-value($variable, $return-all : false) {
-
-  @if is-var($variable) {
-
-		@if map-has-keys($custom-properties, $variable) {
-			@return map-get($custom-properties, $variable);
-		}
-
-		@elseif string-starts-with(quote($variable), 'var(--') {
-			$variable : str-replace($variable, 'var(--', '');
-			$variable : str-replace($variable, ')', '');
-
-			$variables : string-explode(get-var-value($variable), ', ');
-
-			@if $return-all == false {
-				@each $var in $variables {
-					@if map-has-keys($custom-properties, $var) {
-						@return map-get($custom-properties, $var);
-					}
-				}
-			}
-
-			@if length($variables) > 1 {
-				@return $variables;
-			}
-
-			@return $variable;
-		}
-
-  } @else {
-    @return $variable
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Var Value                                                         #var-value
-////////////////////////////////////////////////////////////////////////////////
-
-/// @group helpers-misc
-
-@function var-value($variable:primary, $opacity:1, $fallback:true) {
-
-  $variable-value : $variable;
-  $fallback-value : null;
-
-  // If varuable is a standard colour, just use that colour as normal. Opacity is not used.
-  @if is-colour($variable) {
-
-    @if is-hex($variable) {
-      $variable-value : rgba($variable, $opacity);
-    } @else {
-      $variable-value : $variable;
-    }
-
-  } @else {
-
-    // Check the variables map to help generate a fallback colour
-    $fallback-value : get-variable-colour-value($variable, $opacity);
-
-    @if is-var($variable) {
-
-      // If a hardcoded 'var(--XXX)' is passed, extract the variable name and check if
-      // it's part of the variables map. If it is, use this hardcoded colour as a fallback.
-      // Add opacity is one if provided.
-
-      @if $support-css-variable-alpha-colours {
-
-        $variable-value : rgba($variable, $opacity);
-
-      } @else {
-
-        @if not is-null($fallback-value) {
-          $variable-value : str-replace($variable, ')', ', ' + $fallback-value + ')');
-        } @else {
-          $variable-value : $variable;
-        }
-
-      }
-
-    } @else {
-
-      // If a string was passed as the string. Assume this is a shorthand to search
-      // the variables map for the right variable then apply the fallback.
-
-      @if $support-css-variable-alpha-colours {
-        $variable-value : rgba(unquote('var(--' + $variable + ')'), $opacity);
-      } @else {
-
-        @if not is-null($fallback-value) {
-          $variable-value : unquote('var(--' + $variable + ', '+ $fallback-value +')');
-        } @else {
-          $variable-value : unquote('var(--' + $variable + ')');
-        }
-      }
-    }
-
-  }
-
-  @if ( not is-null($fallback-value) and $fallback ) {
-    @return ($variable-value, $fallback-value);
-  }
-
-  @return $variable-value;
-
-}
-
-@function var($args...) {
-
-	$custom-property : ();
-	$fallback : null;
-	$variables : ();
-	$suffix : '';
-
-	// List valid custom properties names
-	@each $value in $args {
-		@if is-string($value) and not is-number($value) {
-			$value : string-replace($value, ' ');
-			$variables : append($variables, string-replace($value, '--'));
-			$suffix : $suffix + ')';
-		} @else {
-			$fallback : $value;
-		}
-	}
-
-	@if length($variables) > 0 {
-		@for $i from 1 through length($variables) {
-
-			$variable : nth($variables, $i);
-			$last : $i == length($variables);
-
-			@if $last and map-has-keys($custom-properties, $variable) {
-				$fallback : map-get($custom-properties, $variable);
-			}
-
-			$custom-property : append($custom-property, unquote('var(--' + $variable + ','));
-
-		}
-	}
-
-	@if not is-null($fallback) {
-		$custom-property : $custom-property + ' ' + $fallback;
-	}
-
-	$result : to-string($custom-property) + $suffix;
-
-	$result : string-replace($result, '(var', 'var');
-	$result : string-replace($result, ',)', ')');
-	$result : string-replace($result, ',))', ')');
-
-	// If the user is passing in variables within variables using the native syntax,
-	// This function will render out a looped mess. The following does some checks,
-	// and cleans it up. This hasn't been tested on complex variables like gradients,
-	// calcs, or anything that isn't a predefined customer-properties;
-	@if str-index($result, '--var(') {
-		$_result : string-replace($result, 'var(');
-		$_result : string-replace($_result, $suffix + ')');
-		$_result : string-remove-whitespace($_result);
-		$_fallback : null;
-		$_variables : ();
-		@each $value in string-explode($_result, ',', comma) {
-			@if string-starts-with($value, '--') {
-				$_variables : append($_variables, $value, comma);
-			} @else {
-				$_fallback : $value;
-			}
-		}
-
-		$result : unquote(var($_variables...));
-
-		@if ( not is-null($_fallback)) {
-			// When using native syntax, that has var fallbacks with vars, a
-			// given fallback is ignored. Either don't use nested vars where the
-			// fallback is important, or define a fallback before calling it this way.
-			// Ultimately this is almost never going to happen.
-			// TODO Inject the fallback so as to not break the syntax. Data is coreect, syntax isn't.
-			// $result : $result + $_fallback;
-		}
-
-		@return $result;
-	}
-
-	@return unquote($result);
-
-}
-
 /// @author Mark Notton
 /// @link http://www.w3schools.com/charsets/ref_html_utf8.asp
 /// @type variables
@@ -3617,6 +3151,472 @@ $quare-3 :              "\25A2"; // ▢
 
 @function sudo($pseudo, $colon:true) {
   @return pseudo($pseudo, $colon);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Deep Get                                                   #map-deep-get
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Fetch nested keys in a map
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+
+///
+/// @group helpers-maps
+///
+/// @param (map) $map - Usually a variable name
+///
+/// @param (arglist) $keys - With comma delimination write the path to the disired map element
+///
+/// @return {*}
+///
+/// @example scss - Usage
+/// $foo: (
+///   bar: (
+///     lorem : (
+///       test1: #dcfac0,
+///       test2: #00968b,
+///     ),
+///     ipsom: (
+///       test1: #f4fac7,
+///       test2: #c2454e,
+///     )
+///   )
+/// );
+/// color: map-fetch($foo, bar, lorem, test1);
+///
+/// @example css - Output
+/// color:#dcfac0;
+///
+
+@function map-deep-get($map, $keys...) {
+  @each $key in $keys {
+    $map: map-get($map, $key);
+  }
+  @return $map;
+}
+
+/// @alias map-deep-get
+///
+
+///
+/// @require {function} map-deep-get
+///
+/// @return {*}
+
+@function map-fetch($map, $keys...) {
+  @return map-deep-get($map, $keys...);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Deep Merge                                               #map-deep-merge
+////////////////////////////////////////////////////////////////////////////////
+
+/// @name Map Deep Merge
+/// @author Zsolt Pentz
+/// @see https://medium.com/@pentzzsolt/a-non-destructive-map-merge-function-for-sass-f91637f87b2e
+
+@function map-deep-merge($parent-map, $child-map) {
+	$result: $parent-map;
+	@each $key, $value in $child-map {
+		@if (not map-has-key($result, $key)) or (type-of(map-get($result, $key)) != type-of($value)) or (not (type-of(map-get($result, $key)) == map and type-of($value) == map)) {
+			$result: map-merge($result, ($key: $value));
+		}
+		@else {
+			$result: map-merge($result, ($key: map-deep-merge(map-get($result, $key), $value)));
+		}
+	}
+	@return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Deep Set                                                   #map-deep-set
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Update a key deeply nested
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+
+///
+/// @group helpers-maps
+///
+/// @param {map} $map - Map to update
+///
+/// @param {arglist} $keys - Keys to access to value to update
+///
+/// @param {*} $value - New value (last member of `$keys`)
+///
+/// @return {map} - Updated map
+
+@function map-deep-set($map, $keys.../*, $value */) {
+  $map-list: ($map,);
+  $result: null;
+
+  @if length($keys) == 2 {
+    @return map-merge($map, (nth($keys, 1): nth($keys, -1)));
+  }
+
+  @for $i from 1 through length($keys) - 2 {
+    $map-list: append($map-list, map-get(nth($map-list, -1), nth($keys, $i)));
+  }
+
+  @for $i from length($map-list) through 1 {
+    $result: map-merge(nth($map-list, $i), (nth($keys, $i): if($i == length($map-list), nth($keys, -1), $result)));
+  }
+
+  @return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Depth                                                         #map-depth
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Compute the maximum depth of a map
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+
+///
+/// @group helpers-maps
+///
+/// @param {map} $map
+///
+/// @return {number} max depth of `$map`
+
+@function map-depth($map) {
+  $level: 1;
+
+  @each $key, $value in $map {
+    @if type-of($value) == "map" {
+      $level: max(map-depth($value) + 1, $level);
+    }
+  }
+
+  @return $level;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Extend                                                       #map-extend
+////////////////////////////////////////////////////////////////////////////////
+///
+/// jQuery-style extend function
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+
+///
+/// @group helpers-maps
+///
+/// @param {map} $map - first map
+///
+/// @param {arglist} $maps - other maps
+///
+/// @param {bool} $deep - recursive mode
+///
+/// @return {map}
+
+@function map-extend($map, $maps.../*, $deep */) {
+  $last: nth($maps, -1);
+  $deep: $last == true;
+  $max: if($deep, length($maps) - 1, length($maps));
+
+  // Loop through all maps in $maps...
+  @for $i from 1 through $max {
+    // Store current map
+    $current: nth($maps, $i);
+
+    // If not in deep mode, simply merge current map with map
+    @if not $deep {
+      $map: map-merge($map, $current);
+    } @else {
+      // If in deep mode, loop through all tuples in current map
+      @each $key, $value in $current {
+
+        // If value is a nested map and same key from map is a nested map as well
+        @if type-of($value) == "map" and type-of(map-get($map, $key)) == "map" {
+          // Recursive extend
+          $value: map-extend(map-get($map, $key), $value, true);
+        }
+
+        // Merge current tuple with map
+        $map: map-merge($map, ($key: $value));
+      }
+    }
+  }
+
+  @return $map;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Has Keys                                                   #map-has-keys
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Test if map got all `$keys` at first level
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+/// @group helpers-maps
+///
+/// @param {map} $map - Map
+///
+/// @param {arglist} $keys - Keys to test
+///
+/// @return {bool}
+
+@function map-has-keys($map, $keys...) {
+  @each $key in $keys {
+    @if not map-has-key($map, $key) {
+      @return false;
+    }
+  }
+
+  @return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Has Nested Keys                                     #map-has-nested-keys
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Test if map got all `$keys` nested with each others
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+
+///
+/// @group helpers-maps
+///
+/// @param {map} $map - Map
+///
+/// @param {arglist} $keys - Keys to test
+///
+/// @return {bool}
+
+@function map-has-nested-keys($map, $keys...) {
+  @each $key in $keys {
+    @if not map-has-key($map, $key) {
+      @return false;
+    }
+    $map: map-get($map, $key);
+  }
+
+  @return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Set                                                             #map-set
+////////////////////////////////////////////////////////////////////////////////
+///
+/// A quick way of adding a key and value to the end of a map
+///
+/// @author Mark Notton
+///
+/// @group helpers-maps
+///
+/// @return {map}
+
+@function map-set($map, $key, $value) {
+  @return map-merge($map, ($key: $value));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Zip                                                             #map-zip
+////////////////////////////////////////////////////////////////////////////////
+///
+/// An equivalent of `zip` function but for maps.
+/// I wrote my own version of this before realising Hugo had done something similar.
+/// I have kept the name, but used my own.
+///
+/// @author Mark Notton
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+/// @link http://sass-lang.com/documentation/Sass/Script/Functions.html#zip-instance_method
+///
+
+///
+/// @group helpers-maps
+///
+/// @param {list} $list1 - Keys for map
+///
+/// @param {list} $list2 - Values for map
+///
+/// @param {bool} $swappable - Swap variables around so list1 has the most values. Default is true.
+///
+/// @return {map} Freshly created map
+
+@function map-zip($list1, $list2, $swappable:true) {
+
+  $map : ();
+
+  $list1-size : length($list1);
+  $list2-size : length($list2);
+
+  $count : if($list1-size < $list2-size, $list1-size, $list2-size);
+
+
+  @if ($list1-size < $list2-size and $swappable) {
+    $temp : $list1;
+    $list1 : $list2;
+    $list2 : $temp;
+  }
+
+  @if $warnings {
+    @if ($list1-size < $list2-size) {
+      @if $warnings {
+        @warn('The second list had '+($list2-size - $list1-size)+' more value'+ if($list2-size - $list1-size != 1, 's', '') +' than the first list');
+      }
+    } @elseif ($list1-size > $list2-size) {
+      @if $warnings {
+        @warn('The first list had '+($list1-size - $list2-size)+' more value'+ if($list1-size - $list2-size != 1, 's', '') +' than the second list');
+      }
+    }
+  }
+
+  @for $i from 1 through $count {
+    $map : map-set($map, nth($list1, $i), nth($list2, $i));
+  }
+
+  @return $map;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Find Digits                                                     #find-digits
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Finding the digits part of a stringified number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-numbers
+///
+/// @param {string} $source - string source
+///
+/// @param {number} $pointer - current pointer
+///
+/// @return {list} - new pointer, parsed number
+
+@function find-digits($source, $pointer) {
+  $source: to-lower-case($source);
+  $length: str-length($source);
+  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  $result: 0;
+  $runs: 1;
+
+  @while $pointer <= $length {
+    $token: str-slice($source, $pointer, $pointer);
+    $index: index($numbers, $token);
+
+    @if $token == "." {
+      // @continue;
+    }
+    @else if $index and $index > 0 {
+      $runs: $runs * 10;
+      $result: $result * 10 + ($index - 1);
+    }
+    @else {
+      @return $pointer, $result / $runs;
+    }
+
+    $pointer: $pointer + 1;
+  }
+
+  @return $pointer, $result / $runs;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Find Interger                                                  #find-integer
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Finding the digits part of a stringified number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-numbers
+///
+/// @param {string} $source  - string source
+///
+/// @param {number} $pointer - current pointer
+///
+/// @return {list} new pointer, parsed number
+
+@function find-integer($source, $pointer) {
+  $source: to-lower-case($source);
+  $length: str-length($source);
+  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  $result: 0;
+
+  @while $pointer <= $length {
+    $token: str-slice($source, $pointer, $pointer);
+    $index: index($numbers, $token);
+
+    @if $token == "-" {
+      // @continue;
+    }
+    @else if $index {
+      $result: $result * 10 + ($index - 1);
+    }
+    @else {
+      @return $pointer, $result;
+    }
+
+    $pointer: $pointer + 1;
+  }
+
+  @return $pointer, $result;
+}
+
+/// Strips any units from a number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/remove-unit-function/
+///
+/// @param {string} $number
+///
+/// @return {number}
+///
+/// @require {function} is-number
+/// @require {function} to-number
+///
+/// @example scss - Usage
+///   remove-unit(50px)
+///
+/// @example scss - Output
+///   50
+///
+
+@function remove-unit($number) {
+
+  @if not is-number($number) {
+    $number : to-number($number);
+  }
+
+  @if is-number($number) and not unitless($number) {
+    @return ($number / ($number * 0 + 1));
+  }
+
+  @return $number;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -4686,7 +4686,7 @@ $browsers : ie edge safari firefox chrome opera;
 
 $devices : mobile tablet desktop;
 
-$svg-elements : path circle line polygon polyline rect ellipse;
+$svg-elements : path circle line polygon polyline rect ellipse use;
 
 // Flex Container properties
 $flex-container-aliases : direction wrap flow justify items content;
@@ -5290,97 +5290,6 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
   justify-content : initial $important;
 }
 
-@mixin break-between($min, $max) {
-
-	$min : get-breakpoint($min);
-	$max : get-breakpoint($max);
-
-  @media (min-width:$min) and (max-width:$max) {
-    @content;
-  }
-}
-
-@mixin breakpoint($args...) {
-
-	$defaults : (
-    breakpoint : null,
-    rule : 'min',
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $rule : map-get($settings, rule);
-  $breakpoint : map-get($settings, breakpoint);
-
-  $breakpoint : get-breakpoint($breakpoint);
-
-	@if $rule == 'min' or $rule == '>' {
-		@media (min-width:$breakpoint - 1) {
-	    @content;
-	  }
-	}	@elseif $rule == 'max' or $rule == '<' {
-		@media (max-width:$breakpoint) {
-	    @content;
-	  }
-	}
-}
-
-// Get breakpoint from the breakpoint list, either by it's number or name
-@function get-breakpoint($break) {
-
-	$breakpoint : $break;
-
-	// If a string is passed and exists in the breakpoints map as a key, return the value
-  @if is-string($break) and map-has-key($breakpoints, $break) {
-    $breakpoint : map-get($breakpoints, $break);
-  }
-
-	// If a number is passed and it exists in the breakpoints map, return the key
-	@elseif is-number($break) {
-    $breakpoint : add-unit($break, 'px', true);
-  }
-
-	@return to-number($breakpoint);
-
-}
-
-@mixin inside-break($breakpoint) {
-	@include breakpoint($breakpoint, max) { @content; }
-}
-
-@mixin outside-break($breakpoint) {
-	@include breakpoint($breakpoint, min) { @content; }
-}
-
-@mixin show-breakpoints($sudo : before) {
-	@if $show-breakpoints {
-	  &:#{$sudo} {
-	    content:"\276F  #{add-unit($max)}";
-	    background-color:darken($red, 20);
-	    bottom:0;
-	    right:0;
-	    font-family:Arial;
-	    padding:4px $gap0;
-	    @include transition(background-color color);
-	    pointer-events:none;
-	    position:fixed;
-	    z-index:9999;
-	    font-size:12px;
-	    line-height:16px;
-	    color:white;
-	    text-align:center;
-	    @each $name, $value in $breakpoints {
-	      $random-color: random-colour();
-	      @include breakpoint($value, '>') {
-	        content:"#{$name} #{add-unit($value)}";
-	        background-color:$random-color;
-	        color:colour-contrast($random-color);
-	      }
-	    }
-	  }
-	}
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 /// Grid Layouts                                                   #grid-layouts
 ////////////////////////////////////////////////////////////////////////////////
@@ -5638,6 +5547,97 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
 // If you want to split a column up using the repeat function, you may want to devide the min and max values by the amount of columns;
 @function grid-repeat($amount, $min:$small, $max:$max) {
   @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
+}
+
+@mixin break-between($min, $max) {
+
+	$min : get-breakpoint($min);
+	$max : get-breakpoint($max);
+
+  @media (min-width:$min) and (max-width:$max) {
+    @content;
+  }
+}
+
+@mixin breakpoint($args...) {
+
+	$defaults : (
+    breakpoint : null,
+    rule : 'min',
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $rule : map-get($settings, rule);
+  $breakpoint : map-get($settings, breakpoint);
+
+  $breakpoint : get-breakpoint($breakpoint);
+
+	@if $rule == 'min' or $rule == '>' {
+		@media (min-width:$breakpoint - 1) {
+	    @content;
+	  }
+	}	@elseif $rule == 'max' or $rule == '<' {
+		@media (max-width:$breakpoint) {
+	    @content;
+	  }
+	}
+}
+
+// Get breakpoint from the breakpoint list, either by it's number or name
+@function get-breakpoint($break) {
+
+	$breakpoint : $break;
+
+	// If a string is passed and exists in the breakpoints map as a key, return the value
+  @if is-string($break) and map-has-key($breakpoints, $break) {
+    $breakpoint : map-get($breakpoints, $break);
+  }
+
+	// If a number is passed and it exists in the breakpoints map, return the key
+	@elseif is-number($break) {
+    $breakpoint : add-unit($break, 'px', true);
+  }
+
+	@return to-number($breakpoint);
+
+}
+
+@mixin inside-break($breakpoint) {
+	@include breakpoint($breakpoint, max) { @content; }
+}
+
+@mixin outside-break($breakpoint) {
+	@include breakpoint($breakpoint, min) { @content; }
+}
+
+@mixin show-breakpoints($sudo : before) {
+	@if $show-breakpoints {
+	  &:#{$sudo} {
+	    content:"\276F  #{add-unit($max)}";
+	    background-color:darken($red, 20);
+	    bottom:0;
+	    right:0;
+	    font-family:Arial;
+	    padding:4px $gap0;
+	    @include transition(background-color color);
+	    pointer-events:none;
+	    position:fixed;
+	    z-index:9999;
+	    font-size:12px;
+	    line-height:16px;
+	    color:white;
+	    text-align:center;
+	    @each $name, $value in $breakpoints {
+	      $random-color: random-colour();
+	      @include breakpoint($value, '>') {
+	        content:"#{$name} #{add-unit($value)}";
+	        background-color:$random-color;
+	        color:colour-contrast($random-color);
+	      }
+	    }
+	  }
+	}
 }
 
 @mixin blur($value:5px, $important:null) {
@@ -6233,162 +6233,6 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
   @include transform(translateZ $value);
 }
 
-@mixin browsers($args...) {
-
-  // This checks to see if the current selector is html.
-  // This can not be converted into a shorthanded if statement.
-  // $selector : null;
-  // @if not is-selector(html) { $selector : &; }
-
-	$selector : to-string(#{&});
-	$space : ' ';
-
-	@if (str-index($selector, 'html')) {
-		$selector : string-replace(#{$selector}, 'html', '');
-		@if ($selector != 'html') {
-			$space : '';
-		}
-	}
-
-	$not-all : if(is-bool(nth(nth($args, 1),1)), nth(nth($args, 1),1), false);
-
-
-  @each $settings in arglist-to-list($args...) {
-
-    $browsers-list : ();
-    $versions-list : ();
-    $not : $not-all;
-
-    @each $setting in $settings {
-      @if is-string($setting) and contains($browsers, $setting) {
-        $browsers-list : append($browsers-list, $setting);
-      }
-      @elseif is-bool($setting) {
-        $not : $setting;
-      }
-      @elseif is-number($setting) or is-list($setting){
-        @each $version in $setting {
-          $versions-list : append($versions-list, $version);
-        }
-      }
-    }
-
-    @if length($browsers-list) > 1 and length($versions-list) > 0 {
-      @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
-    } @else {
-      @if length($browsers-list) > 0 {
-        @if length($versions-list) > 0 {
-          @each $version in $versions-list {
-            @if not $not {
-              @at-root html[data-browser^="#{$browsers-list}"][data-browser$='#{$version}'] #{$selector} { @content; }
-            } @else {
-              @at-root html:not([data-browser^="#{$browsers-list}"][data-browser$='#{$version}']) #{$selector} { @content; }
-            }
-          }
-        } @else {
-					@if not $not {
-	          @each $browser in $browsers-list {
-
-              @at-root html[data-browser^="#{$browser}"]#{$space}#{$selector} { @content; }
-              // Fallback hacks should the data-browser attribute not be in the html tag
-              @if $browser == edge {
-                @supports (-ms-accelerator:true) {
-                  #{$selector} {
-                    @content;
-                  }
-                }
-              }
-              @elseif $browser == ie {
-								@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-                  @content;
-                }
-              }
-              @elseif $browser == firefox {
-                #{$selector ',  x:-moz-any-link'}{
-                  @content;
-                }
-              }
-              @elseif $browser == chrome {
-                @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
-                  @content;
-                }
-              }
-              @elseif $browser == safari {
-                @supports (overflow:-webkit-marquee) and (justify-content:inherit){
-                  #{$selector} {
-                    @content;
-                  }
-                }
-              }
-            }
-          } @else {
-
-						$nots : '';
-
-						@each $browser in $browsers-list {
-							$nots : $nots + ':not([data-browser^="#{$browser}"])';
-						}
-
-						@at-root html#{$nots}#{$space}#{$selector} { @content; }
-					}
-        }
-      }
-    }
-  }
-}
-
-@mixin is-chrome($version:null) {
-  @include browsers(chrome $version) { @content };
-}
-
-@mixin is-edge($version:null) {
-  @include browsers(edge $version) { @content };
-}
-
-@mixin is-firefox($version:null) {
-  @include browsers(firefox $version) { @content };
-}
-
-@mixin is-ie($version:null) {
-  @include browsers(ie $version) { @content };
-}
-
-@mixin is-opera($version:null) {
-  @include browsers(opera $version) { @content };
-}
-
-@mixin is-safari($version:null) {
-  @include browsers(safari $version) { @content };
-}
-
-@mixin not-browsers($args...) {
-	@include browsers(join(true, $args, comma)) { @content };
-}
-
-@mixin not-chrome($version:null) {
-  @include browsers(chrome $version true) { @content };
-}
-
-@mixin not-edge($version:null) {
-  @include browsers(edge $version true) { @content };
-}
-
-@mixin not-firefox($version:null) {
-  @include browsers(firefox $version true) { @content };
-}
-
-@mixin not-ie($version:null) {
-  @include browsers(ie $version true) { @content };
-}
-
-@mixin not-opera($version:null) {
-  @include browsers(opera $version true) { @content };
-}
-
-@mixin not-safari($version:null) {
-  @include browsers(safari $version true) { @content };
-}
-
 @mixin animation-delay($args...) {
 
 	$values : ();
@@ -6736,226 +6580,160 @@ $animation-names : ();
 
 }
 
-/// Create a pseudo element which will retain a parent elements' aspect ratio responsively.
-///
-/// @author Mark Notton
-///
+@mixin browsers($args...) {
 
-///
-/// @param {number | list} $ratio - Use a predefined variable, directly enter a percentage, or pass in one or two numbers to be calculated.
-///
-/// @param {string} $sudo - Set the type of pseudo to use. Defaults to "before".
-///
-/// @require {function} sudo
-/// @require {function} _unit-fallback
-/// @require {function} first
-/// @require {function} second
-/// @require {function} is-percentage
-///
-/// @example scss - Usage
-/// .foo {
-///   @include aspect-ratio($ratio-16-9);
-/// }
-///
-/// .bar {
-///   @include aspect-ratio(2 1, after);
-/// }
-///
-/// @example css - CSS output
-/// .foo:before {
-///   content: "";
-///   display: block;
-///   padding-top: 56.25%;
-/// }
-///
-/// .bar:after {
-///   content: "";
-///   display: block;
-///   padding-top: 50%;
-/// }
+  // This checks to see if the current selector is html.
+  // This can not be converted into a shorthanded if statement.
+  // $selector : null;
+  // @if not is-selector(html) { $selector : &; }
 
-@mixin aspect-ratio($args...) {
+	$selector : to-string(#{&});
+	$space : ' ';
 
-	$defaults : (
-		width  : 1,
-		height : null,
-		sudo : before
-	);
-
-	$settings : get-settings($defaults, $args...);
-
-	$width     : map-get($settings, width);
-	$height    : map-get($settings, height);
-	$sudo      : map-get($settings, sudo);
-	$important : map-get($settings, important);
-
-  &#{pseudo($sudo)} {
-    content:"";
-    display:block; 
-    padding-top: if(is-percentage($width), $width, percentage($height / $width)) $important;
-  }
-}
-
-/// 10px on each corner. Call also use the string "all"
-/// @include border-radius(10)
-/// @include border-radius( 10)
-
-@mixin border-radius($args...) {
-
-	$default : var(border-radius);
-
-	$top-left     : null;
-	$top-right    : null;
-	$bottom-right : null;
-	$bottom-left  : null;
-	$important    : null;
-	$all : null;
-	$direction : null;
-
-	@each $value in $args {
-		@if is-important($value) {
-			$important : !important;
-		}
-		@elseif is-number($value) {
-			@if is-null($top-left) { $top-left : add-unit($value); }
-			@elseif is-null($top-right) { $top-right : add-unit($value); }
-			@elseif is-null($bottom-right) { $bottom-right : add-unit($value); }
-			@elseif is-null($bottom-left) { $bottom-left : add-unit($value); }
-		}
-		@elseif is-var($value) {
-			@if is-null($top-left) { $top-left : var($value); }
-			@elseif is-null($top-right) { $top-right : var($value); }
-			@elseif is-null($bottom-right) { $bottom-right : var($value); }
-			@elseif is-null($bottom-left) { $bottom-left : var($value); }
-		}
-		@elseif is-string($value) {
-			@if $value == circle { $all : 50%; }
-			@elseif contains(top right bottom left, $value) {
-				$direction : $value;
-			}
+	@if (str-index($selector, 'html')) {
+		$selector : string-replace(#{$selector}, 'html', '');
+		@if ($selector != 'html') {
+			$space : '';
 		}
 	}
 
-	@if is-null($all) and is-null($top-right) and is-null($bottom-right) and is-null($bottom-left) {
-		$all : if(is-null($top-left), $default, $top-left);
-	}
+	$not-all : if(is-bool(nth(nth($args, 1),1)), nth(nth($args, 1),1), false);
 
-	@if not is-null($all) and is-null($direction) {
-		border-radius:$all $important;
-	} @else {
 
-		@if not is-null($direction) {
-			$value1 : $top-left or $default;
-			$value2 : $top-right or $top-left or $default;
-			@if $direction == top or $direction == bottom {
-				border-#{$direction}-left-radius : $value1 $important;
-				border-#{$direction}-right-radius : $value2 $important;
-			} @elseif $direction == right or $direction == left {
-				border-top-#{$direction}-radius : $value1 $important;
-				border-bottom-#{$direction}-radius : $value2 $important;
-			}
-		}
-		@else {
-			border-radius:$top-left $top-right $bottom-right $bottom-left $important;
-		}
+  @each $settings in arglist-to-list($args...) {
 
-	}
+    $browsers-list : ();
+    $versions-list : ();
+    $not : $not-all;
 
-}
-
-@mixin container($args...) {
-
-  $defaults : (
-    gutters    : var(gutters),
-    max-width  : $max
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $guts       : map-get($settings, gutters);
-  $max        : map-get($settings, max-width);
-  $important  : map-get($settings, important);
-
-  width:100%; max-width:add-unit($max);
-  position:relative;
-  display:block;
-  margin-left:auto; margin-right:auto;
-
-	@if is-number($guts) and $guts > 1 {
-		padding-left  : add-unit($gutters) $important;
-		padding-right : add-unit($gutters) $important;
-	} @elseif is-var($guts) {
-		padding-left  : $guts $important;
-		padding-right : $guts $important;
-	}
-
-}
-
-/// Sets the width and height to the same values
-/// If the second para "special" is defined as min or max, the dimenstions will be prefixed with that
-
-/// @example @include size(100, 200, max);
-/// @output max-width:100px; max-height:100px;
-
-/// @example @include size(150, important);
-/// @output width:150px !important; height:150px !important;
-
-@mixin size($args...) {
-
-  $defaults : (
-    width : null,
-    height : null,
-    prefix : null,
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $width     : map-get($settings, width);
-  $height    : check(map-get($settings, height), $width, number);
-  $prefix    : map-get($settings, prefix);
-  $important : map-get($settings, important);
-
-  $prefix : if(contains($prefix, (min, max)), $prefix + '-', null);
-
-  #{$prefix}width  : add-unit($width) $important;
-  #{$prefix}height : add-unit($height) $important;
-
-}
-
-@mixin viewport-width($args...) {
-
-  $defaults : (
-    refactor   : true,
-    breakpoint : if(variable-exists(min),$min, 320px),
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $refactor   : map-get($settings, refactor);
-  $breakpoint : map-get($settings, breakpoint);
-  $important  : map-get($settings, important);
-
-  width:100%;
-  min-width : add-unit($breakpoint);
-
-  @if not is-null($breakpoint) {
-
-    @include outside-break($breakpoint) {
-      width:100vw;
-      left:50%;
-      @include x(-50%);
+    @each $setting in $settings {
+      @if is-string($setting) and contains($browsers, $setting) {
+        $browsers-list : append($browsers-list, $setting);
+      }
+      @elseif is-bool($setting) {
+        $not : $setting;
+      }
+      @elseif is-number($setting) or is-list($setting){
+        @each $version in $setting {
+          $versions-list : append($versions-list, $version);
+        }
+      }
     }
 
-  }
+    @if length($browsers-list) > 1 and length($versions-list) > 0 {
+      @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
+    } @else {
+      @if length($browsers-list) > 0 {
+        @if length($versions-list) > 0 {
+          @each $version in $versions-list {
+            @if not $not {
+              @at-root html[data-browser^="#{$browsers-list}"][data-browser$='#{$version}'] #{$selector} { @content; }
+            } @else {
+              @at-root html:not([data-browser^="#{$browsers-list}"][data-browser$='#{$version}']) #{$selector} { @content; }
+            }
+          }
+        } @else {
+					@if not $not {
+	          @each $browser in $browsers-list {
 
-  @if ( $refactor != false ) {
-    $refactor-gap : if(is-number($refactor), add-unit($refactor), $gap);
-    @include inside-break($breakpoint) {
-      left:-$refactor-gap;
-      width:calc(100% + #{$refactor-gap*2});
-      @content;
+              @at-root html[data-browser^="#{$browser}"]#{$space}#{$selector} { @content; }
+              // Fallback hacks should the data-browser attribute not be in the html tag
+              @if $browser == edge {
+                @supports (-ms-accelerator:true) {
+                  #{$selector} {
+                    @content;
+                  }
+                }
+              }
+              @elseif $browser == ie {
+								@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+                  @content;
+                }
+              }
+              @elseif $browser == firefox {
+                #{$selector ',  x:-moz-any-link'}{
+                  @content;
+                }
+              }
+              @elseif $browser == chrome {
+                @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
+                  @content;
+                }
+              }
+              @elseif $browser == safari {
+                @supports (overflow:-webkit-marquee) and (justify-content:inherit){
+                  #{$selector} {
+                    @content;
+                  }
+                }
+              }
+            }
+          } @else {
+
+						$nots : '';
+
+						@each $browser in $browsers-list {
+							$nots : $nots + ':not([data-browser^="#{$browser}"])';
+						}
+
+						@at-root html#{$nots}#{$space}#{$selector} { @content; }
+					}
+        }
+      }
     }
   }
+}
+
+@mixin is-chrome($version:null) {
+  @include browsers(chrome $version) { @content };
+}
+
+@mixin is-edge($version:null) {
+  @include browsers(edge $version) { @content };
+}
+
+@mixin is-firefox($version:null) {
+  @include browsers(firefox $version) { @content };
+}
+
+@mixin is-ie($version:null) {
+  @include browsers(ie $version) { @content };
+}
+
+@mixin is-opera($version:null) {
+  @include browsers(opera $version) { @content };
+}
+
+@mixin is-safari($version:null) {
+  @include browsers(safari $version) { @content };
+}
+
+@mixin not-browsers($args...) {
+	@include browsers(join(true, $args, comma)) { @content };
+}
+
+@mixin not-chrome($version:null) {
+  @include browsers(chrome $version true) { @content };
+}
+
+@mixin not-edge($version:null) {
+  @include browsers(edge $version true) { @content };
+}
+
+@mixin not-firefox($version:null) {
+  @include browsers(firefox $version true) { @content };
+}
+
+@mixin not-ie($version:null) {
+  @include browsers(ie $version true) { @content };
+}
+
+@mixin not-opera($version:null) {
+  @include browsers(opera $version true) { @content };
+}
+
+@mixin not-safari($version:null) {
+  @include browsers(safari $version true) { @content };
 }
 
 @mixin devices($args...) {
@@ -7525,69 +7303,226 @@ $triangle-settings: (
 
 }
 
-@mixin image-size($args...) {
+/// Create a pseudo element which will retain a parent elements' aspect ratio responsively.
+///
+/// @author Mark Notton
+///
 
-  $defaults : (
-    image    : null,
-    property : null,
-    prefix   : null,
-  );
+///
+/// @param {number | list} $ratio - Use a predefined variable, directly enter a percentage, or pass in one or two numbers to be calculated.
+///
+/// @param {string} $sudo - Set the type of pseudo to use. Defaults to "before".
+///
+/// @require {function} sudo
+/// @require {function} _unit-fallback
+/// @require {function} first
+/// @require {function} second
+/// @require {function} is-percentage
+///
+/// @example scss - Usage
+/// .foo {
+///   @include aspect-ratio($ratio-16-9);
+/// }
+///
+/// .bar {
+///   @include aspect-ratio(2 1, after);
+/// }
+///
+/// @example css - CSS output
+/// .foo:before {
+///   content: "";
+///   display: block;
+///   padding-top: 56.25%;
+/// }
+///
+/// .bar:after {
+///   content: "";
+///   display: block;
+///   padding-top: 50%;
+/// }
 
-  $settings : get-settings($defaults, $args...);
+@mixin aspect-ratio($args...) {
 
-  $image     : map-get($settings, image);
-  $property  : map-get($settings, property);
-  $prefix    : map-get($settings, prefix);
-  $important : map-get($settings, important);
+	$defaults : (
+		width  : 1,
+		height : null,
+		sudo : before
+	);
 
-  $prefix : if(contains(min max, $prefix), #{$prefix + '-'}, null);
+	$settings : get-settings($defaults, $args...);
 
-  #{$prefix}height : height($image, $property) $important;
-  #{$prefix}width  : width($image, $property) $important;
+	$width     : map-get($settings, width);
+	$height    : map-get($settings, height);
+	$sudo      : map-get($settings, sudo);
+	$important : map-get($settings, important);
+
+  &#{pseudo($sudo)} {
+    content:"";
+    display:block; 
+    padding-top: if(is-percentage($width), $width, percentage($height / $width)) $important;
+  }
+}
+
+/// 10px on each corner. Call also use the string "all"
+/// @include border-radius(10)
+/// @include border-radius( 10)
+
+@mixin border-radius($args...) {
+
+	$default : var(border-radius);
+
+	$top-left     : null;
+	$top-right    : null;
+	$bottom-right : null;
+	$bottom-left  : null;
+	$important    : null;
+	$all : null;
+	$direction : null;
+
+	@each $value in $args {
+		@if is-important($value) {
+			$important : !important;
+		}
+		@elseif is-number($value) {
+			@if is-null($top-left) { $top-left : add-unit($value); }
+			@elseif is-null($top-right) { $top-right : add-unit($value); }
+			@elseif is-null($bottom-right) { $bottom-right : add-unit($value); }
+			@elseif is-null($bottom-left) { $bottom-left : add-unit($value); }
+		}
+		@elseif is-var($value) {
+			@if is-null($top-left) { $top-left : var($value); }
+			@elseif is-null($top-right) { $top-right : var($value); }
+			@elseif is-null($bottom-right) { $bottom-right : var($value); }
+			@elseif is-null($bottom-left) { $bottom-left : var($value); }
+		}
+		@elseif is-string($value) {
+			@if $value == circle { $all : 50%; }
+			@elseif contains(top right bottom left, $value) {
+				$direction : $value;
+			}
+		}
+	}
+
+	@if is-null($all) and is-null($top-right) and is-null($bottom-right) and is-null($bottom-left) {
+		$all : if(is-null($top-left), $default, $top-left);
+	}
+
+	@if not is-null($all) and is-null($direction) {
+		border-radius:$all $important;
+	} @else {
+
+		@if not is-null($direction) {
+			$value1 : $top-left or $default;
+			$value2 : $top-right or $top-left or $default;
+			@if $direction == top or $direction == bottom {
+				border-#{$direction}-left-radius : $value1 $important;
+				border-#{$direction}-right-radius : $value2 $important;
+			} @elseif $direction == right or $direction == left {
+				border-top-#{$direction}-radius : $value1 $important;
+				border-bottom-#{$direction}-radius : $value2 $important;
+			}
+		}
+		@else {
+			border-radius:$top-left $top-right $bottom-right $bottom-left $important;
+		}
+
+	}
 
 }
 
-/// @author Mark Notton
-/// @require postcss-inline-svg
-/// @see https://github.com/TrySound/postcss-inline-svg
-
-@mixin inline-svg($args...) {
+@mixin container($args...) {
 
   $defaults : (
-    svg          : null,
-    fill         : null,
-    stroke       : null,
-    stroke-width : null,
-    path         : 'sprites'
+    gutters    : var(gutters),
+    max-width  : $max
   );
 
   $settings : get-settings($defaults, $args...);
 
-  $svg          : map-get($settings, svg);
-  $fill         : map-get($settings, fill);
-  $stroke       : map-get($settings, stroke);
-  $stroke-width : map-get($settings, stroke-width);
-  $path         : map-get($settings, path);
-  $important    : map-get($settings, important);
+  $guts       : map-get($settings, gutters);
+  $max        : map-get($settings, max-width);
+  $important  : map-get($settings, important);
 
-  @if not is-null($svg) {
+  width:100%; max-width:add-unit($max);
+  position:relative;
+  display:block;
+  margin-left:auto; margin-right:auto;
 
-    $name     : nth(string-explode($svg, '.'), 1);
-    $filename : add-extension($svg, 'svg');
+	@if is-number($guts) and $guts > 1 {
+		padding-left  : add-unit($gutters) $important;
+		padding-right : add-unit($gutters) $important;
+	} @elseif is-var($guts) {
+		padding-left  : $guts $important;
+		padding-right : $guts $important;
+	}
 
-    @at-root (without: media) {
-      @svg-load #{$name} url(#{if(is-null($path) or $path == false, '', $path+'/')+$filename}) {
-        fill: $fill $important;
-        stroke: $stroke $important;
-        stroke-width:add-unit($stroke-width) $important;
-        @content;
-      }
+}
+
+/// Sets the width and height to the same values
+/// If the second para "special" is defined as min or max, the dimenstions will be prefixed with that
+
+/// @example @include size(100, 200, max);
+/// @output max-width:100px; max-height:100px;
+
+/// @example @include size(150, important);
+/// @output width:150px !important; height:150px !important;
+
+@mixin size($args...) {
+
+  $defaults : (
+    width : null,
+    height : null,
+    prefix : null,
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $width     : map-get($settings, width);
+  $height    : check(map-get($settings, height), $width, number);
+  $prefix    : map-get($settings, prefix);
+  $important : map-get($settings, important);
+
+  $prefix : if(contains($prefix, (min, max)), $prefix + '-', null);
+
+  #{$prefix}width  : add-unit($width) $important;
+  #{$prefix}height : add-unit($height) $important;
+
+}
+
+@mixin viewport-width($args...) {
+
+  $defaults : (
+    refactor   : true,
+    breakpoint : if(variable-exists(min),$min, 320px),
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $refactor   : map-get($settings, refactor);
+  $breakpoint : map-get($settings, breakpoint);
+  $important  : map-get($settings, important);
+
+  width:100%;
+  min-width : add-unit($breakpoint);
+
+  @if not is-null($breakpoint) {
+
+    @include outside-break($breakpoint) {
+      width:100vw;
+      left:50%;
+      @include x(-50%);
     }
-
-    & { background-image: svg-inline(unquote($name)) $important; }
 
   }
 
+  @if ( $refactor != false ) {
+    $refactor-gap : if(is-number($refactor), add-unit($refactor), $gap);
+    @include inside-break($breakpoint) {
+      left:-$refactor-gap;
+      width:calc(100% + #{$refactor-gap*2});
+      @content;
+    }
+  }
 }
 
 /// Box Inner Shadow
@@ -8256,6 +8191,97 @@ $triangle-settings: (
 
 }
 
+@mixin image-size($args...) {
+
+  $defaults : (
+    image    : null,
+    property : null,
+    prefix   : null,
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $image     : map-get($settings, image);
+  $property  : map-get($settings, property);
+  $prefix    : map-get($settings, prefix);
+  $important : map-get($settings, important);
+
+  $prefix : if(contains(min max, $prefix), #{$prefix + '-'}, null);
+
+  #{$prefix}height : height($image, $property) $important;
+  #{$prefix}width  : width($image, $property) $important;
+
+}
+
+/// @author Mark Notton
+/// @require postcss-inline-svg
+/// @see https://github.com/TrySound/postcss-inline-svg
+
+@mixin inline-svg($args...) {
+
+  $defaults : (
+    svg          : null,
+    fill         : null,
+    stroke       : null,
+    stroke-width : null,
+    path         : 'sprites'
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $svg          : map-get($settings, svg);
+  $fill         : map-get($settings, fill);
+  $stroke       : map-get($settings, stroke);
+  $stroke-width : map-get($settings, stroke-width);
+  $path         : map-get($settings, path);
+  $important    : map-get($settings, important);
+
+  @if not is-null($svg) {
+
+    $name     : nth(string-explode($svg, '.'), 1);
+    $filename : add-extension($svg, 'svg');
+
+    @at-root (without: media) {
+      @svg-load #{$name} url(#{if(is-null($path) or $path == false, '', $path+'/')+$filename}) {
+        fill: $fill $important;
+        stroke: $stroke $important;
+        stroke-width:add-unit($stroke-width) $important;
+        @content;
+      }
+    }
+
+    & { background-image: svg-inline(unquote($name)) $important; }
+
+  }
+
+}
+
+@function get-svg-group($svg, $group) {
+
+	$result : ();
+
+	@if not is-null($svg) and map-has-key($symbols, $svg) {
+
+		$svg : map-get($symbols, $svg);
+
+		@if map-has-key($svg, children) {
+
+			$children : map-get($svg, children);
+
+			@if length($children) {
+				@each $child in $children {
+					@if map-has-key($child, group) and map-get($child, group) == $group {
+						$result : append($result, $child);
+					}
+				}
+			}
+		}
+	}
+
+	@return $result;
+
+}
+
 @mixin svg-children($args...) {
 
 	$defaults : (
@@ -8290,25 +8316,18 @@ $triangle-settings: (
 				@for $i from 1 through length($children) {
 
 					$child       : nth($children, $i);
-					$target      : if(map-has-key($child, target), map-get($child, target), map-get($child, type));;
+					$target      : if(map-has-key($child, target), map-get($child, target), map-get($child, type));
 					$type        : map-get($child, type);
-					$x           : map-get($child, x) + $offset-x;
 					$y           : map-get($child, y) + $offset-y;
+					$x           : map-get($child, x) + $offset-x;
 
-@debug $child;
-@debug $target;
-@debug $type;
-@debug $x;
-@debug $y;
 					@if contains($targets, $type) {
-
 						@if $target != '' {
 							#{$target} {
-								transform-origin:$x $y $important;
+								transform-origin:#{$x} #{$y} $important;
 								@content;
 							}
 						}
-
 					}
 
 				}
@@ -8401,7 +8420,6 @@ $triangle-settings: (
     $new-height : ($new-width / $width) * $height;
   }
 
-
   // Fallback units
   @if is-null($width-unit) and not is-null($height-unit) {
     $width-unit : $height-unit;
@@ -8422,15 +8440,15 @@ $triangle-settings: (
   // Transform Origin
   @if ( $transform-origin ) {
     @if (is-bool($transform-origin) and $transform-origin == true) {
-      @include transform-origin(($new-width/2, $width-unit), ($new-height/2, $height-unit));
+      @include transform-origin(add-unit($new-width/2, $width-unit), add-unit($new-height/2, $height-unit));
     } @else {
       @include transform-origin($transform-origin);
     }
   }
 
   // Final Output
-  width :  to-number($new-width) $important;
-  height : to-number($new-height) $important;
+  width :  add-unit($new-width, $width-unit) $important;
+  height : add-unit($new-height, $height-unit) $important;
 
 };
 

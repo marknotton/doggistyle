@@ -32,25 +32,18 @@
 				@for $i from 1 through length($children) {
 
 					$child       : nth($children, $i);
-					$target      : if(map-has-key($child, target), map-get($child, target), map-get($child, type));;
+					$target      : if(map-has-key($child, target), map-get($child, target), map-get($child, type));
 					$type        : map-get($child, type);
-					$x           : map-get($child, x) + $offset-x;
 					$y           : map-get($child, y) + $offset-y;
+					$x           : map-get($child, x) + $offset-x;
 
-@debug $child;
-@debug $target;
-@debug $type;
-@debug $x;
-@debug $y;
 					@if contains($targets, $type) {
-
 						@if $target != '' {
 							#{$target} {
-								transform-origin:$x $y $important;
+								transform-origin:#{$x} #{$y} $important;
 								@content;
 							}
 						}
-
 					}
 
 				}

@@ -1,0 +1,25 @@
+@function get-svg-group($svg, $group) {
+
+	$result : ();
+
+	@if not is-null($svg) and map-has-key($symbols, $svg) {
+
+		$svg : map-get($symbols, $svg);
+
+		@if map-has-key($svg, children) {
+
+			$children : map-get($svg, children);
+
+			@if length($children) {
+				@each $child in $children {
+					@if map-has-key($child, group) and map-get($child, group) == $group {
+						$result : append($result, $child);
+					}
+				}
+			}
+		}
+	}
+
+	@return $result;
+
+}
