@@ -15,5 +15,5 @@
 		$x : $y;
 	}
 
-  transform-origin: $x $y $important;
+  transform-origin: add-unit($y) add-unit($x) $important;
 }

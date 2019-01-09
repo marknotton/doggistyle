@@ -499,595 +499,6 @@ $sc-non-strict-defaults: (
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Brightness                                                       #brightness
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Calculates a colours brightness
-///
-/// @author David Halford
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
-///
-/// @return {number}
-
-@function brightness($colour) {
-  @return abs(round((red($colour) * 299) + (green($colour) * 587) + (blue($colour) * 114) / 1000));
-}
-
-/// Compares contrast of a given colour and returns the most appropriate given colour that contrasts it.
-///
-/// @author David Halford
-///
-
-///
-/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
-///
-/// @param {color} $colour - Define a colour that you want to check is dark or light
-///
-/// @param {list | colour} - Define up to two seperate colours. Each one will be checked for their lightness or darkness
-///    If one of the colours is not dark enough it will revert to black;
-///    If the other colour is not light enough it will revert to white;
-///
-/// @require {function} is-colour
-/// @require {function} is-dark
-/// @require {function} is-light
-/// @require {function} brightness
-/// @require {function} lightness
-///
-/// @return {number}
-///
-/// @example {scss} - Usage
-///   color : colour-contrast(red, purple yellow);
-///
-/// @example {scss} - Output
-///   color : yellow;
-
-@function colour-contrast($colour, $text-colours:null) {
-
-  $dark-text : black;
-  $light-text : white;
-
-  $colour : get-variable-colour-value($colour);
-
-  @if is-colour($colour) {
-
-    @each $setting in $text-colours {
-      @if is-colour($setting) {
-        @if $dark-text == black {
-          $dark-text: $setting;
-        }
-        @elseif $light-text == white {
-          $light-text: $setting;
-        }
-      }
-    }
-
-    $dark-text : if(is-dark($dark-text), $dark-text, black);
-    $light-text : if(is-light($light-text), $light-text, white);
-
-    @return if(brightness($colour) <  lightness(), $light-text, $dark-text);
-
-  } @else {
-
-    @return $dark-text;
-  }
-}
-
-/// @alias contrasting-colour
-///
-
-///
-/// @require {function} contrasting-colour
-///
-/// @return {color}
-
-@function color-contrast($colour, $light:white, $dark:dark) {
-  @return colour-contrast($colour, $light, $dark);
-}
-
-/// An alternative to the native rgba function. With a few extra checks.
-///
-/// @author Mark Notton
-///
-
-///
-/// @param {color} Hex colour
-///
-/// @require {function} percent-to-decimal
-///
-/// @param {opacity} $opacity
-///   This can be as a percentage or a standard single decimal unit.
-///
-/// @return {color}
-///
-
-@function colour($colour:random-colour(), $opacity:1) {
-
-  @if str-index(#{$colour}, 'rgba') {
-    @return $colour;
-  }
-  @else {
-    @return rgba($colour, percent-to-decimal($opacity));
-  }
-}
-
-/// @alias colour
-///
-
-///
-/// @require {function} colour
-///
-/// @return {bool}colour
-
-@function color($colour:random-colour(), $opacity:1) {
-  @return colour($colour, $opacity);
-}
-
-
-/// @alias colour
-///
-
-///
-/// @require {function} colour
-///
-/// @return {bool}
-
-@function col($colour:random-colour(), $opacity:1) {
-  @return colour($colour, $opacity);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Get Colour Value                                           #get-colour-value
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Cast a stringified number / stringified percentage into number type
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @param {string} $string - string
-///
-/// @return {number} - unitless number or percentage
-///
-/// @require {function} to-number
-
-@function get-colour-value($string) {
-  $first: str-slice($string, 1, 1);
-
-  @if $first == '.' {
-    $string: '0' + $string;
-  }
-
-  $last: str-slice($string, -1, -1);
-
-  @return if($last == '%', to-number(str-slice($string, 1, -2), 2) * 1%, to-number($string));
-}
-
-/// Get Color Value =========================================== #get-color-value
-///
-/// @alias get-colour-value
-///
-
-///
-/// @group helpers-colours
-///
-/// @require {function} get-colour-value
-///
-/// @return {colour}
-
-@function get-color-value($string) {
-  @return get-colour-value($string);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Get Variable Colour Value                         #get-variable-colour-value
-////////////////////////////////////////////////////////////////////////////////
-///
-
-///
-/// @group helpers-colours
-///
-/// @require {function} get-variable-colour-value
-///
-/// @return {colour}
-
-@function get-variable-colour-value($colour, $opacity:1) {
-
-  @if not is-colour($colour) and variable-exists(variables) {
-
-    $value : map-get($variables, get-var-variable($colour));
-
-    @if not is-null($value) {
-
-      @if is-list($value) {
-        $red:   nth($value, 1);
-        $green: nth($value, 2);
-        $blue:  nth($value, 3);
-        $value : rgba($red, $green, $blue, $opacity);
-      }
-
-      $colour : $value;
-    }
-
-  }
-
-  @return $colour;
-
-}
-
-///  Get Variable Color Value ======================== #get-variable-color-value
-///
-/// @alias get-variable-colour-value
-///
-
-///
-/// @group helpers-colours
-///
-/// @require {function} get-variable-colour-value
-///
-/// @return {colour}
-
-@function get-variable-color-value($colour, $opacity:1) {
-  @return get-variable-colour-value($colour, $opacity);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Gradient Properties                                     #gradient-properties
-////////////////////////////////////////////////////////////////////////////////
-///
-// Add each argument into a single comma delimited list
-///
-/// @group helpers-colours
-///
-
-@function gradient-properties($args...) {
-  $properties : ();
-
-  $args: if(length($args) > 0, $args, null);
-
-  @for $i from 1 through length($args) {
-    $properties : append($properties, nth($args, $i), comma);
-  }
-
-  @return $properties;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Hash Fix                                                           #hash-fix
-////////////////////////////////////////////////////////////////////////////////
-///
-/// For reasons specific to Firefox (currently version 45),
-/// SVG's require all hash symbols to be replaced with '%23'. This includes hex
-/// colours and <use> xlinks This function will find and replace that hash
-/// symbol with the appropriate new string (which also works in other browsers)
-///
-/// @author Mark Notton
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @link http://stackoverflow.com/questions/28588050/how-to-use-a-hex-value-for-svg-in-firefox#answer-28588194
-///
-/// @return {string} - Without "#" as the first character
-
-@function hash-fix($string) {
-  @if get-var-value($string) {
-    @return str-replace(to-string(get-var-value($string)), '#', '%23');
-  } @else {
-    @return if(is-first-character($string, '#'), str-replace(#{$string}, '#', '%23'), $string);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Hexadecimal to Decimal                                           #hex-to-dec
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Convert an hexadecimal number to a decimal number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @param {string} $string - string
-///
-/// @param {string} $string - hexadecimal value
-///
-/// @return {number} - decimal number
-
-@function hex-to-dec($string){
-  $hex: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f";
-  $string: to-lower-case($string);
-  $length: str-length($string);
-
-  $dec: 0;
-  @for $i from 1 through $length {
-    $factor: 1 + ( 15 * ( $length - $i ));
-    $index: index($hex, str-slice($string, $i, $i));
-    $dec: $dec + $factor * ($index - 1);
-  }
-
-  @return $dec;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Hexadecimal to RGBA                                             #hex-to-rgba
-////////////////////////////////////////////////////////////////////////////////
-///
-/// @group helpers-colours
-///
-
-@function hex-to-rgba($colour, $opacity:1) {
-
-  @if is-hex($colour) {
-
-    $red:   red($colour);
-    $green: green($colour);
-    $blue:  blue($colour);
-
-    @return unquote("rgba(#{$red}, #{$green}, #{$blue}, #{$opacity})");
-
-  } @else {
-
-    @return $colour;
-
-  }
-
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Lightness                                                         #lightness
-////////////////////////////////////////////////////////////////////////////////
-///
-/// A smart calculation to what lightness is
-///
-/// @notice This could just be a variable, but for potential future minipulation I've left it as a function
-///
-/// @author David Halford
-///
-/// @access private
-///
-/// @group helpers-colours
-///
-/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
-///
-/// @return {number}
-
-@function lightness() {
-  @return round((red(#ffffff) * 299) + (green(#ffffff) * 587) + (blue(#ffffff) * 114) / 1000)/2;
-}
-
-/// Random colour.
-///
-/// @author Pankaj Parashar
-///
-
-///
-/// @author https://pankajparashar.com/posts/random-colors-sass/
-///
-/// @param {number} $opacity - Amend the opacity of the colour that is returned. Default is 1
-///
-/// @example scss - Usage
-///   random-colour(0.5);
-///
-/// @example css - Output
-///   rgba(38, 153, 180, 0.5);
-///
-/// @return {color}
-
-@function random-colour($opacity:1) {
-  @return rgba(random(256) - 1, random(256) - 1, random(256) - 1, $opacity);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Get Var Value                                                 #get-var-value
-////////////////////////////////////////////////////////////////////////////////
-///
-/// @group helpers-misc
-///
-/// $return-all - Set to true if you want to return all value from a var(...),
-/// by default this will loop through all variables to see if one matches
-/// anything fomr the custom properties array.
-
-@function get-var-value($variable, $return-all : false) {
-
-  @if is-var($variable) {
-
-		@if map-has-keys($custom-properties, $variable) {
-			@return map-get($custom-properties, $variable);
-		}
-
-		@elseif string-starts-with(quote($variable), 'var(--') {
-			$variable : str-replace($variable, 'var(--', '');
-			$variable : str-replace($variable, ')', '');
-
-			$variables : string-explode(get-var-value($variable), ', ');
-
-			@if $return-all == false {
-				@each $var in $variables {
-					@if map-has-keys($custom-properties, $var) {
-						@return map-get($custom-properties, $var);
-					}
-				}
-			}
-
-			@if length($variables) > 1 {
-				@return $variables;
-			}
-
-			@return $variable;
-		}
-
-  } @else {
-    @return $variable
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Var Value                                                         #var-value
-////////////////////////////////////////////////////////////////////////////////
-
-/// @group helpers-misc
-
-@function var-value($variable:primary, $opacity:1, $fallback:true) {
-
-  $variable-value : $variable;
-  $fallback-value : null;
-
-  // If varuable is a standard colour, just use that colour as normal. Opacity is not used.
-  @if is-colour($variable) {
-
-    @if is-hex($variable) {
-      $variable-value : rgba($variable, $opacity);
-    } @else {
-      $variable-value : $variable;
-    }
-
-  } @else {
-
-    // Check the variables map to help generate a fallback colour
-    $fallback-value : get-variable-colour-value($variable, $opacity);
-
-    @if is-var($variable) {
-
-      // If a hardcoded 'var(--XXX)' is passed, extract the variable name and check if
-      // it's part of the variables map. If it is, use this hardcoded colour as a fallback.
-      // Add opacity is one if provided.
-
-      @if $support-css-variable-alpha-colours {
-
-        $variable-value : rgba($variable, $opacity);
-
-      } @else {
-
-        @if not is-null($fallback-value) {
-          $variable-value : str-replace($variable, ')', ', ' + $fallback-value + ')');
-        } @else {
-          $variable-value : $variable;
-        }
-
-      }
-
-    } @else {
-
-      // If a string was passed as the string. Assume this is a shorthand to search
-      // the variables map for the right variable then apply the fallback.
-
-      @if $support-css-variable-alpha-colours {
-        $variable-value : rgba(unquote('var(--' + $variable + ')'), $opacity);
-      } @else {
-
-        @if not is-null($fallback-value) {
-          $variable-value : unquote('var(--' + $variable + ', '+ $fallback-value +')');
-        } @else {
-          $variable-value : unquote('var(--' + $variable + ')');
-        }
-      }
-    }
-
-  }
-
-  @if ( not is-null($fallback-value) and $fallback ) {
-    @return ($variable-value, $fallback-value);
-  }
-
-  @return $variable-value;
-
-}
-
-@function var($args...) {
-
-	$custom-property : ();
-	$fallback : null;
-	$variables : ();
-	$suffix : '';
-
-	// List valid custom properties names
-	@each $value in $args {
-		@if is-string($value) and not is-number($value) {
-			$value : string-replace($value, ' ');
-			$variables : append($variables, string-replace($value, '--'));
-			$suffix : $suffix + ')';
-		} @else {
-			$fallback : $value;
-		}
-	}
-
-	@if length($variables) > 0 {
-		@for $i from 1 through length($variables) {
-
-			$variable : nth($variables, $i);
-			$last : $i == length($variables);
-
-			@if $last and map-has-keys($custom-properties, $variable) {
-				$fallback : map-get($custom-properties, $variable);
-			}
-
-			$custom-property : append($custom-property, unquote('var(--' + $variable + ','));
-
-		}
-	}
-
-	@if not is-null($fallback) {
-		$custom-property : $custom-property + ' ' + $fallback;
-	}
-
-	$result : to-string($custom-property) + $suffix;
-
-	$result : string-replace($result, '(var', 'var');
-	$result : string-replace($result, ',)', ')');
-	$result : string-replace($result, ',))', ')');
-
-	// If the user is passing in variables within variables using the native syntax,
-	// This function will render out a looped mess. The following does some checks,
-	// and cleans it up. This hasn't been tested on complex variables like gradients,
-	// calcs, or anything that isn't a predefined customer-properties;
-	@if str-index($result, '--var(') {
-		$_result : string-replace($result, 'var(');
-		$_result : string-replace($_result, $suffix + ')');
-		$_result : string-remove-whitespace($_result);
-		$_fallback : null;
-		$_variables : ();
-		@each $value in string-explode($_result, ',', comma) {
-			@if string-starts-with($value, '--') {
-				$_variables : append($_variables, $value, comma);
-			} @else {
-				$_fallback : $value;
-			}
-		}
-
-		$result : unquote(var($_variables...));
-
-		@if ( not is-null($_fallback)) {
-			// When using native syntax, that has var fallbacks with vars, a
-			// given fallback is ignored. Either don't use nested vars where the
-			// fallback is important, or define a fallback before calling it this way.
-			// Ultimately this is almost never going to happen.
-			// TODO Inject the fallback so as to not break the syntax. Data is coreect, syntax isn't.
-			// $result : $result + $_fallback;
-		}
-
-		@return $result;
-	}
-
-	@return unquote($result);
-
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// Check                                                                 #check
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1925,6 +1336,1012 @@ $sc-non-strict-defaults: (
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Get Var Value                                                 #get-var-value
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @group helpers-misc
+///
+/// $return-all - Set to true if you want to return all value from a var(...),
+/// by default this will loop through all variables to see if one matches
+/// anything fomr the custom properties array.
+
+@function get-var-value($variable, $return-all : false) {
+
+  @if is-var($variable) {
+
+		@if map-has-keys($custom-properties, $variable) {
+			@return map-get($custom-properties, $variable);
+		}
+
+		@elseif string-starts-with(quote($variable), 'var(--') {
+			$variable : str-replace($variable, 'var(--', '');
+			$variable : str-replace($variable, ')', '');
+
+			$variables : string-explode(get-var-value($variable), ', ');
+
+			@if $return-all == false {
+				@each $var in $variables {
+					@if map-has-keys($custom-properties, $var) {
+						@return map-get($custom-properties, $var);
+					}
+				}
+			}
+
+			@if length($variables) > 1 {
+				@return $variables;
+			}
+
+			@return $variable;
+		}
+
+  } @else {
+    @return $variable
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Var Value                                                         #var-value
+////////////////////////////////////////////////////////////////////////////////
+
+/// @group helpers-misc
+
+@function var-value($variable:primary, $opacity:1, $fallback:true) {
+
+  $variable-value : $variable;
+  $fallback-value : null;
+
+  // If varuable is a standard colour, just use that colour as normal. Opacity is not used.
+  @if is-colour($variable) {
+
+    @if is-hex($variable) {
+      $variable-value : rgba($variable, $opacity);
+    } @else {
+      $variable-value : $variable;
+    }
+
+  } @else {
+
+    // Check the variables map to help generate a fallback colour
+    $fallback-value : get-variable-colour-value($variable, $opacity);
+
+    @if is-var($variable) {
+
+      // If a hardcoded 'var(--XXX)' is passed, extract the variable name and check if
+      // it's part of the variables map. If it is, use this hardcoded colour as a fallback.
+      // Add opacity is one if provided.
+
+      @if $support-css-variable-alpha-colours {
+
+        $variable-value : rgba($variable, $opacity);
+
+      } @else {
+
+        @if not is-null($fallback-value) {
+          $variable-value : str-replace($variable, ')', ', ' + $fallback-value + ')');
+        } @else {
+          $variable-value : $variable;
+        }
+
+      }
+
+    } @else {
+
+      // If a string was passed as the string. Assume this is a shorthand to search
+      // the variables map for the right variable then apply the fallback.
+
+      @if $support-css-variable-alpha-colours {
+        $variable-value : rgba(unquote('var(--' + $variable + ')'), $opacity);
+      } @else {
+
+        @if not is-null($fallback-value) {
+          $variable-value : unquote('var(--' + $variable + ', '+ $fallback-value +')');
+        } @else {
+          $variable-value : unquote('var(--' + $variable + ')');
+        }
+      }
+    }
+
+  }
+
+  @if ( not is-null($fallback-value) and $fallback ) {
+    @return ($variable-value, $fallback-value);
+  }
+
+  @return $variable-value;
+
+}
+
+@function var($args...) {
+
+	$custom-property : ();
+	$fallback : null;
+	$variables : ();
+	$suffix : '';
+
+	// List valid custom properties names
+	@each $value in $args {
+		@if is-string($value) and not is-number($value) {
+			$value : string-replace($value, ' ');
+			$variables : append($variables, string-replace($value, '--'));
+			$suffix : $suffix + ')';
+		} @else {
+			$fallback : $value;
+		}
+	}
+
+	@if length($variables) > 0 {
+		@for $i from 1 through length($variables) {
+
+			$variable : nth($variables, $i);
+			$last : $i == length($variables);
+
+			@if $last and map-has-keys($custom-properties, $variable) {
+				$fallback : map-get($custom-properties, $variable);
+			}
+
+			$custom-property : append($custom-property, unquote('var(--' + $variable + ','));
+
+		}
+	}
+
+	@if not is-null($fallback) {
+		$custom-property : $custom-property + ' ' + $fallback;
+	}
+
+	$result : to-string($custom-property) + $suffix;
+
+	$result : string-replace($result, '(var', 'var');
+	$result : string-replace($result, ',)', ')');
+	$result : string-replace($result, ',))', ')');
+
+	// If the user is passing in variables within variables using the native syntax,
+	// This function will render out a looped mess. The following does some checks,
+	// and cleans it up. This hasn't been tested on complex variables like gradients,
+	// calcs, or anything that isn't a predefined customer-properties;
+	@if str-index($result, '--var(') {
+		$_result : string-replace($result, 'var(');
+		$_result : string-replace($_result, $suffix + ')');
+		$_result : string-remove-whitespace($_result);
+		$_fallback : null;
+		$_variables : ();
+		@each $value in string-explode($_result, ',', comma) {
+			@if string-starts-with($value, '--') {
+				$_variables : append($_variables, $value, comma);
+			} @else {
+				$_fallback : $value;
+			}
+		}
+
+		$result : unquote(var($_variables...));
+
+		@if ( not is-null($_fallback)) {
+			// When using native syntax, that has var fallbacks with vars, a
+			// given fallback is ignored. Either don't use nested vars where the
+			// fallback is important, or define a fallback before calling it this way.
+			// Ultimately this is almost never going to happen.
+			// TODO Inject the fallback so as to not break the syntax. Data is coreect, syntax isn't.
+			// $result : $result + $_fallback;
+		}
+
+		@return $result;
+	}
+
+	@return unquote($result);
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Brightness                                                       #brightness
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Calculates a colours brightness
+///
+/// @author David Halford
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
+///
+/// @return {number}
+
+@function brightness($colour) {
+  @return abs(round((red($colour) * 299) + (green($colour) * 587) + (blue($colour) * 114) / 1000));
+}
+
+/// Compares contrast of a given colour and returns the most appropriate given colour that contrasts it.
+///
+/// @author David Halford
+///
+
+///
+/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
+///
+/// @param {color} $colour - Define a colour that you want to check is dark or light
+///
+/// @param {list | colour} - Define up to two seperate colours. Each one will be checked for their lightness or darkness
+///    If one of the colours is not dark enough it will revert to black;
+///    If the other colour is not light enough it will revert to white;
+///
+/// @require {function} is-colour
+/// @require {function} is-dark
+/// @require {function} is-light
+/// @require {function} brightness
+/// @require {function} lightness
+///
+/// @return {number}
+///
+/// @example {scss} - Usage
+///   color : colour-contrast(red, purple yellow);
+///
+/// @example {scss} - Output
+///   color : yellow;
+
+@function colour-contrast($colour, $text-colours:null) {
+
+  $dark-text : black;
+  $light-text : white;
+
+  $colour : get-variable-colour-value($colour);
+
+  @if is-colour($colour) {
+
+    @each $setting in $text-colours {
+      @if is-colour($setting) {
+        @if $dark-text == black {
+          $dark-text: $setting;
+        }
+        @elseif $light-text == white {
+          $light-text: $setting;
+        }
+      }
+    }
+
+    $dark-text : if(is-dark($dark-text), $dark-text, black);
+    $light-text : if(is-light($light-text), $light-text, white);
+
+    @return if(brightness($colour) <  lightness(), $light-text, $dark-text);
+
+  } @else {
+
+    @return $dark-text;
+  }
+}
+
+/// @alias contrasting-colour
+///
+
+///
+/// @require {function} contrasting-colour
+///
+/// @return {color}
+
+@function color-contrast($colour, $light:white, $dark:dark) {
+  @return colour-contrast($colour, $light, $dark);
+}
+
+/// An alternative to the native rgba function. With a few extra checks.
+///
+/// @author Mark Notton
+///
+
+///
+/// @param {color} Hex colour
+///
+/// @require {function} percent-to-decimal
+///
+/// @param {opacity} $opacity
+///   This can be as a percentage or a standard single decimal unit.
+///
+/// @return {color}
+///
+
+@function colour($colour:random-colour(), $opacity:1) {
+
+  @if str-index(#{$colour}, 'rgba') {
+    @return $colour;
+  }
+  @else {
+    @return rgba($colour, percent-to-decimal($opacity));
+  }
+}
+
+/// @alias colour
+///
+
+///
+/// @require {function} colour
+///
+/// @return {bool}colour
+
+@function color($colour:random-colour(), $opacity:1) {
+  @return colour($colour, $opacity);
+}
+
+
+/// @alias colour
+///
+
+///
+/// @require {function} colour
+///
+/// @return {bool}
+
+@function col($colour:random-colour(), $opacity:1) {
+  @return colour($colour, $opacity);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Get Colour Value                                           #get-colour-value
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Cast a stringified number / stringified percentage into number type
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @param {string} $string - string
+///
+/// @return {number} - unitless number or percentage
+///
+/// @require {function} to-number
+
+@function get-colour-value($string) {
+  $first: str-slice($string, 1, 1);
+
+  @if $first == '.' {
+    $string: '0' + $string;
+  }
+
+  $last: str-slice($string, -1, -1);
+
+  @return if($last == '%', to-number(str-slice($string, 1, -2), 2) * 1%, to-number($string));
+}
+
+/// Get Color Value =========================================== #get-color-value
+///
+/// @alias get-colour-value
+///
+
+///
+/// @group helpers-colours
+///
+/// @require {function} get-colour-value
+///
+/// @return {colour}
+
+@function get-color-value($string) {
+  @return get-colour-value($string);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Get Variable Colour Value                         #get-variable-colour-value
+////////////////////////////////////////////////////////////////////////////////
+///
+
+///
+/// @group helpers-colours
+///
+/// @require {function} get-variable-colour-value
+///
+/// @return {colour}
+
+@function get-variable-colour-value($colour, $opacity:1) {
+
+  @if not is-colour($colour) and variable-exists(variables) {
+
+    $value : map-get($variables, get-var-variable($colour));
+
+    @if not is-null($value) {
+
+      @if is-list($value) {
+        $red:   nth($value, 1);
+        $green: nth($value, 2);
+        $blue:  nth($value, 3);
+        $value : rgba($red, $green, $blue, $opacity);
+      }
+
+      $colour : $value;
+    }
+
+  }
+
+  @return $colour;
+
+}
+
+///  Get Variable Color Value ======================== #get-variable-color-value
+///
+/// @alias get-variable-colour-value
+///
+
+///
+/// @group helpers-colours
+///
+/// @require {function} get-variable-colour-value
+///
+/// @return {colour}
+
+@function get-variable-color-value($colour, $opacity:1) {
+  @return get-variable-colour-value($colour, $opacity);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Gradient Properties                                     #gradient-properties
+////////////////////////////////////////////////////////////////////////////////
+///
+// Add each argument into a single comma delimited list
+///
+/// @group helpers-colours
+///
+
+@function gradient-properties($args...) {
+  $properties : ();
+
+  $args: if(length($args) > 0, $args, null);
+
+  @for $i from 1 through length($args) {
+    $properties : append($properties, nth($args, $i), comma);
+  }
+
+  @return $properties;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Hash Fix                                                           #hash-fix
+////////////////////////////////////////////////////////////////////////////////
+///
+/// For reasons specific to Firefox (currently version 45),
+/// SVG's require all hash symbols to be replaced with '%23'. This includes hex
+/// colours and <use> xlinks This function will find and replace that hash
+/// symbol with the appropriate new string (which also works in other browsers)
+///
+/// @author Mark Notton
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @link http://stackoverflow.com/questions/28588050/how-to-use-a-hex-value-for-svg-in-firefox#answer-28588194
+///
+/// @return {string} - Without "#" as the first character
+
+@function hash-fix($string) {
+  @if get-var-value($string) {
+    @return str-replace(to-string(get-var-value($string)), '#', '%23');
+  } @else {
+    @return if(is-first-character($string, '#'), str-replace(#{$string}, '#', '%23'), $string);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Hexadecimal to Decimal                                           #hex-to-dec
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Convert an hexadecimal number to a decimal number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @param {string} $string - string
+///
+/// @param {string} $string - hexadecimal value
+///
+/// @return {number} - decimal number
+
+@function hex-to-dec($string){
+  $hex: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f";
+  $string: to-lower-case($string);
+  $length: str-length($string);
+
+  $dec: 0;
+  @for $i from 1 through $length {
+    $factor: 1 + ( 15 * ( $length - $i ));
+    $index: index($hex, str-slice($string, $i, $i));
+    $dec: $dec + $factor * ($index - 1);
+  }
+
+  @return $dec;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Hexadecimal to RGBA                                             #hex-to-rgba
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @group helpers-colours
+///
+
+@function hex-to-rgba($colour, $opacity:1) {
+
+  @if is-hex($colour) {
+
+    $red:   red($colour);
+    $green: green($colour);
+    $blue:  blue($colour);
+
+    @return unquote("rgba(#{$red}, #{$green}, #{$blue}, #{$opacity})");
+
+  } @else {
+
+    @return $colour;
+
+  }
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Lightness                                                         #lightness
+////////////////////////////////////////////////////////////////////////////////
+///
+/// A smart calculation to what lightness is
+///
+/// @notice This could just be a variable, but for potential future minipulation I've left it as a function
+///
+/// @author David Halford
+///
+/// @access private
+///
+/// @group helpers-colours
+///
+/// @link http://codepen.io/davidhalford/pen/wlDxL?editors=1100
+///
+/// @return {number}
+
+@function lightness() {
+  @return round((red(#ffffff) * 299) + (green(#ffffff) * 587) + (blue(#ffffff) * 114) / 1000)/2;
+}
+
+/// Random colour.
+///
+/// @author Pankaj Parashar
+///
+
+///
+/// @author https://pankajparashar.com/posts/random-colors-sass/
+///
+/// @param {number} $opacity - Amend the opacity of the colour that is returned. Default is 1
+///
+/// @example scss - Usage
+///   random-colour(0.5);
+///
+/// @example css - Output
+///   rgba(38, 153, 180, 0.5);
+///
+/// @return {color}
+
+@function random-colour($opacity:1) {
+  @return rgba(random(256) - 1, random(256) - 1, random(256) - 1, $opacity);
+}
+
+/// @author Mark Notton
+/// @link http://www.w3schools.com/charsets/ref_html_utf8.asp
+/// @type variables
+
+/// Symbols
+
+$copyright :            "\00A9"; // ©
+
+$registered :           "\00AE"; // ®
+
+$tricolon :             "\205D"; // ⁝
+
+$quadcolon :            "\205E"; // ⁞
+
+$tick1 :                "\2713"; // ✓
+
+$tick2 :                "\2714"; // ✔
+
+$cross1 :               "\2715"; // ✕
+
+$cross2 :               "\2717"; // ✗
+
+$plus :                 "\271B"; // ✛
+
+$bullet :               "\2219"; // ∙
+
+/// Punctuation
+
+$single-dot :           "\2024"; // ․
+
+$double-dots :          "\2025"; // ‥
+
+$tripple-dots :         "\2026"; // …
+
+$open-quotes-1 :        "\201C"; // “
+
+$close-quotes-1 :       "\201D"; // ”
+
+$close-quotes-2 :       "\201E"; // „
+
+$open-quotes-2 :        "\201F"; // ‟
+
+$close-curly-brackets : "\2775"; // ❵
+
+$open-curly-brackets :  "\2774"; // ❴
+
+/// Arrows
+
+$double-right-arrows :  "\00BB"; // »
+
+$angle-left-1 :         "\276C"; // ❬
+
+$angle-right-1 :        "\276D"; // ❭
+
+$angle-left-2 :         "\276E"; // ❮
+
+$angle-right-2 :        "\276F"; // ❯
+
+$angle-left-3 :         "\2770"; // ❰
+
+$angle-right-3 :        "\2771"; // ❱
+
+$small-left-arrow :     "\2039"; // ‹
+
+$small-right-arrow :    "\203A"; // ›
+
+$arrow-right :          "\27A4"; // ➤
+
+$triangle-right-1 :     "\2023"; // ‣
+
+$triangle-right-2 :     "\25B6"; // ▶
+
+$triangle-right-3 :     "\25B7"; // ▷
+
+
+/// Currency
+
+$british-pound :        "\00A3"; // £
+
+$dollar :               "\0024"; // $
+
+$euro :                 "\20AC"; // €
+
+
+/// Shapes
+
+$star :                 "\272F"; // ✯
+
+$circle :               "\25CF"; // ●
+
+$square-1 :             "\25A0"; // ■
+
+$square-2 :             "\25A1"; // □
+
+$quare-3 :              "\25A2"; // ▢
+
+////////////////////////////////////////////////////////////////////////////////
+/// Get Settings                                                   #get-settings
+////////////////////////////////////////////////////////////////////////////////
+
+/// Have all mixins accept the same pattern on arguments and manage all defaults
+/// data and fallbacks. Use either a list, map, or keywords.
+///
+/// @name Get Settings
+/// @author Mark Notton
+
+/// @return {map}
+/// @example
+/// @mixin myMixin($args...) {
+///    $defaults : (
+///      name   : 'unknown',
+///      age    : '99',
+///      gender : null,
+///      data   : ('foo':'bar')
+///    );
+///    $settings : get-settings($defaults, $args...);
+///    // $settings : get-settings($defaults, (deep:false, debug:true), $args...);
+///    @debug $settings;
+/// }
+/// @include myMixin('Mark', '31', male, ('wibble':'wobble'), important);
+/// @include myMixin((name:'Lizzie', gender:female, data:('wibble':'wobble')));
+/// @include myMixin($name:'Andy', $age:'36', $gender:male);
+/// @include myMixin(important);
+///
+/// @output
+/// name: "Mark", age: "31", gender: male, data: ("foo": "bar", "wibble": "wobble"), important: !important
+/// name: "Lizzie", age: "99", gender: female, data: ("foo": "bar", "wibble": "wobble"), important: null
+/// name: "Andy", age: "36", gender: male, data: ("foo": "bar"), important: null
+/// name: "unknown", age: "99", gender: null, data: ("foo": "bar"), important: !important
+// NOTE Passing a list of arguments in the keywords format will return incorrect
+// settings data if a special options map prefixes 'args...' within the Mixin.
+
+@function get-settings($defaults, $args...) {
+
+  // ===========================================================================
+  // Initial settings
+  // ===========================================================================
+
+  $important : false;
+  $settings  : null;
+  $defaults  : if(is-null($defaults), (), $defaults);
+  $backup    : $args;
+
+  // Special options on how to manage the arguments ----------------------------
+
+  $options : (
+    deep      : true,
+    prefix    : 'argument',
+    important : null,
+    debug     : false
+  );
+
+  // ===========================================================================
+  //  Revert to defaults if no arguments are passed
+  // ===========================================================================
+
+  @if length($args) == 0 and length(keywords($args)) == 0 {
+
+    @if map-get($options, debug ) { @debug "NO ARGUMENTS DETECTED"; }
+
+    $settings : $defaults;
+
+  } @else {
+
+    // =========================================================================
+    //  Keywords
+    // =========================================================================
+    // Convert keywords into a useable map
+
+    @if length(keywords($args)) > 0 {
+
+      @if map-get($options, debug ) { @debug "KEYWORDS DETECTED"; }
+
+      $args : keywords($args);
+
+      @if map-has-key($args, options) {
+        $options : map-merge($options, map-get($args, options));
+        $args : map-remove($args, options);
+      }
+
+    }
+
+    // =========================================================================
+    //  Special Options
+    // =========================================================================
+
+    // Special options at start ------------------------------------------------
+    // Check if the fisrt args element exists, is a map, and contains any of the
+    // $options keys.If it does, assume these are bespoke options relative to
+    // the mixin that called this function.
+
+    @if not is-empty(nth($args, 1)) and is-map(nth($args, 1)) and contains(map-keys(nth($args, 1)), map-keys($options)) {
+
+      @if map-get($options, debug ) { @debug 'Special options defined at start of the arguments'; }
+
+      $options : map-merge($options, nth($args, 1));
+      $args    : slice($args, 2, length($args));
+
+    }
+
+    // Special options at end -------------------------------------------------
+    // Essentially the same as above, but checks the last argument for options.
+    // This allows for a little syntax suger when passing aguments on a per-maxin call basis
+
+    @elseif not is-empty(nth($args, -1)) and is-map(nth($args, -1)) and
+            contains(map-keys(nth($args, -1)), map-keys($options)) {
+
+      @if map-get($options, debug ) { @debug 'Special options defined at end of the arguments'; }
+
+      $options : map-merge($options, nth($args, -1));
+      $args    : slice($args, 1, length($args) - 1)
+    }
+
+    // =========================================================================
+    //  Maps
+    // =========================================================================
+
+    // Quick check to determine if the map was originally passed as keywords or not.
+    $map : if(is-map($args), $args, nth($args, 1));
+
+    @if not is-empty($map) and is-map($map) {
+
+      @if map-get($options, debug ) { @debug "MAP DETECTED"; }
+
+    /// @todo: Check for cast type and required types
+
+      @if map-get($options, deep) == true  {
+        // If deep is true (default), then perform a deep merge with the defaults
+        $settings : map-deep-merge($defaults, $map);
+      } @else {
+        // Otherwise do a standard merge.
+        $settings : map-merge($defaults, $map);
+      }
+
+      // Check if the map has important explicitly defined within it.
+      @if contains(map-keys($settings), important) {
+        $important : map-get($settings, important);
+        // If important is found, remove it from the settings list.
+        $settings : map-remove($settings, important);
+      }
+
+      // If a map was passed, check the second parameter for
+      // important as they may be seperated.
+      @if length($args) > 1 and is-important(nth($args, 2)) {
+        $important : true;
+      }
+
+    } @else {
+
+    // =========================================================================
+    //  List
+    // =========================================================================
+
+      @if map-get($options, debug ) { @debug "LIST DETECTED"; }
+
+      // Arguments that are passed as a standard list
+
+      $default-keys : map-keys($defaults);
+      $default-values : map-values($defaults);
+
+      // Convert all items into lists to help looping.
+      $arguments : arglist-to-list($args...);
+
+      // Check and remove 'important' if it was defined.
+      @if contains($arguments, important) {
+        $important : true;
+        $arguments : remove($arguments, important);
+      }
+
+      // Run through all the arguments
+      @if ( length($arguments) > 0 ) {
+        @for $i from 1 through length($arguments) {
+
+          @if $i <= length($default-keys) {
+            // Check if the amount of arguements is less than the
+            // amount of defaults before setting the value
+            @if is-null(nth($arguments, $i)) or contains((default, defaults), nth($arguments, $i)) {
+              // Passing in null, default or defaults will use the default value.
+              $defaults : map-set($defaults, nth($default-keys, $i), nth($default-values, $i));
+            } @elseif is-map(nth($arguments, $i)) {
+              @if map-get($options, deep) == true  {
+                // Do a deep-merge for map data
+                $defaults : map-set($defaults, nth($default-keys, $i), map-deep-merge(nth($default-values, $i), nth($arguments, $i)));
+              } @else {
+                // Do a normal merge for map data
+                $defaults : map-set($defaults, nth($default-keys, $i), map-merge(nth($default-values, $i), nth($arguments, $i)));
+              }
+            } @else {
+              // Add value to the associated argument number from the defaults key.
+              $defaults : map-set($defaults, nth($default-keys, $i), nth($arguments, $i));
+            }
+          } @else {
+            // If there are more arguments, define a map key with "argument",
+            // followed by the argument index.
+            $defaults : map-set($defaults, #{map-get($options, prefix) + $i}, nth($arguments, $i));
+          }
+        }
+        $settings : $defaults;
+      } @else {
+        // This is a fallback should no arguments be passed except for 'important'
+        $settings : $defaults;
+      }
+    }
+
+  }
+
+  // ===========================================================================
+  //  Return Settings
+  // ===========================================================================
+
+  // Lastely, include important key and value at the end of the map.
+  $settings : map-set($settings, important, if($important, $imp, map-get($options, important)));
+
+  @if map-get($options, debug ) {
+    // @debug #{'Settings:'} $settings;
+    // @debug #{'Options:'} $options;
+  }
+
+  @return $settings;
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Opposite Direction                                       #opposite-direction
+////////////////////////////////////////////////////////////////////////////////
+
+/// Return an opposite direction
+/// @author Hugo Giraudel
+/// @group helpers-strings
+/// @link http://www.sitepoint.com/sass-mixins-kickstart-project/#opposite-direction
+
+@function opposite-direction($directions) {
+
+  $has-hyphen : false;
+
+  @if str-index(to-string($directions), '-') {
+    $has-hyphen : true;
+    $directions : string-explode(to-string($directions), '-');
+  }
+
+  $opposite-directions: ();
+  $direction-map: (
+    top    : bottom,
+    right  : left,
+    bottom : top,
+    left   : right,
+    up     : down,
+    down   : up,
+    center : center,
+    ltr    : rtl,
+    rtl    : ltr
+  );
+
+  @each $direction in $directions {
+    $direction: to-lower-case($direction);
+
+    @if map-has-key($direction-map, $direction) {
+      $opposite-directions: append($opposite-directions, unquote(map-get($direction-map, $direction)));
+    } @else {
+      @if $warnings {
+        @warn "No opposite direction can be found for '#{$direction}'. Direction omitted.";
+      }
+    }
+  }
+
+  @if $has-hyphen == true {
+    @return string-replace(to-string($opposite-directions), '-', ' ');
+  } @else {
+    @return $opposite-directions;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Pseudo                                                               #pseudo
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Check to see if the given pseduo is valid
+///
+/// @author Mark Notton
+///
+/// @access private
+///
+/// @group helpers-misc
+///
+/// @require {function} is-pseudo
+///
+/// @return {string}
+///
+/// @example scss - Usage
+///   &#{pseudo(before)} { ... }
+///
+/// @example scss - Output
+///   &:before { ... }
+///
+
+@function pseudo($pseudo, $colon:true) {
+  @if is-pseudo($pseudo) {
+    @return if($colon, ':'+$pseudo, $pseudo);
+  } @else {
+    @return null;
+  }
+}
+
+/// Sudo ================================================================= #sudo
+///
+/// @alias pseudo
+///
+
+///
+/// @require {function} pseudo
+///
+/// @return {bool}
+
+@function sudo($pseudo, $colon:true) {
+  @return pseudo($pseudo, $colon);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// Add                                                                     #add
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -2734,423 +3151,6 @@ $sc-non-strict-defaults: (
   }
 
   @return $list;
-}
-
-/// @author Mark Notton
-/// @link http://www.w3schools.com/charsets/ref_html_utf8.asp
-/// @type variables
-
-/// Symbols
-
-$copyright :            "\00A9"; // ©
-
-$registered :           "\00AE"; // ®
-
-$tricolon :             "\205D"; // ⁝
-
-$quadcolon :            "\205E"; // ⁞
-
-$tick1 :                "\2713"; // ✓
-
-$tick2 :                "\2714"; // ✔
-
-$cross1 :               "\2715"; // ✕
-
-$cross2 :               "\2717"; // ✗
-
-$plus :                 "\271B"; // ✛
-
-$bullet :               "\2219"; // ∙
-
-/// Punctuation
-
-$single-dot :           "\2024"; // ․
-
-$double-dots :          "\2025"; // ‥
-
-$tripple-dots :         "\2026"; // …
-
-$open-quotes-1 :        "\201C"; // “
-
-$close-quotes-1 :       "\201D"; // ”
-
-$close-quotes-2 :       "\201E"; // „
-
-$open-quotes-2 :        "\201F"; // ‟
-
-$close-curly-brackets : "\2775"; // ❵
-
-$open-curly-brackets :  "\2774"; // ❴
-
-/// Arrows
-
-$double-right-arrows :  "\00BB"; // »
-
-$angle-left-1 :         "\276C"; // ❬
-
-$angle-right-1 :        "\276D"; // ❭
-
-$angle-left-2 :         "\276E"; // ❮
-
-$angle-right-2 :        "\276F"; // ❯
-
-$angle-left-3 :         "\2770"; // ❰
-
-$angle-right-3 :        "\2771"; // ❱
-
-$small-left-arrow :     "\2039"; // ‹
-
-$small-right-arrow :    "\203A"; // ›
-
-$arrow-right :          "\27A4"; // ➤
-
-$triangle-right-1 :     "\2023"; // ‣
-
-$triangle-right-2 :     "\25B6"; // ▶
-
-$triangle-right-3 :     "\25B7"; // ▷
-
-
-/// Currency
-
-$british-pound :        "\00A3"; // £
-
-$dollar :               "\0024"; // $
-
-$euro :                 "\20AC"; // €
-
-
-/// Shapes
-
-$star :                 "\272F"; // ✯
-
-$circle :               "\25CF"; // ●
-
-$square-1 :             "\25A0"; // ■
-
-$square-2 :             "\25A1"; // □
-
-$quare-3 :              "\25A2"; // ▢
-
-////////////////////////////////////////////////////////////////////////////////
-/// Get Settings                                                   #get-settings
-////////////////////////////////////////////////////////////////////////////////
-
-/// Have all mixins accept the same pattern on arguments and manage all defaults
-/// data and fallbacks. Use either a list, map, or keywords.
-///
-/// @name Get Settings
-/// @author Mark Notton
-
-/// @return {map}
-/// @example
-/// @mixin myMixin($args...) {
-///    $defaults : (
-///      name   : 'unknown',
-///      age    : '99',
-///      gender : null,
-///      data   : ('foo':'bar')
-///    );
-///    $settings : get-settings($defaults, $args...);
-///    // $settings : get-settings($defaults, (deep:false, debug:true), $args...);
-///    @debug $settings;
-/// }
-/// @include myMixin('Mark', '31', male, ('wibble':'wobble'), important);
-/// @include myMixin((name:'Lizzie', gender:female, data:('wibble':'wobble')));
-/// @include myMixin($name:'Andy', $age:'36', $gender:male);
-/// @include myMixin(important);
-///
-/// @output
-/// name: "Mark", age: "31", gender: male, data: ("foo": "bar", "wibble": "wobble"), important: !important
-/// name: "Lizzie", age: "99", gender: female, data: ("foo": "bar", "wibble": "wobble"), important: null
-/// name: "Andy", age: "36", gender: male, data: ("foo": "bar"), important: null
-/// name: "unknown", age: "99", gender: null, data: ("foo": "bar"), important: !important
-// NOTE Passing a list of arguments in the keywords format will return incorrect
-// settings data if a special options map prefixes 'args...' within the Mixin.
-
-@function get-settings($defaults, $args...) {
-
-  // ===========================================================================
-  // Initial settings
-  // ===========================================================================
-
-  $important : false;
-  $settings  : null;
-  $defaults  : if(is-null($defaults), (), $defaults);
-  $backup    : $args;
-
-  // Special options on how to manage the arguments ----------------------------
-
-  $options : (
-    deep      : true,
-    prefix    : 'argument',
-    important : null,
-    debug     : false
-  );
-
-  // ===========================================================================
-  //  Revert to defaults if no arguments are passed
-  // ===========================================================================
-
-  @if length($args) == 0 and length(keywords($args)) == 0 {
-
-    @if map-get($options, debug ) { @debug "NO ARGUMENTS DETECTED"; }
-
-    $settings : $defaults;
-
-  } @else {
-
-    // =========================================================================
-    //  Keywords
-    // =========================================================================
-    // Convert keywords into a useable map
-
-    @if length(keywords($args)) > 0 {
-
-      @if map-get($options, debug ) { @debug "KEYWORDS DETECTED"; }
-
-      $args : keywords($args);
-
-      @if map-has-key($args, options) {
-        $options : map-merge($options, map-get($args, options));
-        $args : map-remove($args, options);
-      }
-
-    }
-
-    // =========================================================================
-    //  Special Options
-    // =========================================================================
-
-    // Special options at start ------------------------------------------------
-    // Check if the fisrt args element exists, is a map, and contains any of the
-    // $options keys.If it does, assume these are bespoke options relative to
-    // the mixin that called this function.
-
-    @if not is-empty(nth($args, 1)) and is-map(nth($args, 1)) and contains(map-keys(nth($args, 1)), map-keys($options)) {
-
-      @if map-get($options, debug ) { @debug 'Special options defined at start of the arguments'; }
-
-      $options : map-merge($options, nth($args, 1));
-      $args    : slice($args, 2, length($args));
-
-    }
-
-    // Special options at end -------------------------------------------------
-    // Essentially the same as above, but checks the last argument for options.
-    // This allows for a little syntax suger when passing aguments on a per-maxin call basis
-
-    @elseif not is-empty(nth($args, -1)) and is-map(nth($args, -1)) and
-            contains(map-keys(nth($args, -1)), map-keys($options)) {
-
-      @if map-get($options, debug ) { @debug 'Special options defined at end of the arguments'; }
-
-      $options : map-merge($options, nth($args, -1));
-      $args    : slice($args, 1, length($args) - 1)
-    }
-
-    // =========================================================================
-    //  Maps
-    // =========================================================================
-
-    // Quick check to determine if the map was originally passed as keywords or not.
-    $map : if(is-map($args), $args, nth($args, 1));
-
-    @if not is-empty($map) and is-map($map) {
-
-      @if map-get($options, debug ) { @debug "MAP DETECTED"; }
-
-    /// @todo: Check for cast type and required types
-
-      @if map-get($options, deep) == true  {
-        // If deep is true (default), then perform a deep merge with the defaults
-        $settings : map-deep-merge($defaults, $map);
-      } @else {
-        // Otherwise do a standard merge.
-        $settings : map-merge($defaults, $map);
-      }
-
-      // Check if the map has important explicitly defined within it.
-      @if contains(map-keys($settings), important) {
-        $important : map-get($settings, important);
-        // If important is found, remove it from the settings list.
-        $settings : map-remove($settings, important);
-      }
-
-      // If a map was passed, check the second parameter for
-      // important as they may be seperated.
-      @if length($args) > 1 and is-important(nth($args, 2)) {
-        $important : true;
-      }
-
-    } @else {
-
-    // =========================================================================
-    //  List
-    // =========================================================================
-
-      @if map-get($options, debug ) { @debug "LIST DETECTED"; }
-
-      // Arguments that are passed as a standard list
-
-      $default-keys : map-keys($defaults);
-      $default-values : map-values($defaults);
-
-      // Convert all items into lists to help looping.
-      $arguments : arglist-to-list($args...);
-
-      // Check and remove 'important' if it was defined.
-      @if contains($arguments, important) {
-        $important : true;
-        $arguments : remove($arguments, important);
-      }
-
-      // Run through all the arguments
-      @if ( length($arguments) > 0 ) {
-        @for $i from 1 through length($arguments) {
-
-          @if $i <= length($default-keys) {
-            // Check if the amount of arguements is less than the
-            // amount of defaults before setting the value
-            @if is-null(nth($arguments, $i)) or contains((default, defaults), nth($arguments, $i)) {
-              // Passing in null, default or defaults will use the default value.
-              $defaults : map-set($defaults, nth($default-keys, $i), nth($default-values, $i));
-            } @elseif is-map(nth($arguments, $i)) {
-              @if map-get($options, deep) == true  {
-                // Do a deep-merge for map data
-                $defaults : map-set($defaults, nth($default-keys, $i), map-deep-merge(nth($default-values, $i), nth($arguments, $i)));
-              } @else {
-                // Do a normal merge for map data
-                $defaults : map-set($defaults, nth($default-keys, $i), map-merge(nth($default-values, $i), nth($arguments, $i)));
-              }
-            } @else {
-              // Add value to the associated argument number from the defaults key.
-              $defaults : map-set($defaults, nth($default-keys, $i), nth($arguments, $i));
-            }
-          } @else {
-            // If there are more arguments, define a map key with "argument",
-            // followed by the argument index.
-            $defaults : map-set($defaults, #{map-get($options, prefix) + $i}, nth($arguments, $i));
-          }
-        }
-        $settings : $defaults;
-      } @else {
-        // This is a fallback should no arguments be passed except for 'important'
-        $settings : $defaults;
-      }
-    }
-
-  }
-
-  // ===========================================================================
-  //  Return Settings
-  // ===========================================================================
-
-  // Lastely, include important key and value at the end of the map.
-  $settings : map-set($settings, important, if($important, $imp, map-get($options, important)));
-
-  @if map-get($options, debug ) {
-    // @debug #{'Settings:'} $settings;
-    // @debug #{'Options:'} $options;
-  }
-
-  @return $settings;
-
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Opposite Direction                                       #opposite-direction
-////////////////////////////////////////////////////////////////////////////////
-
-/// Return an opposite direction
-/// @author Hugo Giraudel
-/// @group helpers-strings
-/// @link http://www.sitepoint.com/sass-mixins-kickstart-project/#opposite-direction
-
-@function opposite-direction($directions) {
-
-  $has-hyphen : false;
-
-  @if str-index(to-string($directions), '-') {
-    $has-hyphen : true;
-    $directions : string-explode(to-string($directions), '-');
-  }
-
-  $opposite-directions: ();
-  $direction-map: (
-    top    : bottom,
-    right  : left,
-    bottom : top,
-    left   : right,
-    up     : down,
-    down   : up,
-    center : center,
-    ltr    : rtl,
-    rtl    : ltr
-  );
-
-  @each $direction in $directions {
-    $direction: to-lower-case($direction);
-
-    @if map-has-key($direction-map, $direction) {
-      $opposite-directions: append($opposite-directions, unquote(map-get($direction-map, $direction)));
-    } @else {
-      @if $warnings {
-        @warn "No opposite direction can be found for '#{$direction}'. Direction omitted.";
-      }
-    }
-  }
-
-  @if $has-hyphen == true {
-    @return string-replace(to-string($opposite-directions), '-', ' ');
-  } @else {
-    @return $opposite-directions;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Pseudo                                                               #pseudo
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Check to see if the given pseduo is valid
-///
-/// @author Mark Notton
-///
-/// @access private
-///
-/// @group helpers-misc
-///
-/// @require {function} is-pseudo
-///
-/// @return {string}
-///
-/// @example scss - Usage
-///   &#{pseudo(before)} { ... }
-///
-/// @example scss - Output
-///   &:before { ... }
-///
-
-@function pseudo($pseudo, $colon:true) {
-  @if is-pseudo($pseudo) {
-    @return if($colon, ':'+$pseudo, $pseudo);
-  } @else {
-    @return null;
-  }
-}
-
-/// Sudo ================================================================= #sudo
-///
-/// @alias pseudo
-///
-
-///
-/// @require {function} pseudo
-///
-/// @return {bool}
-
-@function sudo($pseudo, $colon:true) {
-  @return pseudo($pseudo, $colon);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -4858,6 +4858,356 @@ $ease-in-out-back  : cubic-bezier(0.680, -0.550, 0.265, 1.550);
   }
 }
 
+@mixin break-between($min, $max) {
+
+	$min : get-breakpoint($min);
+	$max : get-breakpoint($max);
+
+  @media (min-width:$min) and (max-width:$max) {
+    @content;
+  }
+}
+
+@mixin breakpoint($args...) {
+
+	$defaults : (
+    breakpoint : null,
+    rule : 'min',
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $rule : map-get($settings, rule);
+  $breakpoint : map-get($settings, breakpoint);
+
+  $breakpoint : get-breakpoint($breakpoint);
+
+	@if $rule == 'min' or $rule == '>' {
+		@media (min-width:$breakpoint - 1) {
+	    @content;
+	  }
+	}	@elseif $rule == 'max' or $rule == '<' {
+		@media (max-width:$breakpoint) {
+	    @content;
+	  }
+	}
+}
+
+// Get breakpoint from the breakpoint list, either by it's number or name
+@function get-breakpoint($break) {
+
+	$breakpoint : $break;
+
+	// If a string is passed and exists in the breakpoints map as a key, return the value
+  @if is-string($break) and map-has-key($breakpoints, $break) {
+    $breakpoint : map-get($breakpoints, $break);
+  }
+
+	// If a number is passed and it exists in the breakpoints map, return the key
+	@elseif is-number($break) {
+    $breakpoint : add-unit($break, 'px', true);
+  }
+
+	@return to-number($breakpoint);
+
+}
+
+@mixin inside-break($breakpoint) {
+	@include breakpoint($breakpoint, max) { @content; }
+}
+
+@mixin outside-break($breakpoint) {
+	@include breakpoint($breakpoint, min) { @content; }
+}
+
+@mixin show-breakpoints($sudo : before) {
+	@if $show-breakpoints {
+	  &:#{$sudo} {
+	    content:"\276F  #{add-unit($max)}";
+	    background-color:darken($red, 20);
+	    bottom:0;
+	    right:0;
+	    font-family:Arial;
+	    padding:4px $gap0;
+	    @include transition(background-color color);
+	    pointer-events:none;
+	    position:fixed;
+	    z-index:9999;
+	    font-size:12px;
+	    line-height:16px;
+	    color:white;
+	    text-align:center;
+	    @each $name, $value in $breakpoints {
+	      $random-color: random-colour();
+	      @include breakpoint($value, '>') {
+	        content:"#{$name} #{add-unit($value)}";
+	        background-color:$random-color;
+	        color:colour-contrast($random-color);
+	      }
+	    }
+	  }
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Grid Layouts                                                   #grid-layouts
+////////////////////////////////////////////////////////////////////////////////
+
+// =============================================================================
+// 2x Blocks
+// =============================================================================
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+$grid-template-2-blocks-1x2: "block1 block2";
+
+// =============================================================================
+// 3x Blocks
+// =============================================================================
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘└───┘└───┘
+$grid-template-3-blocks-1x3: "block1 block2 block3";
+
+// -----------------------------------------------------------------------------
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+// ┍────────────┐
+// │  3         │
+// └────────────┘
+$grid-template-3-blocks-1x2-3x3: "block1 block2" "block3 block3";
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  3  │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x2-1x3: "block1 block2" "block1 block3";
+
+// ┍────────────┐
+// │  1         │
+// └────────────┘
+// ┍─────┐┍─────┐
+// │  2  ││  3  │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x1-2x3: "block1 block1" "block2 block3";
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  3  ││     │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x2-3x2: "block1 block2" "block3 block2";
+
+// =============================================================================
+// 4x Blocks
+// =============================================================================
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+// ┍─────┐┍─────┐
+// │  3  ││  4  │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-3x4: "block1 block2" "block3 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  3  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  4  │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-1x3-1x4: "block1 block2" "block1 block3" "block1 block4";
+
+// ┍─────────────┐
+// │ 1           │
+// └─────────────┘
+// ┍───┐┍───┐┍───┐
+// │ 2 ││ 3 ││ 4 │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x1x1-2x3x4: "block1 block1 block1" "block2 block3 block4";
+
+// ┍─────┐┍─────┐
+// │  1  ││  4  │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  2  ││     │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  3  ││     │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-2x4-3x4: "block1 block2" "block2 block4" "block3 block4";
+
+// 270 Degrees
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘└───┘└───┘
+// ┍─────────────┐
+// │ 4           │
+// └─────────────┘
+$grid-template-4-blocks-1x2x3-4x4x4: "block1 block2 block3" "block4 block4 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   │└───┘│   │
+// │   │┍───┐│   │
+// │   ││ 4 ││   │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-1x3x3: "block1 block2 block3" "block1 block3 block3";
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// | 1  || 2  |
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x1-2x3-4x4: "block1 block1" "block2 block3" "block4 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍──────────┐
+// | 2        |
+// └──────────┘
+// ┍────┐┍────┐
+// | 3  || 4  |
+// └────┘└────┘
+$grid-template-4-blocks-1x1-2x2-3x4: "block1 block1" "block2 block2" "block3 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘│   ││   │
+// ┍───┐│   ││   │
+// │ 4 ││   ││   │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-4x2x3: "block1 block2 block3" "block4 block2 block3";
+
+// ┍────┐┍────┐
+// | 1  || 2  |
+// └────┘└────┘
+// ┍──────────┐
+// | 3        |
+// └──────────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-3x3-4x4: "block1 block2" "block3 block3" "block4 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   ││   │└───┘
+// │   ││   │┍───┐
+// │   ││   ││ 4 │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-1x2x4: "block1 block2 block3" "block1 block2 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// │ 3  ││  2 │
+// └────┘│    │
+// ┍────┐│    │
+// │ 4  ││    │
+// └────┘└────┘
+$grid-template-4-blocks-1x1-3x2-4x2: "block1 block1" "block3 block2" "block4 block2";
+
+// ┍────┐┍────┐┍────┐
+// │ 1  ││ 2  ││ 3  │
+// └────┘└────┘│    │
+// ┍──────────┐│    |
+// │ 4        ││    │
+// └──────────┘└────┘
+$grid-template-4-blocks-1x2x3-4x4x3: "block1 block2 block3" "block4 block4 block3";
+
+// ┍────┐┍────┐
+// │ 1  ││ 2  │
+// │    │└────┘
+// │    │┍────┐
+// │    ││ 3  │
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-1x3-4x4: "block1 block2" "block1 block3" "block4 block4";
+
+// ┍────┐┍──────────┐
+// │ 1  ││ 2        │
+// │    │└──────────┘
+// │    │┍────┐┍────┐
+// │    ││ 3  ││ 4  │
+// └────┘└────┘└────┘
+$grid-template-4-blocks-1x2x2-1x3x4: "block1 block2 block2" "block1 block3 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// │ 2  ││ 3  │
+// │    │└────┘
+// │    │┍────┐
+// │    ││ 4  │
+// └────┘└────┘
+$grid-template-4-blocks-1x1-2x3-2x4: "block1 block1" "block2 block3" "block2 block4";
+
+// ┍──────────┐┍────┐
+// │ 1        ││ 4  │
+// └──────────┘│    │
+// ┍────┐┍────┐│    │
+// │ 2  ││ 3  ││    │
+// └────┘└────┘└────┘
+$grid-template-4-blocks-1x1x4-2x3x4: "block1 block1 block4" "block2 block3 block4";
+
+// ┍────┐┍────┐
+// │ 1  ││ 2  │
+// └────┘│    │
+// ┍────┐│    │
+// │ 3  ││    │
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-3x2-4x4: "block1 block2" "block3 block2" "block4 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   │└───┘└───┘
+// │   |┍────────┐
+// │   ││ 4      |
+// └───┘└────────┘
+$grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block4";
+
+// =============================================================================
+// 5x Blocks
+// =============================================================================
+
+// If you want to split a column up using the repeat function, you may want to devide the min and max values by the amount of columns;
+@function grid-repeat($amount, $min:$small, $max:$max) {
+  @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
+}
+
 // Documentation: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
 
 // Container properties
@@ -5290,356 +5640,6 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
   justify-content : initial $important;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Grid Layouts                                                   #grid-layouts
-////////////////////////////////////////////////////////////////////////////////
-
-// =============================================================================
-// 2x Blocks
-// =============================================================================
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-$grid-template-2-blocks-1x2: "block1 block2";
-
-// =============================================================================
-// 3x Blocks
-// =============================================================================
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘└───┘└───┘
-$grid-template-3-blocks-1x3: "block1 block2 block3";
-
-// -----------------------------------------------------------------------------
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-// ┍────────────┐
-// │  3         │
-// └────────────┘
-$grid-template-3-blocks-1x2-3x3: "block1 block2" "block3 block3";
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  3  │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x2-1x3: "block1 block2" "block1 block3";
-
-// ┍────────────┐
-// │  1         │
-// └────────────┘
-// ┍─────┐┍─────┐
-// │  2  ││  3  │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x1-2x3: "block1 block1" "block2 block3";
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  3  ││     │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x2-3x2: "block1 block2" "block3 block2";
-
-// =============================================================================
-// 4x Blocks
-// =============================================================================
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-// ┍─────┐┍─────┐
-// │  3  ││  4  │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-3x4: "block1 block2" "block3 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  3  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  4  │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-1x3-1x4: "block1 block2" "block1 block3" "block1 block4";
-
-// ┍─────────────┐
-// │ 1           │
-// └─────────────┘
-// ┍───┐┍───┐┍───┐
-// │ 2 ││ 3 ││ 4 │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x1x1-2x3x4: "block1 block1 block1" "block2 block3 block4";
-
-// ┍─────┐┍─────┐
-// │  1  ││  4  │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  2  ││     │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  3  ││     │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-2x4-3x4: "block1 block2" "block2 block4" "block3 block4";
-
-// 270 Degrees
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘└───┘└───┘
-// ┍─────────────┐
-// │ 4           │
-// └─────────────┘
-$grid-template-4-blocks-1x2x3-4x4x4: "block1 block2 block3" "block4 block4 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   │└───┘│   │
-// │   │┍───┐│   │
-// │   ││ 4 ││   │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-1x3x3: "block1 block2 block3" "block1 block3 block3";
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// | 1  || 2  |
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x1-2x3-4x4: "block1 block1" "block2 block3" "block4 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍──────────┐
-// | 2        |
-// └──────────┘
-// ┍────┐┍────┐
-// | 3  || 4  |
-// └────┘└────┘
-$grid-template-4-blocks-1x1-2x2-3x4: "block1 block1" "block2 block2" "block3 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘│   ││   │
-// ┍───┐│   ││   │
-// │ 4 ││   ││   │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-4x2x3: "block1 block2 block3" "block4 block2 block3";
-
-// ┍────┐┍────┐
-// | 1  || 2  |
-// └────┘└────┘
-// ┍──────────┐
-// | 3        |
-// └──────────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-3x3-4x4: "block1 block2" "block3 block3" "block4 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   ││   │└───┘
-// │   ││   │┍───┐
-// │   ││   ││ 4 │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-1x2x4: "block1 block2 block3" "block1 block2 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// │ 3  ││  2 │
-// └────┘│    │
-// ┍────┐│    │
-// │ 4  ││    │
-// └────┘└────┘
-$grid-template-4-blocks-1x1-3x2-4x2: "block1 block1" "block3 block2" "block4 block2";
-
-// ┍────┐┍────┐┍────┐
-// │ 1  ││ 2  ││ 3  │
-// └────┘└────┘│    │
-// ┍──────────┐│    |
-// │ 4        ││    │
-// └──────────┘└────┘
-$grid-template-4-blocks-1x2x3-4x4x3: "block1 block2 block3" "block4 block4 block3";
-
-// ┍────┐┍────┐
-// │ 1  ││ 2  │
-// │    │└────┘
-// │    │┍────┐
-// │    ││ 3  │
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-1x3-4x4: "block1 block2" "block1 block3" "block4 block4";
-
-// ┍────┐┍──────────┐
-// │ 1  ││ 2        │
-// │    │└──────────┘
-// │    │┍────┐┍────┐
-// │    ││ 3  ││ 4  │
-// └────┘└────┘└────┘
-$grid-template-4-blocks-1x2x2-1x3x4: "block1 block2 block2" "block1 block3 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// │ 2  ││ 3  │
-// │    │└────┘
-// │    │┍────┐
-// │    ││ 4  │
-// └────┘└────┘
-$grid-template-4-blocks-1x1-2x3-2x4: "block1 block1" "block2 block3" "block2 block4";
-
-// ┍──────────┐┍────┐
-// │ 1        ││ 4  │
-// └──────────┘│    │
-// ┍────┐┍────┐│    │
-// │ 2  ││ 3  ││    │
-// └────┘└────┘└────┘
-$grid-template-4-blocks-1x1x4-2x3x4: "block1 block1 block4" "block2 block3 block4";
-
-// ┍────┐┍────┐
-// │ 1  ││ 2  │
-// └────┘│    │
-// ┍────┐│    │
-// │ 3  ││    │
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-3x2-4x4: "block1 block2" "block3 block2" "block4 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   │└───┘└───┘
-// │   |┍────────┐
-// │   ││ 4      |
-// └───┘└────────┘
-$grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block4";
-
-// =============================================================================
-// 5x Blocks
-// =============================================================================
-
-// If you want to split a column up using the repeat function, you may want to devide the min and max values by the amount of columns;
-@function grid-repeat($amount, $min:$small, $max:$max) {
-  @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
-}
-
-@mixin break-between($min, $max) {
-
-	$min : get-breakpoint($min);
-	$max : get-breakpoint($max);
-
-  @media (min-width:$min) and (max-width:$max) {
-    @content;
-  }
-}
-
-@mixin breakpoint($args...) {
-
-	$defaults : (
-    breakpoint : null,
-    rule : 'min',
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $rule : map-get($settings, rule);
-  $breakpoint : map-get($settings, breakpoint);
-
-  $breakpoint : get-breakpoint($breakpoint);
-
-	@if $rule == 'min' or $rule == '>' {
-		@media (min-width:$breakpoint - 1) {
-	    @content;
-	  }
-	}	@elseif $rule == 'max' or $rule == '<' {
-		@media (max-width:$breakpoint) {
-	    @content;
-	  }
-	}
-}
-
-// Get breakpoint from the breakpoint list, either by it's number or name
-@function get-breakpoint($break) {
-
-	$breakpoint : $break;
-
-	// If a string is passed and exists in the breakpoints map as a key, return the value
-  @if is-string($break) and map-has-key($breakpoints, $break) {
-    $breakpoint : map-get($breakpoints, $break);
-  }
-
-	// If a number is passed and it exists in the breakpoints map, return the key
-	@elseif is-number($break) {
-    $breakpoint : add-unit($break, 'px', true);
-  }
-
-	@return to-number($breakpoint);
-
-}
-
-@mixin inside-break($breakpoint) {
-	@include breakpoint($breakpoint, max) { @content; }
-}
-
-@mixin outside-break($breakpoint) {
-	@include breakpoint($breakpoint, min) { @content; }
-}
-
-@mixin show-breakpoints($sudo : before) {
-	@if $show-breakpoints {
-	  &:#{$sudo} {
-	    content:"\276F  #{add-unit($max)}";
-	    background-color:darken($red, 20);
-	    bottom:0;
-	    right:0;
-	    font-family:Arial;
-	    padding:4px $gap0;
-	    @include transition(background-color color);
-	    pointer-events:none;
-	    position:fixed;
-	    z-index:9999;
-	    font-size:12px;
-	    line-height:16px;
-	    color:white;
-	    text-align:center;
-	    @each $name, $value in $breakpoints {
-	      $random-color: random-colour();
-	      @include breakpoint($value, '>') {
-	        content:"#{$name} #{add-unit($value)}";
-	        background-color:$random-color;
-	        color:colour-contrast($random-color);
-	      }
-	    }
-	  }
-	}
-}
-
 @mixin blur($value:5px, $important:null) {
   @include filter(blur $value $important);
 }
@@ -5808,6 +5808,274 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
   @include filter(url $value $important);
 }
 
+@mixin matrix($args...) {
+  @include transform(matrix $args);
+}
+
+@mixin matrix3d($args...) {
+  @include transform(matrix3d $args);
+}
+
+@mixin perspective-origin($value:50% 50%) {
+
+  $values : ();
+
+  @if length($value) > 1 {
+    @each $val in $value {
+      $values : append($values, add-unit($val));
+    }
+  } @else {
+    $values : add-unit($value);
+  }
+
+  perspective-origin: $values;
+}
+
+@mixin perspective($value:600) {
+  perspective: add-unit($value);
+}
+
+@mixin rotate($value) {
+  @include transform(rotate $value);
+}
+
+@mixin rotate3d($args...) {
+
+  $defaults : (
+    x   : 0,
+    y   : 0,
+    z   : 0,
+    deg : 0
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $x   : map-get($settings, x);
+  $y   : map-get($settings, y);
+  $z   : map-get($settings, z);
+  $deg : map-get($settings, deg);
+  $important : map-get($settings, important);
+
+	@include transform(rotate3d $x $y $z add-unit($deg, deg));
+
+}
+
+@mixin rotateX($value) {
+  @include transform(rotateX $value);
+}
+
+@mixin rotateY($value) {
+  @include transform(rotateY $value);
+}
+
+@mixin rotateZ($value) {
+  @include transform(rotateZ $value);
+}
+
+@mixin scale($values) {
+  $width: nth($values, 1);
+  $height : if(length($values) > 1, nth($values, 2), null);
+
+  @include transform(scale $width $height);
+}
+
+@mixin scale3d($x:0, $y:0, $z:0) {
+  $x : remove-unit(nth($values, 1));
+  $y : remove-unit(nth($values, 2));
+  $z : remove-unit(nth($values, 3));
+  @include transform(scale3d $x $y $z);
+}
+
+@mixin scaleX($value) {
+  @include transform(scaleX remove-unit($value));
+}
+
+@mixin scaleY($value) {
+  @include transform(scaleY remove-unit($value));
+}
+
+@mixin scaleZ($value) {
+  @include transform(scaleZ remove-unit($value));
+}
+
+@mixin skew($values) {
+  $x : add-unit(nth($values, 1), deg);
+  $y : add-unit(if( length($values) > 1, nth($values, 2), 0), deg);
+  @include transform(skew $x $y);
+}
+
+@mixin skewX($value) {
+  @include transform(skewX add-unit($value, deg));
+}
+
+@mixin skewY($value) {
+  @include transform(skewY add-unit($value, deg));
+}
+
+@mixin transform-origin($args...) {
+
+	$defaults : (
+		y : 50%,
+		x : null
+	);
+
+	$settings : get-settings($defaults, $args...);
+
+	$y : map-get($settings, y);
+	$x : map-get($settings, x);
+	$important : map-get($settings, important);
+
+	@if is-null($x) {
+		$x : $y;
+	}
+
+  transform-origin: add-unit($y) add-unit($x) $important;
+}
+
+@mixin transform-style($value) {
+  @if contains((flat preserve-3d initial inherit), $value) {
+    transform-style: $value;
+  } @else {
+    @include warning($value + ": is an invalid value for 'transform-style'");
+  }
+}
+
+/// Transforms mixin that allows various syntax's
+///
+/// @author Mark Notton
+///
+
+///
+/// @param {Map} $settings - Each argument should consist of a transform type and it's value
+///
+/// @require {variable} transform-types
+/// @require {variable} transform-values
+/// @require {function} arglist-to-list
+/// @require {function} contains
+/// @require {function} is-function
+/// @require {function} is-string
+///
+/// @example scss - Usage
+///   Doggy Style Syntax
+///   @include transform(rotate 90, scale 0.8);
+///   Bourbon Syntax
+///   @include transform(rotate(90deg) scale(0.8));
+///   Generic Syntax
+///   @include transform(rotate(90deg), scale(0.8));
+///
+/// @example css - CSS Output
+///    -webkit-transform: rotate(90deg) scale(0.8);
+///    -moz-transform: rotate(90deg) scale(0.8);
+///    transform: rotate(90deg) scale(0.8);
+///
+
+@mixin transform($settings...) {
+
+  $transforms : ();
+  $important : null;
+
+  @if not contains($transform-values, $settings, true) and length($settings) >= 1 {
+
+    $settings-lists : arglist-to-list($settings);
+
+    @each $settings in $settings-lists {
+
+      @if is-function($settings) {
+        $settings : function-to-list($settings);
+      }
+
+      $transform : null;
+
+      $value : ();
+
+      // Check for transforms
+      @each $setting in $settings {
+        @if is-string($setting) and contains(merge($transform-types, x y X Y), $setting) {
+          $transform : $setting;
+        }
+      }
+
+      // Check and validate all transform types
+      @each $setting in $settings {
+
+        @if not is-string($setting) {
+          @if contains($transform, (translate translateY translateX translateZ translate3d y x Y X perspective)) {
+            // Values that require a unit
+            @each $val in $setting {
+              @if ($transform == 'x' or $transform == 'X') {
+                $transform : translateX;
+              } @elseif ($transform == 'y' or $transform == 'Y') {
+                $transform : translateY;
+              }
+              $value : append($value, add-unit($val), comma);
+            }
+          } @elseif contains($transform, (rotate rotateX rotateY rotateZ rotate3d skew skewX skewY)) {
+            // Values that require an angle
+            @each $val in $setting {
+              @if $transform != rotate3d {
+                $value : append($value, add-unit($val, deg), comma);
+              } @else {
+                $value : append($value, $val, comma);
+              }
+            }
+          } @elseif contains($transform, (scale)) {
+            // Values that require an angle
+            @each $val in $setting {
+                $value : append($value, $val, comma);
+            }
+          } @else {
+            @if is-bool($setting) {
+              $important : $setting;
+            } @else {
+              // All other values
+              $value : append($value, $setting);
+            }
+          }
+        } @elseif contains($transform-values, $setting) {
+          // Values that are strings and are global values
+          $value : append($value, $setting);
+        }
+      }
+
+      // Append transform and value to the transforms list
+      @if $transform != null {
+        $transforms : append($transforms, $transform+"("+$value+")");
+      }
+
+    }
+  } @else {
+   $transforms : nth($settings, 1);
+  }
+
+  transform: $transforms $important;
+
+}
+
+@mixin translate($values) {
+  $x : nth($values, 1);
+  $y : if( length($values) > 1, nth($values, 2), $x);
+  @include transform(translate $x $y);
+}
+
+@mixin translate3d($values) {
+  $x : nth($values, 1);
+  $y : if( length($values) > 1, nth($values, 2), 0);
+  $z : if( length($values) > 2, nth($values, 3), 0);
+  @include transform(translate3d $x $y $z);
+}
+
+@mixin translateX($values) {
+  @include transform(translateX $values);
+}
+
+@mixin translateY($values) {
+  @include transform(translateY $values);
+}
+
+@mixin translateZ($value) {
+  @include transform(translateZ $value);
+}
+
 @mixin gradient-bottom($args...) {
   @include gradient(linear, bottom, $args);
 }
@@ -5963,274 +6231,6 @@ $grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block
     @include warning("You'll need more gradient settings than that");
   }
 
-}
-
-@mixin matrix($args...) {
-  @include transform(matrix $args);
-}
-
-@mixin matrix3d($args...) {
-  @include transform(matrix3d $args);
-}
-
-@mixin perspective-origin($value:50% 50%) {
-
-  $values : ();
-
-  @if length($value) > 1 {
-    @each $val in $value {
-      $values : append($values, add-unit($val));
-    }
-  } @else {
-    $values : add-unit($value);
-  }
-
-  perspective-origin: $values;
-}
-
-@mixin perspective($value:600) {
-  perspective: add-unit($value);
-}
-
-@mixin rotate($value) {
-  @include transform(rotate $value);
-}
-
-@mixin rotate3d($args...) {
-
-  $defaults : (
-    x   : 0,
-    y   : 0,
-    z   : 0,
-    deg : 0
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $x   : map-get($settings, x);
-  $y   : map-get($settings, y);
-  $z   : map-get($settings, z);
-  $deg : map-get($settings, deg);
-  $important : map-get($settings, important);
-
-	@include transform(rotate3d $x $y $z add-unit($deg, deg));
-
-}
-
-@mixin rotateX($value) {
-  @include transform(rotateX $value);
-}
-
-@mixin rotateY($value) {
-  @include transform(rotateY $value);
-}
-
-@mixin rotateZ($value) {
-  @include transform(rotateZ $value);
-}
-
-@mixin scale($values) {
-  $width: nth($values, 1);
-  $height : if(length($values) > 1, nth($values, 2), null);
-
-  @include transform(scale $width $height);
-}
-
-@mixin scale3d($x:0, $y:0, $z:0) {
-  $x : remove-unit(nth($values, 1));
-  $y : remove-unit(nth($values, 2));
-  $z : remove-unit(nth($values, 3));
-  @include transform(scale3d $x $y $z);
-}
-
-@mixin scaleX($value) {
-  @include transform(scaleX remove-unit($value));
-}
-
-@mixin scaleY($value) {
-  @include transform(scaleY remove-unit($value));
-}
-
-@mixin scaleZ($value) {
-  @include transform(scaleZ remove-unit($value));
-}
-
-@mixin skew($values) {
-  $x : add-unit(nth($values, 1), deg);
-  $y : add-unit(if( length($values) > 1, nth($values, 2), 0), deg);
-  @include transform(skew $x $y);
-}
-
-@mixin skewX($value) {
-  @include transform(skewX add-unit($value, deg));
-}
-
-@mixin skewY($value) {
-  @include transform(skewY add-unit($value, deg));
-}
-
-@mixin transform-origin($args...) {
-
-	$defaults : (
-		y : 50%,
-		x : null
-	);
-
-	$settings : get-settings($defaults, $args...);
-
-	$y : map-get($settings, y);
-	$x : map-get($settings, x);
-	$important : map-get($settings, important);
-
-	@if is-null($x) {
-		$x : $y;
-	}
-
-  transform-origin: $x $y $important;
-}
-
-@mixin transform-style($value) {
-  @if contains((flat preserve-3d initial inherit), $value) {
-    transform-style: $value;
-  } @else {
-    @include warning($value + ": is an invalid value for 'transform-style'");
-  }
-}
-
-/// Transforms mixin that allows various syntax's
-///
-/// @author Mark Notton
-///
-
-///
-/// @param {Map} $settings - Each argument should consist of a transform type and it's value
-///
-/// @require {variable} transform-types
-/// @require {variable} transform-values
-/// @require {function} arglist-to-list
-/// @require {function} contains
-/// @require {function} is-function
-/// @require {function} is-string
-///
-/// @example scss - Usage
-///   Doggy Style Syntax
-///   @include transform(rotate 90, scale 0.8);
-///   Bourbon Syntax
-///   @include transform(rotate(90deg) scale(0.8));
-///   Generic Syntax
-///   @include transform(rotate(90deg), scale(0.8));
-///
-/// @example css - CSS Output
-///    -webkit-transform: rotate(90deg) scale(0.8);
-///    -moz-transform: rotate(90deg) scale(0.8);
-///    transform: rotate(90deg) scale(0.8);
-///
-
-@mixin transform($settings...) {
-
-  $transforms : ();
-  $important : null;
-
-  @if not contains($transform-values, $settings, true) and length($settings) >= 1 {
-
-    $settings-lists : arglist-to-list($settings);
-
-    @each $settings in $settings-lists {
-
-      @if is-function($settings) {
-        $settings : function-to-list($settings);
-      }
-
-      $transform : null;
-
-      $value : ();
-
-      // Check for transforms
-      @each $setting in $settings {
-        @if is-string($setting) and contains(merge($transform-types, x y X Y), $setting) {
-          $transform : $setting;
-        }
-      }
-
-      // Check and validate all transform types
-      @each $setting in $settings {
-
-        @if not is-string($setting) {
-          @if contains($transform, (translate translateY translateX translateZ translate3d y x Y X perspective)) {
-            // Values that require a unit
-            @each $val in $setting {
-              @if ($transform == 'x' or $transform == 'X') {
-                $transform : translateX;
-              } @elseif ($transform == 'y' or $transform == 'Y') {
-                $transform : translateY;
-              }
-              $value : append($value, add-unit($val), comma);
-            }
-          } @elseif contains($transform, (rotate rotateX rotateY rotateZ rotate3d skew skewX skewY)) {
-            // Values that require an angle
-            @each $val in $setting {
-              @if $transform != rotate3d {
-                $value : append($value, add-unit($val, deg), comma);
-              } @else {
-                $value : append($value, $val, comma);
-              }
-            }
-          } @elseif contains($transform, (scale)) {
-            // Values that require an angle
-            @each $val in $setting {
-                $value : append($value, $val, comma);
-            }
-          } @else {
-            @if is-bool($setting) {
-              $important : $setting;
-            } @else {
-              // All other values
-              $value : append($value, $setting);
-            }
-          }
-        } @elseif contains($transform-values, $setting) {
-          // Values that are strings and are global values
-          $value : append($value, $setting);
-        }
-      }
-
-      // Append transform and value to the transforms list
-      @if $transform != null {
-        $transforms : append($transforms, $transform+"("+$value+")");
-      }
-
-    }
-  } @else {
-   $transforms : nth($settings, 1);
-  }
-
-  transform: $transforms $important;
-
-}
-
-@mixin translate($values) {
-  $x : nth($values, 1);
-  $y : if( length($values) > 1, nth($values, 2), $x);
-  @include transform(translate $x $y);
-}
-
-@mixin translate3d($values) {
-  $x : nth($values, 1);
-  $y : if( length($values) > 1, nth($values, 2), 0);
-  $z : if( length($values) > 2, nth($values, 3), 0);
-  @include transform(translate3d $x $y $z);
-}
-
-@mixin translateX($values) {
-  @include transform(translateX $values);
-}
-
-@mixin translateY($values) {
-  @include transform(translateY $values);
-}
-
-@mixin translateZ($value) {
-  @include transform(translateZ $value);
 }
 
 @mixin animation-delay($args...) {
@@ -6580,6 +6580,75 @@ $animation-names : ();
 
 }
 
+@mixin devices($args...) {
+
+  // This checks to see if the current selector is html.
+  // This can not be converted into a shorthanded if statement.
+  $selector : to-string(#{&});
+	$space : ' ';
+
+	@if (str-index($selector, 'html')) {
+		$selector : string-replace(#{$selector}, 'html', '');
+		@if ($selector != 'html') {
+			$space : '';
+		}
+	}
+
+  @each $settings in arglist-to-list($args...) {
+
+    $devices-list : ();
+    $not : true;
+
+    @each $setting in $settings {
+      @if is-string($setting) {
+        @if contains($devices, $setting) and length($devices-list) < 2 {
+          $devices-list : append($devices-list, $setting);
+        }
+      } @elseif is-bool($setting) {
+        $not : $setting;
+      }
+    }
+
+    // @if length($devices-list) > 1 and length($types-list) > 0 {
+    //   @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
+    // } @else {
+      @if length($devices-list) > 0 {
+        @each $device in $devices-list {
+          @if $not {
+            @at-root html[data-device="#{$device}"]#{$space}#{$selector}{ @content; }
+          } @else {
+            @at-root html:not([data-device="#{$device}"])#{$space}#{$selector}{ @content; }
+          }
+        }
+      }
+    // }
+  }
+}
+
+@mixin is-desktop($type:null) {
+  @include devices(desktop $type) { @content };
+}
+
+@mixin is-mobile($type:null) {
+  @include devices(mobile $type) { @content };
+}
+
+@mixin is-tablet($type:null) {
+  @include devices(tablet $type) { @content };
+}
+
+@mixin not-desktop($type:null) {
+  @include devices(desktop $type false) { @content };
+}
+
+@mixin not-mobile($type:null) {
+  @include devices(mobile $type false) { @content };
+}
+
+@mixin not-tablet($type:null) {
+  @include devices(tablet $type false) { @content };
+}
+
 @mixin browsers($args...) {
 
   // This checks to see if the current selector is html.
@@ -6734,75 +6803,6 @@ $animation-names : ();
 
 @mixin not-safari($version:null) {
   @include browsers(safari $version true) { @content };
-}
-
-@mixin devices($args...) {
-
-  // This checks to see if the current selector is html.
-  // This can not be converted into a shorthanded if statement.
-  $selector : to-string(#{&});
-	$space : ' ';
-
-	@if (str-index($selector, 'html')) {
-		$selector : string-replace(#{$selector}, 'html', '');
-		@if ($selector != 'html') {
-			$space : '';
-		}
-	}
-
-  @each $settings in arglist-to-list($args...) {
-
-    $devices-list : ();
-    $not : true;
-
-    @each $setting in $settings {
-      @if is-string($setting) {
-        @if contains($devices, $setting) and length($devices-list) < 2 {
-          $devices-list : append($devices-list, $setting);
-        }
-      } @elseif is-bool($setting) {
-        $not : $setting;
-      }
-    }
-
-    // @if length($devices-list) > 1 and length($types-list) > 0 {
-    //   @error 'You can not check the same version for 2 browsers in a single argument. Try seperating the arguments using a comma (,)';
-    // } @else {
-      @if length($devices-list) > 0 {
-        @each $device in $devices-list {
-          @if $not {
-            @at-root html[data-device="#{$device}"]#{$space}#{$selector}{ @content; }
-          } @else {
-            @at-root html:not([data-device="#{$device}"])#{$space}#{$selector}{ @content; }
-          }
-        }
-      }
-    // }
-  }
-}
-
-@mixin is-desktop($type:null) {
-  @include devices(desktop $type) { @content };
-}
-
-@mixin is-mobile($type:null) {
-  @include devices(mobile $type) { @content };
-}
-
-@mixin is-tablet($type:null) {
-  @include devices(tablet $type) { @content };
-}
-
-@mixin not-desktop($type:null) {
-  @include devices(desktop $type false) { @content };
-}
-
-@mixin not-mobile($type:null) {
-  @include devices(mobile $type false) { @content };
-}
-
-@mixin not-tablet($type:null) {
-  @include devices(tablet $type false) { @content };
 }
 
 @mixin page($args...) {
@@ -7525,6 +7525,71 @@ $triangle-settings: (
   }
 }
 
+@mixin image-size($args...) {
+
+  $defaults : (
+    image    : null,
+    property : null,
+    prefix   : null,
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $image     : map-get($settings, image);
+  $property  : map-get($settings, property);
+  $prefix    : map-get($settings, prefix);
+  $important : map-get($settings, important);
+
+  $prefix : if(contains(min max, $prefix), #{$prefix + '-'}, null);
+
+  #{$prefix}height : height($image, $property) $important;
+  #{$prefix}width  : width($image, $property) $important;
+
+}
+
+/// @author Mark Notton
+/// @require postcss-inline-svg
+/// @see https://github.com/TrySound/postcss-inline-svg
+
+@mixin inline-svg($args...) {
+
+  $defaults : (
+    svg          : null,
+    fill         : null,
+    stroke       : null,
+    stroke-width : null,
+    path         : 'sprites'
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $svg          : map-get($settings, svg);
+  $fill         : map-get($settings, fill);
+  $stroke       : map-get($settings, stroke);
+  $stroke-width : map-get($settings, stroke-width);
+  $path         : map-get($settings, path);
+  $important    : map-get($settings, important);
+
+  @if not is-null($svg) {
+
+    $name     : nth(string-explode($svg, '.'), 1);
+    $filename : add-extension($svg, 'svg');
+
+    @at-root (without: media) {
+      @svg-load #{$name} url(#{if(is-null($path) or $path == false, '', $path+'/')+$filename}) {
+        fill: $fill $important;
+        stroke: $stroke $important;
+        stroke-width:add-unit($stroke-width) $important;
+        @content;
+      }
+    }
+
+    & { background-image: svg-inline(unquote($name)) $important; }
+
+  }
+
+}
+
 /// Box Inner Shadow
 /// @param {Size} $x [0px] - X
 /// @param {Size} $y [0px] - Y
@@ -8189,343 +8254,6 @@ $triangle-settings: (
 
 	}
 
-}
-
-@mixin image-size($args...) {
-
-  $defaults : (
-    image    : null,
-    property : null,
-    prefix   : null,
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $image     : map-get($settings, image);
-  $property  : map-get($settings, property);
-  $prefix    : map-get($settings, prefix);
-  $important : map-get($settings, important);
-
-  $prefix : if(contains(min max, $prefix), #{$prefix + '-'}, null);
-
-  #{$prefix}height : height($image, $property) $important;
-  #{$prefix}width  : width($image, $property) $important;
-
-}
-
-/// @author Mark Notton
-/// @require postcss-inline-svg
-/// @see https://github.com/TrySound/postcss-inline-svg
-
-@mixin inline-svg($args...) {
-
-  $defaults : (
-    svg          : null,
-    fill         : null,
-    stroke       : null,
-    stroke-width : null,
-    path         : 'sprites'
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $svg          : map-get($settings, svg);
-  $fill         : map-get($settings, fill);
-  $stroke       : map-get($settings, stroke);
-  $stroke-width : map-get($settings, stroke-width);
-  $path         : map-get($settings, path);
-  $important    : map-get($settings, important);
-
-  @if not is-null($svg) {
-
-    $name     : nth(string-explode($svg, '.'), 1);
-    $filename : add-extension($svg, 'svg');
-
-    @at-root (without: media) {
-      @svg-load #{$name} url(#{if(is-null($path) or $path == false, '', $path+'/')+$filename}) {
-        fill: $fill $important;
-        stroke: $stroke $important;
-        stroke-width:add-unit($stroke-width) $important;
-        @content;
-      }
-    }
-
-    & { background-image: svg-inline(unquote($name)) $important; }
-
-  }
-
-}
-
-@function get-svg-group($svg, $group) {
-
-	$result : ();
-
-	@if not is-null($svg) and map-has-key($symbols, $svg) {
-
-		$svg : map-get($symbols, $svg);
-
-		@if map-has-key($svg, children) {
-
-			$children : map-get($svg, children);
-
-			@if length($children) {
-				@each $child in $children {
-					@if map-has-key($child, group) and map-get($child, group) == $group {
-						$result : append($result, $child);
-					}
-				}
-			}
-		}
-	}
-
-	@return $result;
-
-}
-
-@mixin svg-children($args...) {
-
-	$defaults : (
-		svg      : null,
-		targets  : $svg-elements,
-		offset-y : 0,
-		offset-x : 0,
-	);
-
-	$settings : get-settings($defaults, $args...);
-
-	$svg        : map-get($settings, svg);
-	$targets    : map-get($settings, targets);
-	$offset-y   : map-get($settings, offset-y);
-	$offset-x   : map-get($settings, offset-x);
-	$important  : map-get($settings, important);
-
-	@if (is-null($svg)) {
-		@error("You must pass in the name of the SVG you wat to apply the transform origins to");
-	}
-
-	@if (map-has-key($symbols, $svg)) {
-
-		$svg : map-get($symbols, $svg);
-
-		@if (map-has-key($svg, children)) {
-
-			$children : map-get($svg, children);
-
-			@if length($children) {
-
-				@for $i from 1 through length($children) {
-
-					$child       : nth($children, $i);
-					$target      : if(map-has-key($child, target), map-get($child, target), map-get($child, type));
-					$type        : map-get($child, type);
-					$y           : map-get($child, y) + $offset-y;
-					$x           : map-get($child, x) + $offset-x;
-
-					@if contains($targets, $type) {
-						@if $target != '' {
-							#{$target} {
-								transform-origin:#{$x} #{$y} $important;
-								@content;
-							}
-						}
-					}
-
-				}
-			}
-		} @else {
-			@warn("It looks like you don't have any children data in your _symbols.scss map. Check this is enabled in your 'svg-to-symbols' Gulp task")
-		}
-	} @else {
-		@warn($svg + ' was not found in your symbols map.');
-	}
-
-}
-
-/// Resize an SVG element using it's original dimensions to retain it's aspect ratio
-/// @author Mark Notton
-/// @param {Number} $original-width - Define the SVG's original width
-/// @param {Number} $original-height - Define the SVG's original height
-/// @param {Number} $new-width - Define a unitless number to adjust the scale of an SVG.
-///                              0.5 is half the original size where 2 is double it's original size.
-///                              Using a unit will force the resize of the the element to a specific width,
-///                              the height will retain it's existing aspect ratio.
-/// @param {Number} $new-height - Define a speicfic height. This will ignore the aspect ratio and force the desired width.
-/// @param {Bool|Number|List} $transform-origin - If true, the transform-origin will be placed at the center of the div using px
-///                                               You can pass in 2 numbers to define your own Y and X co-ordinates
-///                                               Padding in just one number, will apply to both Y and X.
-/// @require {Mixin} transform-origin
-/// @require {Function} strip
-/// @require {Function} is-unit
-/// @require {Function} is-null
-/// @require {Function} add-unit
-/// @example scss - Usage
-/// svg { @include svg-size(100, 240, 1.5); }
-/// svg { @include svg-size(100, 240, 250px); }
-///
-
-@mixin svg-size($args...) {
-
-  $defaults : (
-    original-width   : null,
-    original-height  : null,
-    new-width        : null,
-    new-height       : null,
-    transform-origin : true
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $original-width   : map-get($settings, original-width);
-  $original-height  : map-get($settings, original-height);
-  $new-width        : map-get($settings, new-width);
-  $new-height       : map-get($settings, new-height);
-  $transform-origin : map-get($settings, transform-origin);
-  $important        : map-get($settings, important);
-
-  // Set Width
-  $width : remove-unit($original-width);
-  $width-unit : if(not is-null($new-width) and not unitless($new-width), unit($new-width), null);
-
-  @if not is-null($new-width) {
-
-    @if is-empty($width-unit) and is-null($width-unit) {
-      $new-width : $width * $new-width;
-    } @else {
-      $new-width : remove-unit(to-number($new-width));
-    }
-
-  }
-
-  // Set Height
-  $height : remove-unit($original-height);
-  $height-unit : if(not is-null($new-height) and not unitless($new-height), unit($new-height), null);
-
-  @if not is-null($new-height) {
-
-    @if is-empty($height-unit) and is-null($height-unit) {
-      $new-height : $height * $new-height;
-    } @else {
-      $new-height : remove-unit(to-number($new-height));
-    }
-
-  }
-
-  // Set by width by height ratio
-  @if not is-null($new-height) and is-null($new-width) {
-    $new-width : ($new-height / $height) * $width;
-  }
-
-  // Set by height by width ratio
-  @if not is-null($new-width) and is-null($new-height) {
-    $new-height : ($new-width / $width) * $height;
-  }
-
-  // Fallback units
-  @if is-null($width-unit) and not is-null($height-unit) {
-    $width-unit : $height-unit;
-  }
-  @if is-null($height-unit) and not is-null($width-unit) {
-    $height-unit : $width-unit;
-  }
-  @if is-null($height-unit) and is-null($width-unit) {
-    $width-unit :  $default-unit;
-    $height-unit : $default-unit;
-  }
-
-  // Debug
-  // @debug 'Original width: #{$width or 'null'} | New width: #{$new-width or 'null'} | Unit: #{$width-unit}';
-  // @debug 'Original height: #{$height or 'null'} | New height: #{$new-height or 'null'} | Unit: #{$height-unit}';
-  // @debug '---------';
-
-  // Transform Origin
-  @if ( $transform-origin ) {
-    @if (is-bool($transform-origin) and $transform-origin == true) {
-      @include transform-origin(add-unit($new-width/2, $width-unit), add-unit($new-height/2, $height-unit));
-    } @else {
-      @include transform-origin($transform-origin);
-    }
-  }
-
-  // Final Output
-  width :  add-unit($new-width, $width-unit) $important;
-  height : add-unit($new-height, $height-unit) $important;
-
-};
-
-/// Add SVG Sprites to an element as per the svg-sprites tool
-
-@mixin svg($class, $size:true) {
-  @if $size == true {
-    @include svg-size($class);
-  } @elseif $size != false {
-    @include size($size);
-  }
-  @extend .svg-#{$class};
-  @content;
-}
-
-/// Resize an SVG element using it's original dimensions to retain it's aspect ratio using a predefined symbols map
-/// This has been designed to fix the aspect ratio issues with older browsers (IE11)
-///
-/// @author Mark Notton
-///
-
-///
-/// @param {String} $symbol - Define the symbol name. You can ommit the prefix 'icon-'
-/// @param {Number} $width - Define a unitless number to adjust the scale of an SVG.
-///                              0.5 is half the original size where 2 is double it's original size.
-///                              Using a unit will force the resize of the the element to a specific width,
-///                              the height will retain it's existing aspect ratio.
-/// @param {Number} $height - Define a speicfic height. This will ignore the aspect ratio and force the desired width.
-/// @param {Bool|Number|List} $transform-origin - If true, the transform-origin will be placed at the center of the div using px
-///                                               You can pass in 2 numbers to define your own Y and X co-ordinates
-///                                               Padding in just one number, will apply to both Y and X.
-/// @require {Mixin} svg-size
-/// @require {Mixin} transform-origin
-/// @require {Function} strip
-/// @require {Function} is-unit
-/// @require {Function} is-null
-/// @require {Function} add-unit
-/// @require {Map} symbols
-///
-/// $symbols: (
-///   logo : (
-///     width: 500,
-///     height: 59,
-///   ),
-/// );
-///
-/// @example scss - Usage
-/// svg { @include symbol-size(logo, 240, 1.5); }
-/// svg { @include symbol-size(logo, 240, 250px); }
-///
-
-@mixin symbol-size($args...) {
-
-  $defaults : (
-    symbol           : null,
-    width            : null,
-    height           : null,
-    transform-origin : true
-  );
-
-  $settings         : get-settings($defaults, $args...);
-
-	$symbol           : map-get($settings, symbol);
-  $width            : map-get($settings, width);
-  $height           : map-get($settings, height);
-  $transform-origin : map-get($settings, transform-origin);
-
-  @if (map-has-key($symbols, $symbol)) {
-    $svg : map-get($symbols, $symbol);
-    @if (map-has-key($svg, width) and map-has-key($svg, height)) {
-      @include svg-size(map-get($svg, width), map-get($svg, height), $width, $height, $transform-origin);
-    }
-  } @else {
-    @if $warnings {
-      @warn($symbol + ' dimensions were not found in your symbols map.');
-    }
-  }
 }
 
 // Columns for text
@@ -9229,6 +8957,278 @@ $triangle-settings: (
 
   text-shadow: add-unit($x) add-unit($y) add-unit($blur) $colour $important;
 
+}
+
+@function get-svg-group($svg, $group) {
+
+	$result : ();
+
+	@if not is-null($svg) and map-has-key($symbols, $svg) {
+
+		$svg : map-get($symbols, $svg);
+
+		@if map-has-key($svg, children) {
+
+			$children : map-get($svg, children);
+
+			@if length($children) {
+				@each $child in $children {
+					@if map-has-key($child, group) and map-get($child, group) == $group {
+						$result : append($result, $child);
+					}
+				}
+			}
+		}
+	}
+
+	@return $result;
+
+}
+
+@mixin svg-children($args...) {
+
+	$defaults : (
+		svg      : null,
+		targets  : $svg-elements,
+		offset-y : 0,
+		offset-x : 0,
+	);
+
+	$settings : get-settings($defaults, $args...);
+
+	$svg        : map-get($settings, svg);
+	$targets    : map-get($settings, targets);
+	$offset-y   : map-get($settings, offset-y);
+	$offset-x   : map-get($settings, offset-x);
+	$important  : map-get($settings, important);
+
+	@if (is-null($svg)) {
+		@error("You must pass in the name of the SVG you wat to apply the transform origins to");
+	}
+
+	@if (map-has-key($symbols, $svg)) {
+
+		$svg : map-get($symbols, $svg);
+
+		@if (map-has-key($svg, children)) {
+
+			$children : map-get($svg, children);
+
+			@if length($children) {
+
+				@for $i from 1 through length($children) {
+
+					$child       : nth($children, $i);
+					$target      : if(map-has-key($child, target), map-get($child, target), map-get($child, type));
+					$type        : map-get($child, type);
+					$y           : map-get($child, y) + $offset-y;
+					$x           : map-get($child, x) + $offset-x;
+
+					@if contains($targets, $type) {
+						@if $target != '' {
+							#{$target} {
+								transform-origin:#{$x} #{$y} $important;
+								@content;
+							}
+						}
+					}
+
+				}
+			}
+		} @else {
+			@warn("It looks like you don't have any children data in your _symbols.scss map. Check this is enabled in your 'svg-to-symbols' Gulp task")
+		}
+	} @else {
+		@warn($svg + ' was not found in your symbols map.');
+	}
+
+}
+
+/// Resize an SVG element using it's original dimensions to retain it's aspect ratio
+/// @author Mark Notton
+/// @param {Number} $original-width - Define the SVG's original width
+/// @param {Number} $original-height - Define the SVG's original height
+/// @param {Number} $new-width - Define a unitless number to adjust the scale of an SVG.
+///                              0.5 is half the original size where 2 is double it's original size.
+///                              Using a unit will force the resize of the the element to a specific width,
+///                              the height will retain it's existing aspect ratio.
+/// @param {Number} $new-height - Define a speicfic height. This will ignore the aspect ratio and force the desired width.
+/// @param {Bool|Number|List} $transform-origin - If true, the transform-origin will be placed at the center of the div using px
+///                                               You can pass in 2 numbers to define your own Y and X co-ordinates
+///                                               Padding in just one number, will apply to both Y and X.
+/// @require {Mixin} transform-origin
+/// @require {Function} strip
+/// @require {Function} is-unit
+/// @require {Function} is-null
+/// @require {Function} add-unit
+/// @example scss - Usage
+/// svg { @include svg-size(100, 240, 1.5); }
+/// svg { @include svg-size(100, 240, 250px); }
+///
+
+@mixin svg-size($args...) {
+
+  $defaults : (
+    original-width   : null,
+    original-height  : null,
+    new-width        : null,
+    new-height       : null,
+    transform-origin : true
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $original-width   : map-get($settings, original-width);
+  $original-height  : map-get($settings, original-height);
+  $new-width        : map-get($settings, new-width);
+  $new-height       : map-get($settings, new-height);
+  $transform-origin : map-get($settings, transform-origin);
+  $important        : map-get($settings, important);
+
+  // Set Width
+  $width : remove-unit($original-width);
+  $width-unit : if(not is-null($new-width) and not unitless($new-width), unit($new-width), null);
+
+  @if not is-null($new-width) {
+
+    @if is-empty($width-unit) and is-null($width-unit) {
+      $new-width : $width * $new-width;
+    } @else {
+      $new-width : remove-unit(to-number($new-width));
+    }
+
+  }
+
+  // Set Height
+  $height : remove-unit($original-height);
+  $height-unit : if(not is-null($new-height) and not unitless($new-height), unit($new-height), null);
+
+  @if not is-null($new-height) {
+
+    @if is-empty($height-unit) and is-null($height-unit) {
+      $new-height : $height * $new-height;
+    } @else {
+      $new-height : remove-unit(to-number($new-height));
+    }
+
+  }
+
+  // Set by width by height ratio
+  @if not is-null($new-height) and is-null($new-width) {
+    $new-width : ($new-height / $height) * $width;
+  }
+
+  // Set by height by width ratio
+  @if not is-null($new-width) and is-null($new-height) {
+    $new-height : ($new-width / $width) * $height;
+  }
+
+  // Fallback units
+  @if is-null($width-unit) and not is-null($height-unit) {
+    $width-unit : $height-unit;
+  }
+  @if is-null($height-unit) and not is-null($width-unit) {
+    $height-unit : $width-unit;
+  }
+  @if is-null($height-unit) and is-null($width-unit) {
+    $width-unit :  $default-unit;
+    $height-unit : $default-unit;
+  }
+
+  // Debug
+  // @debug 'Original width: #{$width or 'null'} | New width: #{$new-width or 'null'} | Unit: #{$width-unit}';
+  // @debug 'Original height: #{$height or 'null'} | New height: #{$new-height or 'null'} | Unit: #{$height-unit}';
+  // @debug '---------';
+
+  // Transform Origin
+  @if ( $transform-origin ) {
+    @if (is-bool($transform-origin) and $transform-origin == true) {
+      @include transform-origin(add-unit($new-width/2, $width-unit), add-unit($new-height/2, $height-unit));
+    } @else {
+      @include transform-origin($transform-origin);
+    }
+  }
+
+  // Final Output
+  width :  add-unit($new-width, $width-unit) $important;
+  height : add-unit($new-height, $height-unit) $important;
+
+};
+
+/// Add SVG Sprites to an element as per the svg-sprites tool
+
+@mixin svg($class, $size:true) {
+  @if $size == true {
+    @include svg-size($class);
+  } @elseif $size != false {
+    @include size($size);
+  }
+  @extend .svg-#{$class};
+  @content;
+}
+
+/// Resize an SVG element using it's original dimensions to retain it's aspect ratio using a predefined symbols map
+/// This has been designed to fix the aspect ratio issues with older browsers (IE11)
+///
+/// @author Mark Notton
+///
+
+///
+/// @param {String} $symbol - Define the symbol name. You can ommit the prefix 'icon-'
+/// @param {Number} $width - Define a unitless number to adjust the scale of an SVG.
+///                              0.5 is half the original size where 2 is double it's original size.
+///                              Using a unit will force the resize of the the element to a specific width,
+///                              the height will retain it's existing aspect ratio.
+/// @param {Number} $height - Define a speicfic height. This will ignore the aspect ratio and force the desired width.
+/// @param {Bool|Number|List} $transform-origin - If true, the transform-origin will be placed at the center of the div using px
+///                                               You can pass in 2 numbers to define your own Y and X co-ordinates
+///                                               Padding in just one number, will apply to both Y and X.
+/// @require {Mixin} svg-size
+/// @require {Mixin} transform-origin
+/// @require {Function} strip
+/// @require {Function} is-unit
+/// @require {Function} is-null
+/// @require {Function} add-unit
+/// @require {Map} symbols
+///
+/// $symbols: (
+///   logo : (
+///     width: 500,
+///     height: 59,
+///   ),
+/// );
+///
+/// @example scss - Usage
+/// svg { @include symbol-size(logo, 240, 1.5); }
+/// svg { @include symbol-size(logo, 240, 250px); }
+///
+
+@mixin symbol-size($args...) {
+
+  $defaults : (
+    symbol           : null,
+    width            : null,
+    height           : null,
+    transform-origin : true
+  );
+
+  $settings         : get-settings($defaults, $args...);
+
+	$symbol           : map-get($settings, symbol);
+  $width            : map-get($settings, width);
+  $height           : map-get($settings, height);
+  $transform-origin : map-get($settings, transform-origin);
+
+  @if (map-has-key($symbols, $symbol)) {
+    $svg : map-get($symbols, $symbol);
+    @if (map-has-key($svg, width) and map-has-key($svg, height)) {
+      @include svg-size(map-get($svg, width), map-get($svg, height), $width, $height, $transform-origin);
+    }
+  } @else {
+    @if $warnings {
+      @warn($symbol + ' dimensions were not found in your symbols map.');
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
