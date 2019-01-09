@@ -46,14 +46,16 @@
 			'colour' : var(primary),
 			'fill' : null,
 			'stroke' : null,
-			'border' : null
+			'border' : null,
+			'important' : null,
 		),
 		'hover' : (
 			'background' : var(secondary),
 			'colour' : white,
 			'fill' : null,
 			'stroke' : null,
-			'border' : null
+			'border' : null,
+			'important' : null,
 		),
 		'transitions' : true
 	);
@@ -71,12 +73,14 @@
 	$_fill       : map-get($initial, fill);
 	$_stroke     : map-get($initial, stroke);
 	$_border     : map-get($initial, border);
+	$_important  : is-important(map-get($initial, important));
 
 	$_hover-background : map-get($hover, background);
 	$_hover-colour     : map-get($hover, colour);
 	$_hover-fill       : map-get($hover, fill);
 	$_hover-stroke     : map-get($hover, stroke);
 	$_hover-border     : map-get($hover, border);
+	$_hover-important  : is-important(map-get($hover, important));
 
 	// Check if the colours are colours or custom properties. --------------------
 
@@ -95,23 +99,23 @@
 	// Apply initial state properties --------------------------------------------
 
 	@if $background {
-		background-color:$background;
+		background-color:$background $_important;
 		$transitions : add(background-color, $transitions);
 	}
 	@if $colour {
-		color:$colour;
+		color:$colour $_important;
 		$transitions : add(color, $transitions);
 	}
 	@if $fill {
-		svg { fill:$fill; }
+		svg { fill:$fill $_important; }
 		$svg-transitions : add(fill, $svg-transitions);
 	}
 	@if $stroke {
-		svg { stroke:$stroke; }
+		svg { stroke:$stroke $_important; }
 		$svg-transitions : add(stroke, $svg-transitions);
 	}
 	@if $border {
-		border-color:$border;
+		border-color:$border $_important;
 		$transitions : add(border-color, $transitions);
 	}
 
@@ -119,23 +123,23 @@
 
 	&:hover {
 		@if $hover-background {
-			background-color:$hover-background;
+			background-color:$hover-background $_hover-important;
 			$transitions : add(background-color, $transitions);
 		}
 		@if $hover-colour {
-			color:$hover-colour;
+			color:$hover-colour $_hover-important;
 			$transitions : add(color, $transitions);
 		}
 		@if $hover-fill {
-			svg { fill:$hover-fill; }
+			svg { fill:$hover-fill $_hover-important; }
 			$svg-transitions : add(fill, $svg-transitions);
 		}
 		@if $hover-stroke {
-			svg { stroke:$hover-stroke; }
+			svg { stroke:$hover-stroke $_hover-important; }
 			$svg-transitions : add(stroke, $svg-transitions);
 		}
 		@if $hover-border {
-			border-color:$hover-border;
+			border-color:$hover-border $_hover-important;
 			$transitions : add(border-color, $transitions);
 		}
 	}
