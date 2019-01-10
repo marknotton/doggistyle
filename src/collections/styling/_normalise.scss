@@ -26,13 +26,16 @@
 		-webkit-text-size-adjust: 100%;
 	}
 
-	*, *:after, *:before {
-		&:focus { outline:0; };
-		box-sizing:border-box;
-		-moz-box-sizing:border-box;
+	html {
+		height:100%;
+		box-sizing: border-box;
 	}
 
-	html { height:100%; }
+	*, *:before, *:after {
+		&:focus { outline:0; };
+		box-sizing: inherit;
+	}
+
 
 	html, body {
 		min-width:$min;
