@@ -8,10 +8,14 @@
 		@if is-important($value) {
 			$important : !important;
 		} @else {
-			$values: append( $values, add-unit($value, $default-timing-unit), comma);
+			@if ( is-var($value)) {
+				$values: append( $values, $value, comma);
+			} @else {
+				$values: append( $values, add-unit($value, $default-timing-unit), comma);
+			}
 		}
 	}
 
-  transition-delay : $values $important;
+  transition-delay : #{$values} $important;
 
 }

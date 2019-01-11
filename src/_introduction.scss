@@ -30,7 +30,9 @@
 
 	@if ( $normalise ) {
 		@include normalise;
-	} @elseif ( $normalise-emailers ) {
+	}
+
+	@if ( $normalise-emailers ) {
 		@include normalise-emailers;
 	}
 }
