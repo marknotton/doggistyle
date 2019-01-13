@@ -4,11 +4,18 @@
 
 @mixin normalise-emailers {
 
+	html,
 	body {
-    margin:0; padding:0;
-    -webkit-text-size-adjust:100%;
-    -ms-text-size-adjust:100%;
-  }
+		margin: 0 auto $imp;
+		padding: 0 $imp;
+		height: 100% $imp;
+		width: 100% $imp;
+	}
+
+	* {
+		-ms-text-size-adjust: 100%;
+		-webkit-text-size-adjust: 100%;
+	}
 
   #bodyTable {
     height:100% $imp;
@@ -39,21 +46,76 @@
     outline:none;
     display:table;
     color:#f0f9ff;
-    text-decoration:underline;
+    text-decoration:none;
     img { border:0 none; }
     &:hover { text-decoration:none $imp; }
-    &[x-apple-data-detectors] { color:inherit $imp; text-decoration:none $imp; }
     &[href^="tel"]:hover { text-decoration:none $imp;}
   }
 
+	// A work-around for email clients meddling in triggered links.
+	*[x-apple-data-detectors], .unstyle-auto-detected-links *, .aBn {
+		border-bottom: 0 $imp;
+		cursor: default $imp;
+		color: inherit $imp;
+		text-decoration: none $imp;
+		font-size: inherit $imp;
+		font-family: inherit $imp;
+		font-weight: inherit $imp;
+		line-height: inherit $imp;
+	}
+
+	// Centers email on Android 4.4
+	div[style*="margin: 16px 0"] { margin: 0 $imp; }
+
   #outlook a { padding:0; }
 
-  table { mso-table-lspace:0pt; mso-table-rspace:0pt;  }
+  table {
+		mso-table-lspace:0pt $imp;
+		mso-table-rspace:0pt $imp;
+		border-spacing: 0 $imp;
+		border-collapse: collapse $imp;
+		table-layout: fixed $imp;
+		margin: 0 auto $imp;
+		table table {
+			table-layout: auto;
+		}
+	}
   table, td { border-collapse:collapse; border-spacing:0;  }
   td, p, span, h1, h2, h3, h4, h5, h6 { font-family:Arial, sans-serif; padding:0; margin:0;  }
   td, p, span { font-size:14px; margin:0; padding:0;  }
-  td { overflow:hidden;word-break:normal; }
+  td { overflow:hidden;word-break:normal; vertical-align: top;}
   th { padding:0;}
+
+	// Prevents Gmail from displaying a download button on large, non-linked images.
+	.a6S { display: none $imp; opacity: 0.01 $imp; }
+
+	// Prevents Gmail from changing the text color in conversation threads.
+	.im {	color: inherit $imp; }
+
+	// If the above doesn't work, add a .g-img class to any image in question.
+	img.g-img + div { display: none $imp;	}
+
+	/* What it does: Removes right gutter in Gmail iOS app: https://github.com/TedGoas/Cerberus/issues/89  */
+	/* Create one of these media queries for each additional viewport size you'd like to fix */
+
+	// iPhone 4, 4S, 5, 5S, 5C, and 5SE
+	@media only screen and (min-device-width: 320px) and (max-device-width: 374px) {
+		u ~ div .container {
+			min-width: 320px $imp;
+		}
+	}
+	// iPhone 6, 6S, 7, 8, and X
+	@media only screen and (min-device-width: 375px) and (max-device-width: 413px) {
+		u ~ div .container {
+			min-width: 375px $imp;
+		}
+	}
+	// iPhone 6+, 7+, and 8+
+	@media only screen and (min-device-width: 414px) {
+		u ~ div .container {
+			min-width: 414px $imp;
+		}
+	}
 
   [owa] div { display:block $imp; font-size:1px; line-height:1px;}
   [owa] div button { display:block; font-size:1px; line-height:1px;}

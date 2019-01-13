@@ -313,6 +313,8 @@
 	// Custom Properties
 	// ===========================================================================
 
+	$set-custom-properties : true !default !global;
+
 	$_custom-properties : (
 	  gap                : add-unit($gap),
 	  vertical-spacing   : add-unit($vertical-spacing, vh),

@@ -24,17 +24,18 @@
 
 	// Define Custom Properties if any exist -------------------------------------
 
-	@include set-custom-properties;
+	@if $set-custom-properties and not $normalise-emailers {
+		@include set-custom-properties;
+	}
 
 	// Normalisers ---------------------------------------------------------------
 
-	@if ( $normalise ) {
+	@if $normalise-emailers  {
+		@include normalise-emailers;
+	} @elseif $normalise {
 		@include normalise;
 	}
 
-	@if ( $normalise-emailers ) {
-		@include normalise-emailers;
-	}
 }
 
 // Doggistyle alias for the easily offended ------------------------------------
