@@ -60,15 +60,19 @@
 		// If $min and $max are the same, just output that standard font-size
 		@if $max == $min {
 			font-size: $max $important;
+			line-height: $max $important;
 		} @else {
 
 			font-size: $min $important;
+			line-height: $min $important;
 
 	    @media screen and (min-width: $min-width) {
 	      font-size: calc(#{$min} + #{remove-unit($max - $min)} * ((100vw - #{$min-width}) / #{remove-unit($max-width - $min-width)})) $important;
+	      line-height: calc(#{$min} + #{remove-unit($max - $min)} * ((100vw - #{$min-width}) / #{remove-unit($max-width - $min-width)})) $important;
 	    }
 	    @media screen and (min-width: $max-width) {
 	      font-size: $max $important;
+	      line-height: $max $important;
 	    }
 		}
   }
