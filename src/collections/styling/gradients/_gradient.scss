@@ -74,7 +74,7 @@
         // Loop through the initial setting and check any unitless numbers has 'deg' as a default
 
         @if contains($type, repeating-radial radial) {
-          $unit : %;
+          $unit : '%';
           @if is-number($setting) {
             @include warning($type + " can not have a number as the first parameter, it should be a colour");
           }
@@ -103,7 +103,7 @@
           @for $l from 1 through length($setting) {
             $list-setting : nth($setting, $l);
             @if is-number($list-setting) {
-              $setting : replace-nth($setting, $l, add-unit($list-setting, %));
+              $setting : replace-nth($setting, $l, add-unit($list-setting, '%');
             }
           }
           $settings : replace-nth($settings, $i, $setting);

@@ -20,7 +20,7 @@ $filter-values : inherit initial unset;
 
 $filter-types : url blur brightness contrast drop-shadow shadow grayscale greyscale hue-rotate hue invert opacity saturate sepia;
 
-$relative-units : em, ex, %, px, cm, mm, in, pt, pc, ch, rem, vh, vw, vmin, vmax;
+$relative-units : em, ex, '%', px, cm, mm, in, pt, pc, ch, rem, vh, vw, vmin, vmax;
 
 $absolute-units : cm, mm, in, px, pt, pc;
 

@@ -86,7 +86,7 @@
             $value : append($value, add-unit($setting, deg));
           } @elseif contains($filter, (invert opacity saturate sepia contrast grayscale)) {
             // Values that require an percent
-            $value : append($value, add-unit($setting, %));
+            $value : append($value, add-unit($setting, '%'));
           } @elseif $filter == drop-shadow {
             // Specific for drop-shdaow
             @each $val in $setting {
