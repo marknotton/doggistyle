@@ -146,7 +146,7 @@
 }
 
 /// @alias remove-unit
-@function strip-unit($args...) {
+@function strip($args...) {
 	@return remove-unit($args...);
 }
 
