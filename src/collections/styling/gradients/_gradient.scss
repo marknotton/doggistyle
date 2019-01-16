@@ -103,7 +103,7 @@
           @for $l from 1 through length($setting) {
             $list-setting : nth($setting, $l);
             @if is-number($list-setting) {
-              $setting : replace-nth($setting, $l, add-unit($list-setting, '%');
+              $setting : replace-nth($setting, $l, add-unit($list-setting, '%'));
             }
           }
           $settings : replace-nth($settings, $i, $setting);
