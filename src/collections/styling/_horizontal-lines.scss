@@ -3,8 +3,8 @@
 
   $defaults : (
     weight       : 2,
-    colour       : if(variable-exists(grey),$grey, #787878),
-    line-spacing : if(variable-exists(gap),$gap, 16px),
+    colour       : if(variable-exists('grey'),$grey, #787878),
+    line-spacing : if(variable-exists('gap'),$gap, 16px),
     wrap         : false
   );
 
@@ -19,7 +19,9 @@
 
   @if not $wrap { white-space: nowrap; }
 
-  @include flex-container(between center);
+	display:flex;
+	justify-content:space-between;
+	align-items:center;
 
   &:before, &:after {
     content:"";
@@ -28,7 +30,7 @@
     background-color:$colour;
     position:relative;
     display:block;
-    @include flex-grow(1);
+		flex-grow:1;
   }
 
   &:before { margin-right:$line-spacing; }
