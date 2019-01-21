@@ -13,7 +13,7 @@
   $breakpoint : get-breakpoint($breakpoint);
 
 	@if $rule == 'min' or $rule == '>' {
-		@media (min-width:$breakpoint - 1) {
+		@media (min-width:$breakpoint + 1) {
 	    @content;
 	  }
 	}	@elseif $rule == 'max' or $rule == '<' {
