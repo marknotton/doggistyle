@@ -1,0 +1,25 @@
+@mixin extend-background($height-offset : false, $sudo : before) {
+
+	&:#{$sudo} {
+		content:"";
+		background:inherit;
+		background-image:inherit;
+		background-color:inherit;
+		background-attachment:inherit;
+		background-repeat:inherit;
+		position:absolute;
+		top:0; left:0; right:0; bottom:0;
+		margin:auto;
+		@include viewport-width();
+
+		@if $height-offset != false {
+			height:calc(100% + (#{$height-offset} * 2));
+		} @else {
+			height:100%;
+		}
+
+		@content;
+	}
+
+	> * { position:relative; }
+}
