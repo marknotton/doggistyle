@@ -502,6 +502,201 @@ $sc-non-strict-defaults: (
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Get Var Value                                                 #get-var-value
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @group helpers-misc
+///
+/// $return-all - Set to true if you want to return all value from a var(...),
+/// by default this will loop through all variables to see if one matches
+/// anything fomr the custom properties array.
+
+@function get-var-value($variable, $return-all : false) {
+
+  @if is-var($variable) {
+
+		@if map-has-keys($custom-properties, $variable) {
+			@return map-get($custom-properties, $variable);
+		}
+
+		@elseif string-starts-with(quote($variable), 'var(--') {
+			$variable : str-replace($variable, 'var(--', '');
+			$variable : str-replace($variable, ')', '');
+
+			$variables : string-explode(get-var-value($variable), ', ');
+
+			@if $return-all == false {
+				@each $var in $variables {
+					@if map-has-keys($custom-properties, $var) {
+						@return map-get($custom-properties, $var);
+					}
+				}
+			}
+
+			@if length($variables) > 1 {
+				@return $variables;
+			}
+
+			@return $variable;
+		}
+
+  } @else {
+    @return $variable
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Var Value                                                         #var-value
+////////////////////////////////////////////////////////////////////////////////
+
+/// @group helpers-misc
+
+@function var-value($variable:primary, $opacity:1, $fallback:true) {
+
+  $variable-value : $variable;
+  $fallback-value : null;
+
+  // If varuable is a standard colour, just use that colour as normal. Opacity is not used.
+  @if is-colour($variable) {
+
+    @if is-hex($variable) {
+      $variable-value : rgba($variable, $opacity);
+    } @else {
+      $variable-value : $variable;
+    }
+
+  } @else {
+
+    // Check the variables map to help generate a fallback colour
+    $fallback-value : get-variable-colour-value($variable, $opacity);
+
+    @if is-var($variable) {
+
+      // If a hardcoded 'var(--XXX)' is passed, extract the variable name and check if
+      // it's part of the variables map. If it is, use this hardcoded colour as a fallback.
+      // Add opacity is one if provided.
+
+      @if $support-css-variable-alpha-colours {
+
+        $variable-value : rgba($variable, $opacity);
+
+      } @else {
+
+        @if not is-null($fallback-value) {
+          $variable-value : str-replace($variable, ')', ', ' + $fallback-value + ')');
+        } @else {
+          $variable-value : $variable;
+        }
+
+      }
+
+    } @else {
+
+      // If a string was passed as the string. Assume this is a shorthand to search
+      // the variables map for the right variable then apply the fallback.
+
+      @if $support-css-variable-alpha-colours {
+        $variable-value : rgba(unquote('var(--' + $variable + ')'), $opacity);
+      } @else {
+
+        @if not is-null($fallback-value) {
+          $variable-value : unquote('var(--' + $variable + ', '+ $fallback-value +')');
+        } @else {
+          $variable-value : unquote('var(--' + $variable + ')');
+        }
+      }
+    }
+
+  }
+
+  @if ( not is-null($fallback-value) and $fallback ) {
+    @return ($variable-value, $fallback-value);
+  }
+
+  @return $variable-value;
+
+}
+
+@function var($args...) {
+
+	$custom-property : ();
+	$fallback : null;
+	$variables : ();
+	$suffix : '';
+
+	// List valid custom properties names
+	@each $value in $args {
+		@if is-string($value) and not is-number($value) {
+			$value : string-replace($value, ' ');
+			$variables : append($variables, string-replace($value, '--'));
+			$suffix : $suffix + ')';
+		} @else {
+			$fallback : $value;
+		}
+	}
+
+	@if length($variables) > 0 {
+		@for $i from 1 through length($variables) {
+
+			$variable : nth($variables, $i);
+			$last : $i == length($variables);
+
+			@if $last and map-has-keys($custom-properties, $variable) {
+				$fallback : map-get($custom-properties, $variable);
+			}
+
+			$custom-property : append($custom-property, unquote('var(--' + $variable + ','));
+
+		}
+	}
+
+	@if not is-null($fallback) {
+		$custom-property : $custom-property + ' ' + $fallback;
+	}
+
+	$result : to-string($custom-property) + $suffix;
+
+	$result : string-replace($result, '(var', 'var');
+	$result : string-replace($result, ',)', ')');
+	$result : string-replace($result, ',))', ')');
+
+	// If the user is passing in variables within variables using the native syntax,
+	// This function will render out a looped mess. The following does some checks,
+	// and cleans it up. This hasn't been tested on complex variables like gradients,
+	// calcs, or anything that isn't a predefined customer-properties;
+	@if str-index($result, '--var(') {
+		$_result : string-replace($result, 'var(');
+		$_result : string-replace($_result, $suffix + ')');
+		$_result : string-remove-whitespace($_result);
+		$_fallback : null;
+		$_variables : ();
+		@each $value in string-explode($_result, ',', comma) {
+			@if string-starts-with($value, '--') {
+				$_variables : append($_variables, $value, comma);
+			} @else {
+				$_fallback : $value;
+			}
+		}
+
+		$result : unquote(var($_variables...));
+
+		@if ( not is-null($_fallback)) {
+			// When using native syntax, that has var fallbacks with vars, a
+			// given fallback is ignored. Either don't use nested vars where the
+			// fallback is important, or define a fallback before calling it this way.
+			// Ultimately this is almost never going to happen.
+			// TODO Inject the fallback so as to not break the syntax. Data is coreect, syntax isn't.
+			// $result : $result + $_fallback;
+		}
+
+		@return $result;
+	}
+
+	@return unquote($result);
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// Brightness                                                       #brightness
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -893,540 +1088,6 @@ $sc-non-strict-defaults: (
 
 @function random-colour($opacity:1) {
   @return rgba(random(256) - 1, random(256) - 1, random(256) - 1, $opacity);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Get Var Value                                                 #get-var-value
-////////////////////////////////////////////////////////////////////////////////
-///
-/// @group helpers-misc
-///
-/// $return-all - Set to true if you want to return all value from a var(...),
-/// by default this will loop through all variables to see if one matches
-/// anything fomr the custom properties array.
-
-@function get-var-value($variable, $return-all : false) {
-
-  @if is-var($variable) {
-
-		@if map-has-keys($custom-properties, $variable) {
-			@return map-get($custom-properties, $variable);
-		}
-
-		@elseif string-starts-with(quote($variable), 'var(--') {
-			$variable : str-replace($variable, 'var(--', '');
-			$variable : str-replace($variable, ')', '');
-
-			$variables : string-explode(get-var-value($variable), ', ');
-
-			@if $return-all == false {
-				@each $var in $variables {
-					@if map-has-keys($custom-properties, $var) {
-						@return map-get($custom-properties, $var);
-					}
-				}
-			}
-
-			@if length($variables) > 1 {
-				@return $variables;
-			}
-
-			@return $variable;
-		}
-
-  } @else {
-    @return $variable
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Var Value                                                         #var-value
-////////////////////////////////////////////////////////////////////////////////
-
-/// @group helpers-misc
-
-@function var-value($variable:primary, $opacity:1, $fallback:true) {
-
-  $variable-value : $variable;
-  $fallback-value : null;
-
-  // If varuable is a standard colour, just use that colour as normal. Opacity is not used.
-  @if is-colour($variable) {
-
-    @if is-hex($variable) {
-      $variable-value : rgba($variable, $opacity);
-    } @else {
-      $variable-value : $variable;
-    }
-
-  } @else {
-
-    // Check the variables map to help generate a fallback colour
-    $fallback-value : get-variable-colour-value($variable, $opacity);
-
-    @if is-var($variable) {
-
-      // If a hardcoded 'var(--XXX)' is passed, extract the variable name and check if
-      // it's part of the variables map. If it is, use this hardcoded colour as a fallback.
-      // Add opacity is one if provided.
-
-      @if $support-css-variable-alpha-colours {
-
-        $variable-value : rgba($variable, $opacity);
-
-      } @else {
-
-        @if not is-null($fallback-value) {
-          $variable-value : str-replace($variable, ')', ', ' + $fallback-value + ')');
-        } @else {
-          $variable-value : $variable;
-        }
-
-      }
-
-    } @else {
-
-      // If a string was passed as the string. Assume this is a shorthand to search
-      // the variables map for the right variable then apply the fallback.
-
-      @if $support-css-variable-alpha-colours {
-        $variable-value : rgba(unquote('var(--' + $variable + ')'), $opacity);
-      } @else {
-
-        @if not is-null($fallback-value) {
-          $variable-value : unquote('var(--' + $variable + ', '+ $fallback-value +')');
-        } @else {
-          $variable-value : unquote('var(--' + $variable + ')');
-        }
-      }
-    }
-
-  }
-
-  @if ( not is-null($fallback-value) and $fallback ) {
-    @return ($variable-value, $fallback-value);
-  }
-
-  @return $variable-value;
-
-}
-
-@function var($args...) {
-
-	$custom-property : ();
-	$fallback : null;
-	$variables : ();
-	$suffix : '';
-
-	// List valid custom properties names
-	@each $value in $args {
-		@if is-string($value) and not is-number($value) {
-			$value : string-replace($value, ' ');
-			$variables : append($variables, string-replace($value, '--'));
-			$suffix : $suffix + ')';
-		} @else {
-			$fallback : $value;
-		}
-	}
-
-	@if length($variables) > 0 {
-		@for $i from 1 through length($variables) {
-
-			$variable : nth($variables, $i);
-			$last : $i == length($variables);
-
-			@if $last and map-has-keys($custom-properties, $variable) {
-				$fallback : map-get($custom-properties, $variable);
-			}
-
-			$custom-property : append($custom-property, unquote('var(--' + $variable + ','));
-
-		}
-	}
-
-	@if not is-null($fallback) {
-		$custom-property : $custom-property + ' ' + $fallback;
-	}
-
-	$result : to-string($custom-property) + $suffix;
-
-	$result : string-replace($result, '(var', 'var');
-	$result : string-replace($result, ',)', ')');
-	$result : string-replace($result, ',))', ')');
-
-	// If the user is passing in variables within variables using the native syntax,
-	// This function will render out a looped mess. The following does some checks,
-	// and cleans it up. This hasn't been tested on complex variables like gradients,
-	// calcs, or anything that isn't a predefined customer-properties;
-	@if str-index($result, '--var(') {
-		$_result : string-replace($result, 'var(');
-		$_result : string-replace($_result, $suffix + ')');
-		$_result : string-remove-whitespace($_result);
-		$_fallback : null;
-		$_variables : ();
-		@each $value in string-explode($_result, ',', comma) {
-			@if string-starts-with($value, '--') {
-				$_variables : append($_variables, $value, comma);
-			} @else {
-				$_fallback : $value;
-			}
-		}
-
-		$result : unquote(var($_variables...));
-
-		@if ( not is-null($_fallback)) {
-			// When using native syntax, that has var fallbacks with vars, a
-			// given fallback is ignored. Either don't use nested vars where the
-			// fallback is important, or define a fallback before calling it this way.
-			// Ultimately this is almost never going to happen.
-			// TODO Inject the fallback so as to not break the syntax. Data is coreect, syntax isn't.
-			// $result : $result + $_fallback;
-		}
-
-		@return $result;
-	}
-
-	@return unquote($result);
-
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Deep Get                                                   #map-deep-get
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Fetch nested keys in a map
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-
-///
-/// @group helpers-maps
-///
-/// @param (map) $map - Usually a variable name
-///
-/// @param (arglist) $keys - With comma delimination write the path to the disired map element
-///
-/// @return {*}
-///
-/// @example scss - Usage
-/// $foo: (
-///   bar: (
-///     lorem : (
-///       test1: #dcfac0,
-///       test2: #00968b,
-///     ),
-///     ipsom: (
-///       test1: #f4fac7,
-///       test2: #c2454e,
-///     )
-///   )
-/// );
-/// color: map-fetch($foo, bar, lorem, test1);
-///
-/// @example css - Output
-/// color:#dcfac0;
-///
-
-@function map-deep-get($map, $keys...) {
-  @each $key in $keys {
-    $map: map-get($map, $key);
-  }
-  @return $map;
-}
-
-/// @alias map-deep-get
-///
-
-///
-/// @require {function} map-deep-get
-///
-/// @return {*}
-
-@function map-fetch($map, $keys...) {
-  @return map-deep-get($map, $keys...);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Deep Merge                                               #map-deep-merge
-////////////////////////////////////////////////////////////////////////////////
-
-/// @name Map Deep Merge
-/// @author Zsolt Pentz
-/// @see https://medium.com/@pentzzsolt/a-non-destructive-map-merge-function-for-sass-f91637f87b2e
-
-@function map-deep-merge($parent-map, $child-map) {
-	$result: $parent-map;
-	@each $key, $value in $child-map {
-		@if (not map-has-key($result, $key)) or (type-of(map-get($result, $key)) != type-of($value)) or (not (type-of(map-get($result, $key)) == map and type-of($value) == map)) {
-			$result: map-merge($result, ($key: $value));
-		}
-		@else {
-			$result: map-merge($result, ($key: map-deep-merge(map-get($result, $key), $value)));
-		}
-	}
-	@return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Deep Set                                                   #map-deep-set
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Update a key deeply nested
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-
-///
-/// @group helpers-maps
-///
-/// @param {map} $map - Map to update
-///
-/// @param {arglist} $keys - Keys to access to value to update
-///
-/// @param {*} $value - New value (last member of `$keys`)
-///
-/// @return {map} - Updated map
-
-@function map-deep-set($map, $keys.../*, $value */) {
-  $map-list: ($map,);
-  $result: null;
-
-  @if length($keys) == 2 {
-    @return map-merge($map, (nth($keys, 1): nth($keys, -1)));
-  }
-
-  @for $i from 1 through length($keys) - 2 {
-    $map-list: append($map-list, map-get(nth($map-list, -1), nth($keys, $i)));
-  }
-
-  @for $i from length($map-list) through 1 {
-    $result: map-merge(nth($map-list, $i), (nth($keys, $i): if($i == length($map-list), nth($keys, -1), $result)));
-  }
-
-  @return $result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Depth                                                         #map-depth
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Compute the maximum depth of a map
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-
-///
-/// @group helpers-maps
-///
-/// @param {map} $map
-///
-/// @return {number} max depth of `$map`
-
-@function map-depth($map) {
-  $level: 1;
-
-  @each $key, $value in $map {
-    @if type-of($value) == "map" {
-      $level: max(map-depth($value) + 1, $level);
-    }
-  }
-
-  @return $level;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Extend                                                       #map-extend
-////////////////////////////////////////////////////////////////////////////////
-///
-/// jQuery-style extend function
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-
-///
-/// @group helpers-maps
-///
-/// @param {map} $map - first map
-///
-/// @param {arglist} $maps - other maps
-///
-/// @param {bool} $deep - recursive mode
-///
-/// @return {map}
-
-@function map-extend($map, $maps.../*, $deep */) {
-  $last: nth($maps, -1);
-  $deep: $last == true;
-  $max: if($deep, length($maps) - 1, length($maps));
-
-  // Loop through all maps in $maps...
-  @for $i from 1 through $max {
-    // Store current map
-    $current: nth($maps, $i);
-
-    // If not in deep mode, simply merge current map with map
-    @if not $deep {
-      $map: map-merge($map, $current);
-    } @else {
-      // If in deep mode, loop through all tuples in current map
-      @each $key, $value in $current {
-
-        // If value is a nested map and same key from map is a nested map as well
-        @if type-of($value) == "map" and type-of(map-get($map, $key)) == "map" {
-          // Recursive extend
-          $value: map-extend(map-get($map, $key), $value, true);
-        }
-
-        // Merge current tuple with map
-        $map: map-merge($map, ($key: $value));
-      }
-    }
-  }
-
-  @return $map;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Has Keys                                                   #map-has-keys
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Test if map got all `$keys` at first level
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-/// @group helpers-maps
-///
-/// @param {map} $map - Map
-///
-/// @param {arglist} $keys - Keys to test
-///
-/// @return {bool}
-
-@function map-has-keys($map, $keys...) {
-  @each $key in $keys {
-    @if not map-has-key($map, $key) {
-      @return false;
-    }
-  }
-
-  @return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Has Nested Keys                                     #map-has-nested-keys
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Test if map got all `$keys` nested with each others
-///
-/// @author Hugo Giraudel
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-///
-
-///
-/// @group helpers-maps
-///
-/// @param {map} $map - Map
-///
-/// @param {arglist} $keys - Keys to test
-///
-/// @return {bool}
-
-@function map-has-nested-keys($map, $keys...) {
-  @each $key in $keys {
-    @if not map-has-key($map, $key) {
-      @return false;
-    }
-    $map: map-get($map, $key);
-  }
-
-  @return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Set                                                             #map-set
-////////////////////////////////////////////////////////////////////////////////
-///
-/// A quick way of adding a key and value to the end of a map
-///
-/// @author Mark Notton
-///
-/// @group helpers-maps
-///
-/// @return {map}
-
-@function map-set($map, $key, $value) {
-  @return map-merge($map, ($key: $value));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Map Zip                                                             #map-zip
-////////////////////////////////////////////////////////////////////////////////
-///
-/// An equivalent of `zip` function but for maps.
-/// I wrote my own version of this before realising Hugo had done something similar.
-/// I have kept the name, but used my own.
-///
-/// @author Mark Notton
-///
-/// @link http://www.sitepoint.com/extra-map-functions-sass
-/// @link http://sass-lang.com/documentation/Sass/Script/Functions.html#zip-instance_method
-///
-
-///
-/// @group helpers-maps
-///
-/// @param {list} $list1 - Keys for map
-///
-/// @param {list} $list2 - Values for map
-///
-/// @param {bool} $swappable - Swap variables around so list1 has the most values. Default is true.
-///
-/// @return {map} Freshly created map
-
-@function map-zip($list1, $list2, $swappable:true) {
-
-  $map : ();
-
-  $list1-size : length($list1);
-  $list2-size : length($list2);
-
-  $count : if($list1-size < $list2-size, $list1-size, $list2-size);
-
-
-  @if ($list1-size < $list2-size and $swappable) {
-    $temp : $list1;
-    $list1 : $list2;
-    $list2 : $temp;
-  }
-
-  @if $warnings {
-    @if ($list1-size < $list2-size) {
-      @if $warnings {
-        @warn('The second list had '+($list2-size - $list1-size)+' more value'+ if($list2-size - $list1-size != 1, 's', '') +' than the first list');
-      }
-    } @elseif ($list1-size > $list2-size) {
-      @if $warnings {
-        @warn('The first list had '+($list1-size - $list2-size)+' more value'+ if($list1-size - $list2-size != 1, 's', '') +' than the second list');
-      }
-    }
-  }
-
-  @for $i from 1 through $count {
-    $map : map-set($map, nth($list1, $i), nth($list2, $i));
-  }
-
-  @return $map;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2266,6 +1927,889 @@ $sc-non-strict-defaults: (
 
 }
 
+/// @author Mark Notton
+/// @link http://www.w3schools.com/charsets/ref_html_utf8.asp
+/// @type variables
+
+/// Symbols
+
+$copyright :            "\00A9"; // ©
+
+$registered :           "\00AE"; // ®
+
+$tricolon :             "\205D"; // ⁝
+
+$quadcolon :            "\205E"; // ⁞
+
+$tick1 :                "\2713"; // ✓
+
+$tick2 :                "\2714"; // ✔
+
+$cross1 :               "\2715"; // ✕
+
+$cross2 :               "\2717"; // ✗
+
+$plus :                 "\271B"; // ✛
+
+$bullet :               "\2219"; // ∙
+
+/// Punctuation
+
+$single-dot :           "\2024"; // ․
+
+$double-dots :          "\2025"; // ‥
+
+$tripple-dots :         "\2026"; // …
+
+$open-quotes-1 :        "\201C"; // “
+
+$close-quotes-1 :       "\201D"; // ”
+
+$close-quotes-2 :       "\201E"; // „
+
+$open-quotes-2 :        "\201F"; // ‟
+
+$close-curly-brackets : "\2775"; // ❵
+
+$open-curly-brackets :  "\2774"; // ❴
+
+/// Arrows
+
+$double-right-arrows :  "\00BB"; // »
+
+$angle-left-1 :         "\276C"; // ❬
+
+$angle-right-1 :        "\276D"; // ❭
+
+$angle-left-2 :         "\276E"; // ❮
+
+$angle-right-2 :        "\276F"; // ❯
+
+$angle-left-3 :         "\2770"; // ❰
+
+$angle-right-3 :        "\2771"; // ❱
+
+$small-left-arrow :     "\2039"; // ‹
+
+$small-right-arrow :    "\203A"; // ›
+
+$arrow-right :          "\27A4"; // ➤
+
+$triangle-right-1 :     "\2023"; // ‣
+
+$triangle-right-2 :     "\25B6"; // ▶
+
+$triangle-right-3 :     "\25B7"; // ▷
+
+
+/// Currency
+
+$british-pound :        "\00A3"; // £
+
+$dollar :               "\0024"; // $
+
+$euro :                 "\20AC"; // €
+
+
+/// Shapes
+
+$star :                 "\272F"; // ✯
+
+$circle :               "\25CF"; // ●
+
+$square-1 :             "\25A0"; // ■
+
+$square-2 :             "\25A1"; // □
+
+$quare-3 :              "\25A2"; // ▢
+
+////////////////////////////////////////////////////////////////////////////////
+/// Get Settings                                                   #get-settings
+////////////////////////////////////////////////////////////////////////////////
+
+/// Have all mixins accept the same pattern on arguments and manage all defaults
+/// data and fallbacks. Use either a list, map, or keywords.
+///
+/// @name Get Settings
+/// @author Mark Notton
+
+/// @return {map}
+/// @example
+/// @mixin myMixin($args...) {
+///    $defaults : (
+///      name   : 'unknown',
+///      age    : '99',
+///      gender : null,
+///      data   : ('foo':'bar')
+///    );
+///    $settings : get-settings($defaults, $args...);
+///    // $settings : get-settings($defaults, (deep:false, debug:true), $args...);
+///    @debug $settings;
+/// }
+/// @include myMixin('Mark', '31', male, ('wibble':'wobble'), important);
+/// @include myMixin((name:'Lizzie', gender:female, data:('wibble':'wobble')));
+/// @include myMixin($name:'Andy', $age:'36', $gender:male);
+/// @include myMixin(important);
+///
+/// @output
+/// name: "Mark", age: "31", gender: male, data: ("foo": "bar", "wibble": "wobble"), important: !important
+/// name: "Lizzie", age: "99", gender: female, data: ("foo": "bar", "wibble": "wobble"), important: null
+/// name: "Andy", age: "36", gender: male, data: ("foo": "bar"), important: null
+/// name: "unknown", age: "99", gender: null, data: ("foo": "bar"), important: !important
+// NOTE Passing a list of arguments in the keywords format will return incorrect
+// settings data if a special options map prefixes 'args...' within the Mixin.
+
+@function get-settings($defaults, $args...) {
+
+  // ===========================================================================
+  // Initial settings
+  // ===========================================================================
+
+  $important : false;
+  $settings  : null;
+  $defaults  : if(is-null($defaults), (), $defaults);
+  $backup    : $args;
+
+  // Special options on how to manage the arguments ----------------------------
+
+  $options : (
+    deep      : true,
+    prefix    : 'argument',
+    important : null,
+    debug     : false
+  );
+
+  // ===========================================================================
+  //  Revert to defaults if no arguments are passed
+  // ===========================================================================
+
+  @if length($args) == 0 and length(keywords($args)) == 0 {
+
+    @if map-get($options, debug ) { @debug "NO ARGUMENTS DETECTED"; }
+
+    $settings : $defaults;
+
+  } @else {
+
+    // =========================================================================
+    //  Keywords
+    // =========================================================================
+    // Convert keywords into a useable map
+
+    @if length(keywords($args)) > 0 {
+
+      @if map-get($options, debug ) { @debug "KEYWORDS DETECTED"; }
+
+      $args : keywords($args);
+
+      @if map-has-key($args, options) {
+        $options : map-merge($options, map-get($args, options));
+        $args : map-remove($args, options);
+      }
+
+    }
+
+    // =========================================================================
+    //  Special Options
+    // =========================================================================
+
+    // Special options at start ------------------------------------------------
+    // Check if the fisrt args element exists, is a map, and contains any of the
+    // $options keys.If it does, assume these are bespoke options relative to
+    // the mixin that called this function.
+
+    @if not is-empty(nth($args, 1)) and is-map(nth($args, 1)) and contains(map-keys(nth($args, 1)), map-keys($options)) {
+
+      @if map-get($options, debug ) { @debug 'Special options defined at start of the arguments'; }
+
+      $options : map-merge($options, nth($args, 1));
+      $args    : slice($args, 2, length($args));
+
+    }
+
+    // Special options at end -------------------------------------------------
+    // Essentially the same as above, but checks the last argument for options.
+    // This allows for a little syntax suger when passing aguments on a per-maxin call basis
+
+    @elseif not is-empty(nth($args, -1)) and is-map(nth($args, -1)) and
+            contains(map-keys(nth($args, -1)), map-keys($options)) {
+
+      @if map-get($options, debug ) { @debug 'Special options defined at end of the arguments'; }
+
+      $options : map-merge($options, nth($args, -1));
+      $args    : slice($args, 1, length($args) - 1)
+    }
+
+    // =========================================================================
+    //  Maps
+    // =========================================================================
+
+    // Quick check to determine if the map was originally passed as keywords or not.
+    $map : if(is-map($args), $args, nth($args, 1));
+
+    @if not is-empty($map) and is-map($map) {
+
+      @if map-get($options, debug ) { @debug "MAP DETECTED"; }
+
+    /// @todo: Check for cast type and required types
+
+      @if map-get($options, deep) == true  {
+        // If deep is true (default), then perform a deep merge with the defaults
+        $settings : map-deep-merge($defaults, $map);
+      } @else {
+        // Otherwise do a standard merge.
+        $settings : map-merge($defaults, $map);
+      }
+
+      // Check if the map has important explicitly defined within it.
+      @if contains(map-keys($settings), important) {
+        $important : map-get($settings, important);
+        // If important is found, remove it from the settings list.
+        $settings : map-remove($settings, important);
+      }
+
+      // If a map was passed, check the second parameter for
+      // important as they may be seperated.
+      @if length($args) > 1 and is-important(nth($args, 2)) {
+        $important : true;
+      }
+
+    } @else {
+
+    // =========================================================================
+    //  List
+    // =========================================================================
+
+      @if map-get($options, debug ) { @debug "LIST DETECTED"; }
+
+      // Arguments that are passed as a standard list
+
+      $default-keys : map-keys($defaults);
+      $default-values : map-values($defaults);
+
+      // Convert all items into lists to help looping.
+      $arguments : arglist-to-list($args...);
+
+      // Check and remove 'important' if it was defined.
+      @if contains($arguments, important) {
+        $important : true;
+        $arguments : remove($arguments, important);
+      }
+
+      // Run through all the arguments
+      @if ( length($arguments) > 0 ) {
+        @for $i from 1 through length($arguments) {
+
+          @if $i <= length($default-keys) {
+            // Check if the amount of arguements is less than the
+            // amount of defaults before setting the value
+            @if is-null(nth($arguments, $i)) or contains((default, defaults), nth($arguments, $i)) {
+              // Passing in null, default or defaults will use the default value.
+              $defaults : map-set($defaults, nth($default-keys, $i), nth($default-values, $i));
+            } @elseif is-map(nth($arguments, $i)) {
+              @if map-get($options, deep) == true  {
+                // Do a deep-merge for map data
+                $defaults : map-set($defaults, nth($default-keys, $i), map-deep-merge(nth($default-values, $i), nth($arguments, $i)));
+              } @else {
+                // Do a normal merge for map data
+                $defaults : map-set($defaults, nth($default-keys, $i), map-merge(nth($default-values, $i), nth($arguments, $i)));
+              }
+            } @else {
+              // Add value to the associated argument number from the defaults key.
+              $defaults : map-set($defaults, nth($default-keys, $i), nth($arguments, $i));
+            }
+          } @else {
+            // If there are more arguments, define a map key with "argument",
+            // followed by the argument index.
+            $defaults : map-set($defaults, #{map-get($options, prefix) + $i}, nth($arguments, $i));
+          }
+        }
+        $settings : $defaults;
+      } @else {
+        // This is a fallback should no arguments be passed except for 'important'
+        $settings : $defaults;
+      }
+    }
+
+  }
+
+  // ===========================================================================
+  //  Return Settings
+  // ===========================================================================
+
+  // Lastely, include important key and value at the end of the map.
+  $settings : map-set($settings, important, if($important, $imp, map-get($options, important)));
+
+  @if map-get($options, debug ) {
+    // @debug #{'Settings:'} $settings;
+    // @debug #{'Options:'} $options;
+  }
+
+  @return $settings;
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Opposite Direction                                       #opposite-direction
+////////////////////////////////////////////////////////////////////////////////
+
+/// Return an opposite direction
+/// @author Hugo Giraudel
+/// @group helpers-strings
+/// @link http://www.sitepoint.com/sass-mixins-kickstart-project/#opposite-direction
+
+@function opposite-direction($directions) {
+
+  $has-hyphen : false;
+
+  @if str-index(to-string($directions), '-') {
+    $has-hyphen : true;
+    $directions : string-explode(to-string($directions), '-');
+  }
+
+  $opposite-directions: ();
+  $direction-map: (
+    top    : bottom,
+    right  : left,
+    bottom : top,
+    left   : right,
+    up     : down,
+    down   : up,
+    center : center,
+    ltr    : rtl,
+    rtl    : ltr
+  );
+
+  @each $direction in $directions {
+    $direction: to-lower-case($direction);
+
+    @if map-has-key($direction-map, $direction) {
+      $opposite-directions: append($opposite-directions, unquote(map-get($direction-map, $direction)));
+    } @else {
+      @if $warnings {
+        @warn "No opposite direction can be found for '#{$direction}'. Direction omitted.";
+      }
+    }
+  }
+
+  @if $has-hyphen == true {
+    @return string-replace(to-string($opposite-directions), '-', ' ');
+  } @else {
+    @return $opposite-directions;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Pseudo                                                               #pseudo
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Check to see if the given pseduo is valid
+///
+/// @author Mark Notton
+///
+/// @access private
+///
+/// @group helpers-misc
+///
+/// @require {function} is-pseudo
+///
+/// @return {string}
+///
+/// @example scss - Usage
+///   &#{pseudo(before)} { ... }
+///
+/// @example scss - Output
+///   &:before { ... }
+///
+
+@function pseudo($pseudo, $colon:true) {
+  @if is-pseudo($pseudo) {
+    @return if($colon, ':'+$pseudo, $pseudo);
+  } @else {
+    @return null;
+  }
+}
+
+/// Sudo ================================================================= #sudo
+///
+/// @alias pseudo
+///
+
+///
+/// @require {function} pseudo
+///
+/// @return {bool}
+
+@function sudo($pseudo, $colon:true) {
+  @return pseudo($pseudo, $colon);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Find Digits                                                     #find-digits
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Finding the digits part of a stringified number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-numbers
+///
+/// @param {string} $source - string source
+///
+/// @param {number} $pointer - current pointer
+///
+/// @return {list} - new pointer, parsed number
+
+@function find-digits($source, $pointer) {
+  $source: to-lower-case($source);
+  $length: str-length($source);
+  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  $result: 0;
+  $runs: 1;
+
+  @while $pointer <= $length {
+    $token: str-slice($source, $pointer, $pointer);
+    $index: index($numbers, $token);
+
+    @if $token == "." {
+      // @continue;
+    }
+    @else if $index and $index > 0 {
+      $runs: $runs * 10;
+      $result: $result * 10 + ($index - 1);
+    }
+    @else {
+      @return $pointer, $result / $runs;
+    }
+
+    $pointer: $pointer + 1;
+  }
+
+  @return $pointer, $result / $runs;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Find Interger                                                  #find-integer
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Finding the digits part of a stringified number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://github.com/HugoGiraudel/SassyCast
+///
+/// @access private
+///
+/// @group helpers-numbers
+///
+/// @param {string} $source  - string source
+///
+/// @param {number} $pointer - current pointer
+///
+/// @return {list} new pointer, parsed number
+
+@function find-integer($source, $pointer) {
+  $source: to-lower-case($source);
+  $length: str-length($source);
+  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  $result: 0;
+
+  @while $pointer <= $length {
+    $token: str-slice($source, $pointer, $pointer);
+    $index: index($numbers, $token);
+
+    @if $token == "-" {
+      // @continue;
+    }
+    @else if $index {
+      $result: $result * 10 + ($index - 1);
+    }
+    @else {
+      @return $pointer, $result;
+    }
+
+    $pointer: $pointer + 1;
+  }
+
+  @return $pointer, $result;
+}
+
+/// Strips any units from a number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/remove-unit-function/
+///
+/// @param {string} $number
+///
+/// @return {number}
+///
+/// @require {function} is-number
+/// @require {function} to-number
+///
+/// @example scss - Usage
+///   remove-unit(50px)
+///
+/// @example scss - Output
+///   50
+///
+
+@function remove-unit($number) {
+
+  @if not is-number($number) {
+    $number : to-number($number);
+  }
+
+  @if is-number($number) and not unitless($number) {
+    @return ($number / ($number * 0 + 1));
+  }
+
+  @return $number;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Deep Get                                                   #map-deep-get
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Fetch nested keys in a map
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+
+///
+/// @group helpers-maps
+///
+/// @param (map) $map - Usually a variable name
+///
+/// @param (arglist) $keys - With comma delimination write the path to the disired map element
+///
+/// @return {*}
+///
+/// @example scss - Usage
+/// $foo: (
+///   bar: (
+///     lorem : (
+///       test1: #dcfac0,
+///       test2: #00968b,
+///     ),
+///     ipsom: (
+///       test1: #f4fac7,
+///       test2: #c2454e,
+///     )
+///   )
+/// );
+/// color: map-fetch($foo, bar, lorem, test1);
+///
+/// @example css - Output
+/// color:#dcfac0;
+///
+
+@function map-deep-get($map, $keys...) {
+  @each $key in $keys {
+    $map: map-get($map, $key);
+  }
+  @return $map;
+}
+
+/// @alias map-deep-get
+///
+
+///
+/// @require {function} map-deep-get
+///
+/// @return {*}
+
+@function map-fetch($map, $keys...) {
+  @return map-deep-get($map, $keys...);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Deep Merge                                               #map-deep-merge
+////////////////////////////////////////////////////////////////////////////////
+
+/// @name Map Deep Merge
+/// @author Zsolt Pentz
+/// @see https://medium.com/@pentzzsolt/a-non-destructive-map-merge-function-for-sass-f91637f87b2e
+
+@function map-deep-merge($parent-map, $child-map) {
+	$result: $parent-map;
+	@each $key, $value in $child-map {
+		@if (not map-has-key($result, $key)) or (type-of(map-get($result, $key)) != type-of($value)) or (not (type-of(map-get($result, $key)) == map and type-of($value) == map)) {
+			$result: map-merge($result, ($key: $value));
+		}
+		@else {
+			$result: map-merge($result, ($key: map-deep-merge(map-get($result, $key), $value)));
+		}
+	}
+	@return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Deep Set                                                   #map-deep-set
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Update a key deeply nested
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+
+///
+/// @group helpers-maps
+///
+/// @param {map} $map - Map to update
+///
+/// @param {arglist} $keys - Keys to access to value to update
+///
+/// @param {*} $value - New value (last member of `$keys`)
+///
+/// @return {map} - Updated map
+
+@function map-deep-set($map, $keys.../*, $value */) {
+  $map-list: ($map,);
+  $result: null;
+
+  @if length($keys) == 2 {
+    @return map-merge($map, (nth($keys, 1): nth($keys, -1)));
+  }
+
+  @for $i from 1 through length($keys) - 2 {
+    $map-list: append($map-list, map-get(nth($map-list, -1), nth($keys, $i)));
+  }
+
+  @for $i from length($map-list) through 1 {
+    $result: map-merge(nth($map-list, $i), (nth($keys, $i): if($i == length($map-list), nth($keys, -1), $result)));
+  }
+
+  @return $result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Depth                                                         #map-depth
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Compute the maximum depth of a map
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+
+///
+/// @group helpers-maps
+///
+/// @param {map} $map
+///
+/// @return {number} max depth of `$map`
+
+@function map-depth($map) {
+  $level: 1;
+
+  @each $key, $value in $map {
+    @if type-of($value) == "map" {
+      $level: max(map-depth($value) + 1, $level);
+    }
+  }
+
+  @return $level;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Extend                                                       #map-extend
+////////////////////////////////////////////////////////////////////////////////
+///
+/// jQuery-style extend function
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+
+///
+/// @group helpers-maps
+///
+/// @param {map} $map - first map
+///
+/// @param {arglist} $maps - other maps
+///
+/// @param {bool} $deep - recursive mode
+///
+/// @return {map}
+
+@function map-extend($map, $maps.../*, $deep */) {
+  $last: nth($maps, -1);
+  $deep: $last == true;
+  $max: if($deep, length($maps) - 1, length($maps));
+
+  // Loop through all maps in $maps...
+  @for $i from 1 through $max {
+    // Store current map
+    $current: nth($maps, $i);
+
+    // If not in deep mode, simply merge current map with map
+    @if not $deep {
+      $map: map-merge($map, $current);
+    } @else {
+      // If in deep mode, loop through all tuples in current map
+      @each $key, $value in $current {
+
+        // If value is a nested map and same key from map is a nested map as well
+        @if type-of($value) == "map" and type-of(map-get($map, $key)) == "map" {
+          // Recursive extend
+          $value: map-extend(map-get($map, $key), $value, true);
+        }
+
+        // Merge current tuple with map
+        $map: map-merge($map, ($key: $value));
+      }
+    }
+  }
+
+  @return $map;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Has Keys                                                   #map-has-keys
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Test if map got all `$keys` at first level
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+/// @group helpers-maps
+///
+/// @param {map} $map - Map
+///
+/// @param {arglist} $keys - Keys to test
+///
+/// @return {bool}
+
+@function map-has-keys($map, $keys...) {
+  @each $key in $keys {
+    @if not map-has-key($map, $key) {
+      @return false;
+    }
+  }
+
+  @return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Has Nested Keys                                     #map-has-nested-keys
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Test if map got all `$keys` nested with each others
+///
+/// @author Hugo Giraudel
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+///
+
+///
+/// @group helpers-maps
+///
+/// @param {map} $map - Map
+///
+/// @param {arglist} $keys - Keys to test
+///
+/// @return {bool}
+
+@function map-has-nested-keys($map, $keys...) {
+  @each $key in $keys {
+    @if not map-has-key($map, $key) {
+      @return false;
+    }
+    $map: map-get($map, $key);
+  }
+
+  @return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Set                                                             #map-set
+////////////////////////////////////////////////////////////////////////////////
+///
+/// A quick way of adding a key and value to the end of a map
+///
+/// @author Mark Notton
+///
+/// @group helpers-maps
+///
+/// @return {map}
+
+@function map-set($map, $key, $value) {
+  @return map-merge($map, ($key: $value));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Map Zip                                                             #map-zip
+////////////////////////////////////////////////////////////////////////////////
+///
+/// An equivalent of `zip` function but for maps.
+/// I wrote my own version of this before realising Hugo had done something similar.
+/// I have kept the name, but used my own.
+///
+/// @author Mark Notton
+///
+/// @link http://www.sitepoint.com/extra-map-functions-sass
+/// @link http://sass-lang.com/documentation/Sass/Script/Functions.html#zip-instance_method
+///
+
+///
+/// @group helpers-maps
+///
+/// @param {list} $list1 - Keys for map
+///
+/// @param {list} $list2 - Values for map
+///
+/// @param {bool} $swappable - Swap variables around so list1 has the most values. Default is true.
+///
+/// @return {map} Freshly created map
+
+@function map-zip($list1, $list2, $swappable:true) {
+
+  $map : ();
+
+  $list1-size : length($list1);
+  $list2-size : length($list2);
+
+  $count : if($list1-size < $list2-size, $list1-size, $list2-size);
+
+
+  @if ($list1-size < $list2-size and $swappable) {
+    $temp : $list1;
+    $list1 : $list2;
+    $list2 : $temp;
+  }
+
+  @if $warnings {
+    @if ($list1-size < $list2-size) {
+      @if $warnings {
+        @warn('The second list had '+($list2-size - $list1-size)+' more value'+ if($list2-size - $list1-size != 1, 's', '') +' than the first list');
+      }
+    } @elseif ($list1-size > $list2-size) {
+      @if $warnings {
+        @warn('The first list had '+($list1-size - $list2-size)+' more value'+ if($list1-size - $list2-size != 1, 's', '') +' than the second list');
+      }
+    }
+  }
+
+  @for $i from 1 through $count {
+    $map : map-set($map, nth($list1, $i), nth($list2, $i));
+  }
+
+  @return $map;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Add                                                                     #add
 ////////////////////////////////////////////////////////////////////////////////
@@ -3079,547 +3623,326 @@ $sc-non-strict-defaults: (
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Find Digits                                                     #find-digits
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Finding the digits part of a stringified number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-numbers
-///
-/// @param {string} $source - string source
-///
-/// @param {number} $pointer - current pointer
-///
-/// @return {list} - new pointer, parsed number
-
-@function find-digits($source, $pointer) {
-  $source: to-lower-case($source);
-  $length: str-length($source);
-  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
-  $result: 0;
-  $runs: 1;
-
-  @while $pointer <= $length {
-    $token: str-slice($source, $pointer, $pointer);
-    $index: index($numbers, $token);
-
-    @if $token == "." {
-      // @continue;
-    }
-    @else if $index and $index > 0 {
-      $runs: $runs * 10;
-      $result: $result * 10 + ($index - 1);
-    }
-    @else {
-      @return $pointer, $result / $runs;
-    }
-
-    $pointer: $pointer + 1;
-  }
-
-  @return $pointer, $result / $runs;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Find Interger                                                  #find-integer
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Finding the digits part of a stringified number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://github.com/HugoGiraudel/SassyCast
-///
-/// @access private
-///
-/// @group helpers-numbers
-///
-/// @param {string} $source  - string source
-///
-/// @param {number} $pointer - current pointer
-///
-/// @return {list} new pointer, parsed number
-
-@function find-integer($source, $pointer) {
-  $source: to-lower-case($source);
-  $length: str-length($source);
-  $numbers: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
-  $result: 0;
-
-  @while $pointer <= $length {
-    $token: str-slice($source, $pointer, $pointer);
-    $index: index($numbers, $token);
-
-    @if $token == "-" {
-      // @continue;
-    }
-    @else if $index {
-      $result: $result * 10 + ($index - 1);
-    }
-    @else {
-      @return $pointer, $result;
-    }
-
-    $pointer: $pointer + 1;
-  }
-
-  @return $pointer, $result;
-}
-
-/// Strips any units from a number
-///
-/// @author Hugo Giraudel
-///
-/// @link https://css-tricks.com/snippets/sass/remove-unit-function/
-///
-/// @param {string} $number
-///
-/// @return {number}
-///
-/// @require {function} is-number
-/// @require {function} to-number
-///
-/// @example scss - Usage
-///   remove-unit(50px)
-///
-/// @example scss - Output
-///   50
-///
-
-@function remove-unit($number) {
-
-  @if not is-number($number) {
-    $number : to-number($number);
-  }
-
-  @if is-number($number) and not unitless($number) {
-    @return ($number / ($number * 0 + 1));
-  }
-
-  @return $number;
-}
-
-/// @author Mark Notton
-/// @link http://www.w3schools.com/charsets/ref_html_utf8.asp
-/// @type variables
-
-/// Symbols
-
-$copyright :            "\00A9"; // ©
-
-$registered :           "\00AE"; // ®
-
-$tricolon :             "\205D"; // ⁝
-
-$quadcolon :            "\205E"; // ⁞
-
-$tick1 :                "\2713"; // ✓
-
-$tick2 :                "\2714"; // ✔
-
-$cross1 :               "\2715"; // ✕
-
-$cross2 :               "\2717"; // ✗
-
-$plus :                 "\271B"; // ✛
-
-$bullet :               "\2219"; // ∙
-
-/// Punctuation
-
-$single-dot :           "\2024"; // ․
-
-$double-dots :          "\2025"; // ‥
-
-$tripple-dots :         "\2026"; // …
-
-$open-quotes-1 :        "\201C"; // “
-
-$close-quotes-1 :       "\201D"; // ”
-
-$close-quotes-2 :       "\201E"; // „
-
-$open-quotes-2 :        "\201F"; // ‟
-
-$close-curly-brackets : "\2775"; // ❵
-
-$open-curly-brackets :  "\2774"; // ❴
-
-/// Arrows
-
-$double-right-arrows :  "\00BB"; // »
-
-$angle-left-1 :         "\276C"; // ❬
-
-$angle-right-1 :        "\276D"; // ❭
-
-$angle-left-2 :         "\276E"; // ❮
-
-$angle-right-2 :        "\276F"; // ❯
-
-$angle-left-3 :         "\2770"; // ❰
-
-$angle-right-3 :        "\2771"; // ❱
-
-$small-left-arrow :     "\2039"; // ‹
-
-$small-right-arrow :    "\203A"; // ›
-
-$arrow-right :          "\27A4"; // ➤
-
-$triangle-right-1 :     "\2023"; // ‣
-
-$triangle-right-2 :     "\25B6"; // ▶
-
-$triangle-right-3 :     "\25B7"; // ▷
-
-
-/// Currency
-
-$british-pound :        "\00A3"; // £
-
-$dollar :               "\0024"; // $
-
-$euro :                 "\20AC"; // €
-
-
-/// Shapes
-
-$star :                 "\272F"; // ✯
-
-$circle :               "\25CF"; // ●
-
-$square-1 :             "\25A0"; // ■
-
-$square-2 :             "\25A1"; // □
-
-$quare-3 :              "\25A2"; // ▢
-
-////////////////////////////////////////////////////////////////////////////////
-/// Get Settings                                                   #get-settings
+/// Added Extension                                               #add-extension
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Have all mixins accept the same pattern on arguments and manage all defaults
-/// data and fallbacks. Use either a list, map, or keywords.
-///
-/// @name Get Settings
+/// Add an extension to the end of a string if it doesn't already exist
 /// @author Mark Notton
 
-/// @return {map}
-/// @example
-/// @mixin myMixin($args...) {
-///    $defaults : (
-///      name   : 'unknown',
-///      age    : '99',
-///      gender : null,
-///      data   : ('foo':'bar')
-///    );
-///    $settings : get-settings($defaults, $args...);
-///    // $settings : get-settings($defaults, (deep:false, debug:true), $args...);
-///    @debug $settings;
-/// }
-/// @include myMixin('Mark', '31', male, ('wibble':'wobble'), important);
-/// @include myMixin((name:'Lizzie', gender:female, data:('wibble':'wobble')));
-/// @include myMixin($name:'Andy', $age:'36', $gender:male);
-/// @include myMixin(important);
-///
-/// @output
-/// name: "Mark", age: "31", gender: male, data: ("foo": "bar", "wibble": "wobble"), important: !important
-/// name: "Lizzie", age: "99", gender: female, data: ("foo": "bar", "wibble": "wobble"), important: null
-/// name: "Andy", age: "36", gender: male, data: ("foo": "bar"), important: null
-/// name: "unknown", age: "99", gender: null, data: ("foo": "bar"), important: !important
-// NOTE Passing a list of arguments in the keywords format will return incorrect
-// settings data if a special options map prefixes 'args...' within the Mixin.
-
-@function get-settings($defaults, $args...) {
-
-  // ===========================================================================
-  // Initial settings
-  // ===========================================================================
-
-  $important : false;
-  $settings  : null;
-  $defaults  : if(is-null($defaults), (), $defaults);
-  $backup    : $args;
-
-  // Special options on how to manage the arguments ----------------------------
-
-  $options : (
-    deep      : true,
-    prefix    : 'argument',
-    important : null,
-    debug     : false
-  );
-
-  // ===========================================================================
-  //  Revert to defaults if no arguments are passed
-  // ===========================================================================
-
-  @if length($args) == 0 and length(keywords($args)) == 0 {
-
-    @if map-get($options, debug ) { @debug "NO ARGUMENTS DETECTED"; }
-
-    $settings : $defaults;
-
-  } @else {
-
-    // =========================================================================
-    //  Keywords
-    // =========================================================================
-    // Convert keywords into a useable map
-
-    @if length(keywords($args)) > 0 {
-
-      @if map-get($options, debug ) { @debug "KEYWORDS DETECTED"; }
-
-      $args : keywords($args);
-
-      @if map-has-key($args, options) {
-        $options : map-merge($options, map-get($args, options));
-        $args : map-remove($args, options);
-      }
-
-    }
-
-    // =========================================================================
-    //  Special Options
-    // =========================================================================
-
-    // Special options at start ------------------------------------------------
-    // Check if the fisrt args element exists, is a map, and contains any of the
-    // $options keys.If it does, assume these are bespoke options relative to
-    // the mixin that called this function.
-
-    @if not is-empty(nth($args, 1)) and is-map(nth($args, 1)) and contains(map-keys(nth($args, 1)), map-keys($options)) {
-
-      @if map-get($options, debug ) { @debug 'Special options defined at start of the arguments'; }
-
-      $options : map-merge($options, nth($args, 1));
-      $args    : slice($args, 2, length($args));
-
-    }
-
-    // Special options at end -------------------------------------------------
-    // Essentially the same as above, but checks the last argument for options.
-    // This allows for a little syntax suger when passing aguments on a per-maxin call basis
-
-    @elseif not is-empty(nth($args, -1)) and is-map(nth($args, -1)) and
-            contains(map-keys(nth($args, -1)), map-keys($options)) {
-
-      @if map-get($options, debug ) { @debug 'Special options defined at end of the arguments'; }
-
-      $options : map-merge($options, nth($args, -1));
-      $args    : slice($args, 1, length($args) - 1)
-    }
-
-    // =========================================================================
-    //  Maps
-    // =========================================================================
-
-    // Quick check to determine if the map was originally passed as keywords or not.
-    $map : if(is-map($args), $args, nth($args, 1));
-
-    @if not is-empty($map) and is-map($map) {
-
-      @if map-get($options, debug ) { @debug "MAP DETECTED"; }
-
-    /// @todo: Check for cast type and required types
-
-      @if map-get($options, deep) == true  {
-        // If deep is true (default), then perform a deep merge with the defaults
-        $settings : map-deep-merge($defaults, $map);
-      } @else {
-        // Otherwise do a standard merge.
-        $settings : map-merge($defaults, $map);
-      }
-
-      // Check if the map has important explicitly defined within it.
-      @if contains(map-keys($settings), important) {
-        $important : map-get($settings, important);
-        // If important is found, remove it from the settings list.
-        $settings : map-remove($settings, important);
-      }
-
-      // If a map was passed, check the second parameter for
-      // important as they may be seperated.
-      @if length($args) > 1 and is-important(nth($args, 2)) {
-        $important : true;
-      }
-
-    } @else {
-
-    // =========================================================================
-    //  List
-    // =========================================================================
-
-      @if map-get($options, debug ) { @debug "LIST DETECTED"; }
-
-      // Arguments that are passed as a standard list
-
-      $default-keys : map-keys($defaults);
-      $default-values : map-values($defaults);
-
-      // Convert all items into lists to help looping.
-      $arguments : arglist-to-list($args...);
-
-      // Check and remove 'important' if it was defined.
-      @if contains($arguments, important) {
-        $important : true;
-        $arguments : remove($arguments, important);
-      }
-
-      // Run through all the arguments
-      @if ( length($arguments) > 0 ) {
-        @for $i from 1 through length($arguments) {
-
-          @if $i <= length($default-keys) {
-            // Check if the amount of arguements is less than the
-            // amount of defaults before setting the value
-            @if is-null(nth($arguments, $i)) or contains((default, defaults), nth($arguments, $i)) {
-              // Passing in null, default or defaults will use the default value.
-              $defaults : map-set($defaults, nth($default-keys, $i), nth($default-values, $i));
-            } @elseif is-map(nth($arguments, $i)) {
-              @if map-get($options, deep) == true  {
-                // Do a deep-merge for map data
-                $defaults : map-set($defaults, nth($default-keys, $i), map-deep-merge(nth($default-values, $i), nth($arguments, $i)));
-              } @else {
-                // Do a normal merge for map data
-                $defaults : map-set($defaults, nth($default-keys, $i), map-merge(nth($default-values, $i), nth($arguments, $i)));
-              }
-            } @else {
-              // Add value to the associated argument number from the defaults key.
-              $defaults : map-set($defaults, nth($default-keys, $i), nth($arguments, $i));
-            }
-          } @else {
-            // If there are more arguments, define a map key with "argument",
-            // followed by the argument index.
-            $defaults : map-set($defaults, #{map-get($options, prefix) + $i}, nth($arguments, $i));
-          }
-        }
-        $settings : $defaults;
-      } @else {
-        // This is a fallback should no arguments be passed except for 'important'
-        $settings : $defaults;
-      }
-    }
-
-  }
-
-  // ===========================================================================
-  //  Return Settings
-  // ===========================================================================
-
-  // Lastely, include important key and value at the end of the map.
-  $settings : map-set($settings, important, if($important, $imp, map-get($options, important)));
-
-  @if map-get($options, debug ) {
-    // @debug #{'Settings:'} $settings;
-    // @debug #{'Options:'} $options;
-  }
-
-  @return $settings;
-
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Opposite Direction                                       #opposite-direction
-////////////////////////////////////////////////////////////////////////////////
-
-/// Return an opposite direction
-/// @author Hugo Giraudel
 /// @group helpers-strings
-/// @link http://www.sitepoint.com/sass-mixins-kickstart-project/#opposite-direction
-
-@function opposite-direction($directions) {
-
-  $has-hyphen : false;
-
-  @if str-index(to-string($directions), '-') {
-    $has-hyphen : true;
-    $directions : string-explode(to-string($directions), '-');
-  }
-
-  $opposite-directions: ();
-  $direction-map: (
-    top    : bottom,
-    right  : left,
-    bottom : top,
-    left   : right,
-    up     : down,
-    down   : up,
-    center : center,
-    ltr    : rtl,
-    rtl    : ltr
-  );
-
-  @each $direction in $directions {
-    $direction: to-lower-case($direction);
-
-    @if map-has-key($direction-map, $direction) {
-      $opposite-directions: append($opposite-directions, unquote(map-get($direction-map, $direction)));
-    } @else {
-      @if $warnings {
-        @warn "No opposite direction can be found for '#{$direction}'. Direction omitted.";
-      }
-    }
-  }
-
-  @if $has-hyphen == true {
-    @return string-replace(to-string($opposite-directions), '-', ' ');
-  } @else {
-    @return $opposite-directions;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Pseudo                                                               #pseudo
-////////////////////////////////////////////////////////////////////////////////
-///
-/// Check to see if the given pseduo is valid
-///
-/// @author Mark Notton
-///
-/// @access private
-///
-/// @group helpers-misc
-///
-/// @require {function} is-pseudo
-///
 /// @return {string}
-///
-/// @example scss - Usage
-///   &#{pseudo(before)} { ... }
-///
-/// @example scss - Output
-///   &:before { ... }
-///
 
-@function pseudo($pseudo, $colon:true) {
-  @if is-pseudo($pseudo) {
-    @return if($colon, ':'+$pseudo, $pseudo);
+@function add-extension($string, $extension) {
+  @if is-extension($string, $extension) {
+    @return to-string($string);
   } @else {
-    @return null;
+    @return $string + '.' + to-lower-case($extension);
   }
 }
 
-/// Sudo ================================================================= #sudo
-///
-/// @alias pseudo
-///
+////////////////////////////////////////////////////////////////////////////////
+/// String Compare                                               #string-compare
+////////////////////////////////////////////////////////////////////////////////
 
-///
-/// @require {function} pseudo
-///
+/// Compares two string to determine which comes first
+/// @author Hugo Giraudel
+/// @link https://css-tricks.com/snippets/sass/sorting-function/
+/// @access private
+/// @group helpers-strings
+/// @param {string} $a - first string
+/// @parem {string} $b - second string
+/// @param {list} $order - order to deal with
 /// @return {bool}
 
-@function sudo($pseudo, $colon:true) {
-  @return pseudo($pseudo, $colon);
+@function string-compare($a, $b, $order) {
+
+  @if type-of($a) == number and type-of($b) == number {
+    @return $a < $b;
+  }
+
+  $a: to-lower-case($a + unquote(""));
+  $b: to-lower-case($b + unquote(""));
+
+  @for $i from 1 through min(str-length($a), str-length($b)) {
+
+    $char-a: str-slice($a, $i, $i);
+    $char-b: str-slice($b, $i, $i);
+
+    @if $char-a and $char-b and index($order, $char-a) != index($order, $char-b) {
+      @return index($order, $char-a) < index($order, $char-b);
+    }
+
+  }
+
+  @return str-length($a) < str-length($b);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// String Ends With                                           #string-ends-with
+////////////////////////////////////////////////////////////////////////////////
+
+/// Check whether `$string` ends with `$needle`
+/// @author Hugo Giraudel
+
+/// @group helpers-strings
+/// @link https://github.com/HugoGiraudel/SassyStrings/blob/master/dist/_SassyStrings.scss
+/// @param {string} $string - string to check
+/// @param {string} $needle - substring to check
+/// @return {Bool}
+
+@function string-ends-with($string, $needle) {
+  @return str-slice($string, -1 * str-length($needle)) == $needle;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// String Explode                                               #string-explode
+////////////////////////////////////////////////////////////////////////////////
+
+/// Explode string into a list
+/// @author Hugo Giraudel
+
+/// @group helpers-strings
+/// @link https://github.com/HugoGiraudel/SassyStrings/blob/master/dist/_SassyStrings.scss
+/// @param {string} $string - String to split
+/// @param {string} $delimiter - string to use as a delimiter to split `$string`
+/// @param {string} $string - The string or array being searched and replaced on
+/// @return {List}
+
+@function string-explode($string, $delimiter: "", $seperator : space) {
+  $result: ();
+  $length: str-length($string);
+
+  @if str-length($delimiter) == 0 {
+    @for $i from 1 through $length {
+      $result: append($result, str-slice($string, $i, $i), $seperator);
+    }
+
+    @return $result;
+  }
+
+  $running: true;
+  $remaining: $string;
+
+  @while $running {
+    $index: str-index($remaining, $delimiter);
+
+    @if $index {
+      $slice: str-slice($remaining, 1, $index - 1);
+      $result: append($result, $slice, $seperator);
+      $remaining: str-slice($remaining, $index + str-length($delimiter));
+    } @else {
+      $running: false;
+    }
+  }
+
+  @return append($result, $remaining, $seperator);
+}
+
+@function string-remove-whitespace($str) {
+  @while (str-index($str, ' ') != null) {
+    $index: str-index($str, ' ');
+    $str: #{str-slice($str, 0, $index - 1)}#{str-slice($str, $index + 1)};
+  }
+  @return $str;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// String Replace                                               #string-replace
+////////////////////////////////////////////////////////////////////////////////
+
+/// Replace 'search' with '$replace' in '$string'. Reordered parameter order to match PHP str_replace
+/// @author Hugo Giraudel
+
+/// @group helpers-strings
+/// @link https://css-tricks.com/snippets/sass/str-replace-function
+/// @param {string} $search - The value being searched for
+/// @param {string} $replace - The replacement value that replaces found search values
+/// @param {string} $string - The string or array being searched and replaced on
+/// @return {string} - Updated string
+
+@function string-replace($string, $search, $replace:'') {
+  $index: str-index($string, $search);
+
+  @if $index {
+    @return str-slice($string, 1, $index - 1) + $replace + str-replace(str-slice($string, $index + str-length($search)), $search, $replace);
+  }
+
+  @return $string;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// String Starts With                                       #string-starts-with
+////////////////////////////////////////////////////////////////////////////////
+
+/// Check whether `$string` starts with `$needle`
+/// @author Hugo Giraudel
+
+/// @group helpers-strings
+/// @link https://github.com/HugoGiraudel/SassyStrings/blob/master/dist/_SassyStrings.scss
+/// @param {string} $string - string to check
+/// @param {string} $needle - substring to check
+/// @return {Bool}
+
+@function string-starts-with($string, $needle) {
+  @return str-slice($string, 1, str-length($needle)) == $needle;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// String To Hex                                                 #string-to-hex
+////////////////////////////////////////////////////////////////////////////////
+
+/// Cast a string into a hexadecimal color
+/// @author Hugo Giraudel
+/// @link https://github.com/HugoGiraudel/SassyCast
+/// @access private
+/// @group helpers-strings
+/// @param {string} $string - string
+/// @return {color | String} - string or hex color depending on the match
+/// @require {function} hex-to-dec
+
+@function string-to-hex($string) {
+  $string-lower: to-lower-case($string);
+  $r: "";  $g: ""; $b: "";
+  $hex: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f";
+  $length: str-length($string);
+  $max: if($length == 4, 1, 2);
+
+  // Check for length accuracy
+  @if $length != 4 and $length != 7 {
+    @return $string;
+  }
+
+  // Loop from the second character (omitting #)
+  @for $i from 2 through $length {
+    $c: str-slice($string-lower, $i, $i);
+
+    // If wrong character, return
+    @if not index($hex, $c) {
+      @return $string;
+    }
+
+    @if      str-length($r) < $max { $r: $r + $c }
+    @else if str-length($g) < $max { $g: $g + $c }
+    @else if str-length($b) < $max { $b: $b + $c }
+  }
+
+  @if $length == 4 {
+    $r: $r + $r;
+    $g: $g + $g;
+    $b: $b + $b;
+  }
+
+  @return rgb(hex-to-dec($r), hex-to-dec($g), hex-to-dec($b));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// String To HSL                                                 #string-to-hsl
+////////////////////////////////////////////////////////////////////////////////
+
+/// Cast a string into a hsl color
+/// @author Hugo Giraudel
+/// @link https://github.com/HugoGiraudel/SassyCast
+/// @access private
+/// @group helpers-strings
+/// @param {string} $string - string
+/// @return {color | String} - string or hsl color depending on the match
+/// @require {function} get-color-value
+
+@function string-to-hsl($string) {
+  $frags: ();
+  $string-lower: to-lower-case($string);
+  $is-alpha: str-slice($string-lower, 4, 4) == 'a';
+  $length: str-length($string);
+  $start: str-index($string, "(");
+
+  @for $i from $start through $length {
+    $token: str-slice($string-lower, $i, $i);
+    @if $token == ' ' {
+      // @continue;
+    }
+    @else if $token == '(' or $token == ',' {
+      $frags: append($frags, "");
+    }
+    @else if $token == ')' {
+      @if length($frags) != if($is-alpha, 4, 3) { @return $string; } // Parsing error
+      $hue: get-color-value(nth($frags, 1));
+      $saturation: get-color-value(nth($frags, 2));
+      $lightness: get-color-value(nth($frags, 3));
+
+      @if not $hue or not $saturation or not $lightness {
+        @return $string;
+      }
+
+      @if $is-alpha {
+        @if length($frags) != 4 { @return $string; } // No alpha channel found
+        $alpha: get-color-value(nth($frags, 4));
+        @if not $alpha { @return $string; } // Error parsing alpha channel
+        @return hsla($hue, $saturation, $lightness, $alpha);
+      }
+
+      @return hsl($hue, $saturation, $lightness);
+    }
+    @else {
+      $frags: set-nth($frags, length($frags), nth($frags, length($frags)) + $token);
+    }
+  }
+
+  @return $string;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// String To RGB                                                 #string-to-rgb
+////////////////////////////////////////////////////////////////////////////////
+
+/// Cast a string into a rgb color
+/// @author Hugo Giraudel
+/// @link https://github.com/HugoGiraudel/SassyCast
+/// @access private
+/// @group helpers-strings
+/// @param {string} $string - string
+/// @return {color | string} - string or rgb color depending on the match
+/// @require {function} get-color-value
+
+@function string-to-rgb($string) {
+  $string-lower: to-lower-case($string);
+  $frags: ();
+  $is-alpha: str-slice($string-lower, 4, 4) == 'a';
+  $start: str-index($string, "(");
+  $length: str-length($string);
+
+  @for $i from $start through $length {
+    $token: str-slice($string-lower, $i, $i);
+    @if $token == ' ' {
+      // @continue;
+    }
+    @else if $token == '(' or $token == ',' {
+      $frags: append($frags, "");
+    }
+    @else if $token == ')' {
+      @if length($frags) != if($is-alpha, 4, 3) { @return $string; } // Parsing error
+      $red: get-color-value(nth($frags, 1));
+      $green: get-color-value(nth($frags, 2));
+      $blue: get-color-value(nth($frags, 3));
+
+      @if not $red or not $green or not $blue {
+        @return $string;
+      }
+
+      @if $is-alpha {
+        @if length($frags) != 4 { @return $string; } // No alpha channel found
+        $alpha: get-color-value(nth($frags, 4));
+        @if not $alpha { @return $string; } // Error parsing alpha channel
+        @return rgba($red, $green, $blue, $alpha);
+      }
+
+      @return rgb($red, $green, $blue);
+    }
+    @else {
+      $frags: set-nth($frags, length($frags), nth($frags, length($frags)) + $token);
+    }
+  }
+
+  @return $string;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -3994,329 +4317,6 @@ $quare-3 :              "\25A2"; // ▢
 		@return calc(#{$size} + #{$min});
 	}
 
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Added Extension                                               #add-extension
-////////////////////////////////////////////////////////////////////////////////
-
-/// Add an extension to the end of a string if it doesn't already exist
-/// @author Mark Notton
-
-/// @group helpers-strings
-/// @return {string}
-
-@function add-extension($string, $extension) {
-  @if is-extension($string, $extension) {
-    @return to-string($string);
-  } @else {
-    @return $string + '.' + to-lower-case($extension);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String Compare                                               #string-compare
-////////////////////////////////////////////////////////////////////////////////
-
-/// Compares two string to determine which comes first
-/// @author Hugo Giraudel
-/// @link https://css-tricks.com/snippets/sass/sorting-function/
-/// @access private
-/// @group helpers-strings
-/// @param {string} $a - first string
-/// @parem {string} $b - second string
-/// @param {list} $order - order to deal with
-/// @return {bool}
-
-@function string-compare($a, $b, $order) {
-
-  @if type-of($a) == number and type-of($b) == number {
-    @return $a < $b;
-  }
-
-  $a: to-lower-case($a + unquote(""));
-  $b: to-lower-case($b + unquote(""));
-
-  @for $i from 1 through min(str-length($a), str-length($b)) {
-
-    $char-a: str-slice($a, $i, $i);
-    $char-b: str-slice($b, $i, $i);
-
-    @if $char-a and $char-b and index($order, $char-a) != index($order, $char-b) {
-      @return index($order, $char-a) < index($order, $char-b);
-    }
-
-  }
-
-  @return str-length($a) < str-length($b);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String Ends With                                           #string-ends-with
-////////////////////////////////////////////////////////////////////////////////
-
-/// Check whether `$string` ends with `$needle`
-/// @author Hugo Giraudel
-
-/// @group helpers-strings
-/// @link https://github.com/HugoGiraudel/SassyStrings/blob/master/dist/_SassyStrings.scss
-/// @param {string} $string - string to check
-/// @param {string} $needle - substring to check
-/// @return {Bool}
-
-@function string-ends-with($string, $needle) {
-  @return str-slice($string, -1 * str-length($needle)) == $needle;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String Explode                                               #string-explode
-////////////////////////////////////////////////////////////////////////////////
-
-/// Explode string into a list
-/// @author Hugo Giraudel
-
-/// @group helpers-strings
-/// @link https://github.com/HugoGiraudel/SassyStrings/blob/master/dist/_SassyStrings.scss
-/// @param {string} $string - String to split
-/// @param {string} $delimiter - string to use as a delimiter to split `$string`
-/// @param {string} $string - The string or array being searched and replaced on
-/// @return {List}
-
-@function string-explode($string, $delimiter: "", $seperator : space) {
-  $result: ();
-  $length: str-length($string);
-
-  @if str-length($delimiter) == 0 {
-    @for $i from 1 through $length {
-      $result: append($result, str-slice($string, $i, $i), $seperator);
-    }
-
-    @return $result;
-  }
-
-  $running: true;
-  $remaining: $string;
-
-  @while $running {
-    $index: str-index($remaining, $delimiter);
-
-    @if $index {
-      $slice: str-slice($remaining, 1, $index - 1);
-      $result: append($result, $slice, $seperator);
-      $remaining: str-slice($remaining, $index + str-length($delimiter));
-    } @else {
-      $running: false;
-    }
-  }
-
-  @return append($result, $remaining, $seperator);
-}
-
-@function string-remove-whitespace($str) {
-  @while (str-index($str, ' ') != null) {
-    $index: str-index($str, ' ');
-    $str: #{str-slice($str, 0, $index - 1)}#{str-slice($str, $index + 1)};
-  }
-  @return $str;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String Replace                                               #string-replace
-////////////////////////////////////////////////////////////////////////////////
-
-/// Replace 'search' with '$replace' in '$string'. Reordered parameter order to match PHP str_replace
-/// @author Hugo Giraudel
-
-/// @group helpers-strings
-/// @link https://css-tricks.com/snippets/sass/str-replace-function
-/// @param {string} $search - The value being searched for
-/// @param {string} $replace - The replacement value that replaces found search values
-/// @param {string} $string - The string or array being searched and replaced on
-/// @return {string} - Updated string
-
-@function string-replace($string, $search, $replace:'') {
-  $index: str-index($string, $search);
-
-  @if $index {
-    @return str-slice($string, 1, $index - 1) + $replace + str-replace(str-slice($string, $index + str-length($search)), $search, $replace);
-  }
-
-  @return $string;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String Starts With                                       #string-starts-with
-////////////////////////////////////////////////////////////////////////////////
-
-/// Check whether `$string` starts with `$needle`
-/// @author Hugo Giraudel
-
-/// @group helpers-strings
-/// @link https://github.com/HugoGiraudel/SassyStrings/blob/master/dist/_SassyStrings.scss
-/// @param {string} $string - string to check
-/// @param {string} $needle - substring to check
-/// @return {Bool}
-
-@function string-starts-with($string, $needle) {
-  @return str-slice($string, 1, str-length($needle)) == $needle;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String To Hex                                                 #string-to-hex
-////////////////////////////////////////////////////////////////////////////////
-
-/// Cast a string into a hexadecimal color
-/// @author Hugo Giraudel
-/// @link https://github.com/HugoGiraudel/SassyCast
-/// @access private
-/// @group helpers-strings
-/// @param {string} $string - string
-/// @return {color | String} - string or hex color depending on the match
-/// @require {function} hex-to-dec
-
-@function string-to-hex($string) {
-  $string-lower: to-lower-case($string);
-  $r: "";  $g: ""; $b: "";
-  $hex: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "a" "b" "c" "d" "e" "f";
-  $length: str-length($string);
-  $max: if($length == 4, 1, 2);
-
-  // Check for length accuracy
-  @if $length != 4 and $length != 7 {
-    @return $string;
-  }
-
-  // Loop from the second character (omitting #)
-  @for $i from 2 through $length {
-    $c: str-slice($string-lower, $i, $i);
-
-    // If wrong character, return
-    @if not index($hex, $c) {
-      @return $string;
-    }
-
-    @if      str-length($r) < $max { $r: $r + $c }
-    @else if str-length($g) < $max { $g: $g + $c }
-    @else if str-length($b) < $max { $b: $b + $c }
-  }
-
-  @if $length == 4 {
-    $r: $r + $r;
-    $g: $g + $g;
-    $b: $b + $b;
-  }
-
-  @return rgb(hex-to-dec($r), hex-to-dec($g), hex-to-dec($b));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String To HSL                                                 #string-to-hsl
-////////////////////////////////////////////////////////////////////////////////
-
-/// Cast a string into a hsl color
-/// @author Hugo Giraudel
-/// @link https://github.com/HugoGiraudel/SassyCast
-/// @access private
-/// @group helpers-strings
-/// @param {string} $string - string
-/// @return {color | String} - string or hsl color depending on the match
-/// @require {function} get-color-value
-
-@function string-to-hsl($string) {
-  $frags: ();
-  $string-lower: to-lower-case($string);
-  $is-alpha: str-slice($string-lower, 4, 4) == 'a';
-  $length: str-length($string);
-  $start: str-index($string, "(");
-
-  @for $i from $start through $length {
-    $token: str-slice($string-lower, $i, $i);
-    @if $token == ' ' {
-      // @continue;
-    }
-    @else if $token == '(' or $token == ',' {
-      $frags: append($frags, "");
-    }
-    @else if $token == ')' {
-      @if length($frags) != if($is-alpha, 4, 3) { @return $string; } // Parsing error
-      $hue: get-color-value(nth($frags, 1));
-      $saturation: get-color-value(nth($frags, 2));
-      $lightness: get-color-value(nth($frags, 3));
-
-      @if not $hue or not $saturation or not $lightness {
-        @return $string;
-      }
-
-      @if $is-alpha {
-        @if length($frags) != 4 { @return $string; } // No alpha channel found
-        $alpha: get-color-value(nth($frags, 4));
-        @if not $alpha { @return $string; } // Error parsing alpha channel
-        @return hsla($hue, $saturation, $lightness, $alpha);
-      }
-
-      @return hsl($hue, $saturation, $lightness);
-    }
-    @else {
-      $frags: set-nth($frags, length($frags), nth($frags, length($frags)) + $token);
-    }
-  }
-
-  @return $string;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// String To RGB                                                 #string-to-rgb
-////////////////////////////////////////////////////////////////////////////////
-
-/// Cast a string into a rgb color
-/// @author Hugo Giraudel
-/// @link https://github.com/HugoGiraudel/SassyCast
-/// @access private
-/// @group helpers-strings
-/// @param {string} $string - string
-/// @return {color | string} - string or rgb color depending on the match
-/// @require {function} get-color-value
-
-@function string-to-rgb($string) {
-  $string-lower: to-lower-case($string);
-  $frags: ();
-  $is-alpha: str-slice($string-lower, 4, 4) == 'a';
-  $start: str-index($string, "(");
-  $length: str-length($string);
-
-  @for $i from $start through $length {
-    $token: str-slice($string-lower, $i, $i);
-    @if $token == ' ' {
-      // @continue;
-    }
-    @else if $token == '(' or $token == ',' {
-      $frags: append($frags, "");
-    }
-    @else if $token == ')' {
-      @if length($frags) != if($is-alpha, 4, 3) { @return $string; } // Parsing error
-      $red: get-color-value(nth($frags, 1));
-      $green: get-color-value(nth($frags, 2));
-      $blue: get-color-value(nth($frags, 3));
-
-      @if not $red or not $green or not $blue {
-        @return $string;
-      }
-
-      @if $is-alpha {
-        @if length($frags) != 4 { @return $string; } // No alpha channel found
-        $alpha: get-color-value(nth($frags, 4));
-        @if not $alpha { @return $string; } // Error parsing alpha channel
-        @return rgba($red, $green, $blue, $alpha);
-      }
-
-      @return rgb($red, $green, $blue);
-    }
-    @else {
-      $frags: set-nth($frags, length($frags), nth($frags, length($frags)) + $token);
-    }
-  }
-
-  @return $string;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -4926,313 +4926,56 @@ $ease-in-out-back  : cubic-bezier(0.680, -0.550, 0.265, 1.550);
 }
 
 @mixin show-breakpoints($sudo : before) {
-	@if $show-breakpoints {
-	  &:#{$sudo} {
-	    content:"\276F  #{add-unit($min)}";
-	    background-color:darken($red, 20);
-	    bottom:0;
-	    right:0;
-	    font-family:Arial;
-	    padding:4px $gap0;
-	    @include transition(background-color color);
-	    pointer-events:none;
-	    position:fixed;
-	    z-index:9999;
-	    font-size:12px;
-	    line-height:16px;
-	    color:white;
-	    text-align:center;
+	@media screen {
+		@if $show-breakpoints {
+		  &:#{$sudo} {
+		    content:"\276F  #{add-unit($min)}";
+		    background-color:darken($red, 20);
+		    bottom:0;
+		    right:0;
+		    font-family:Arial;
+		    padding:4px $gap0;
+		    @include transition(background-color color);
+		    pointer-events:none;
+		    position:fixed;
+		    z-index:9999;
+		    font-size:12px;
+		    line-height:16px;
+		    color:white;
+		    text-align:center;
 
-			@include break($min, '<') {
-				content:"min < #{add-unit($min)}";
-				background-color:$red;
-				color:colour-contrast($red);
-			}
-
-			@for $i from 1 through length($breakpoints) {
-
-				$name : nth(nth($breakpoints, $i), 1);
-				$max : nth(nth($breakpoints, $i), 2);
-				$min : if($i - 1 > 0, nth(nth($breakpoints, $i - 1), 2), null);
-
-	      $random-color: random-colour();
-
-				@if (not is-null($min)) {
-		      @include break($min, '>') {
-		        content:"#{$name} #{$min} - #{$max}";
-		        background-color:$random-color;
-		        color:colour-contrast($random-color);
-		      }
+				@include break($min, '<') {
+					content:"min < #{add-unit($min)}";
+					background-color:$red;
+					color:colour-contrast($red);
 				}
-	    }
 
-			@include break($max, '>') {
-				content:"max #{add-unit($max)} >";
-				background-color:$green;
-				color:colour-contrast($green);
-			}
+				@for $i from 1 through length($breakpoints) {
 
-	  }
+					$name : nth(nth($breakpoints, $i), 1);
+					$max : nth(nth($breakpoints, $i), 2);
+					$min : if($i - 1 > 0, nth(nth($breakpoints, $i - 1), 2), null);
+
+		      $random-color: random-colour();
+
+					@if (not is-null($min)) {
+			      @include break($min, '>') {
+			        content:"#{$name} #{$min} - #{$max}";
+			        background-color:$random-color;
+			        color:colour-contrast($random-color);
+			      }
+					}
+		    }
+
+				@include break($max, '>') {
+					content:"max #{add-unit($max)} >";
+					background-color:$green;
+					color:colour-contrast($green);
+				}
+
+		  }
+		}
 	}
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Grid Layouts                                                   #grid-layouts
-////////////////////////////////////////////////////////////////////////////////
-
-// =============================================================================
-// 2x Blocks
-// =============================================================================
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-$grid-template-2-blocks-1x2: "block1 block2";
-
-// =============================================================================
-// 3x Blocks
-// =============================================================================
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘└───┘└───┘
-$grid-template-3-blocks-1x3: "block1 block2 block3";
-
-// -----------------------------------------------------------------------------
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-// ┍────────────┐
-// │  3         │
-// └────────────┘
-$grid-template-3-blocks-1x2-3x3: "block1 block2" "block3 block3";
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  3  │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x2-1x3: "block1 block2" "block1 block3";
-
-// ┍────────────┐
-// │  1         │
-// └────────────┘
-// ┍─────┐┍─────┐
-// │  2  ││  3  │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x1-2x3: "block1 block1" "block2 block3";
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  3  ││     │
-// └─────┘└─────┘
-$grid-template-3-blocks-1x2-3x2: "block1 block2" "block3 block2";
-
-// =============================================================================
-// 4x Blocks
-// =============================================================================
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// └─────┘└─────┘
-// ┍─────┐┍─────┐
-// │  3  ││  4  │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-3x4: "block1 block2" "block3 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍─────┐┍─────┐
-// │  1  ││  2  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  3  │
-// │     │└─────┘
-// │     │┍─────┐
-// │     ││  4  │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-1x3-1x4: "block1 block2" "block1 block3" "block1 block4";
-
-// ┍─────────────┐
-// │ 1           │
-// └─────────────┘
-// ┍───┐┍───┐┍───┐
-// │ 2 ││ 3 ││ 4 │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x1x1-2x3x4: "block1 block1 block1" "block2 block3 block4";
-
-// ┍─────┐┍─────┐
-// │  1  ││  4  │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  2  ││     │
-// └─────┘│     │
-// ┍─────┐│     │
-// │  3  ││     │
-// └─────┘└─────┘
-$grid-template-4-blocks-1x2-2x4-3x4: "block1 block2" "block2 block4" "block3 block4";
-
-// 270 Degrees
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘└───┘└───┘
-// ┍─────────────┐
-// │ 4           │
-// └─────────────┘
-$grid-template-4-blocks-1x2x3-4x4x4: "block1 block2 block3" "block4 block4 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   │└───┘│   │
-// │   │┍───┐│   │
-// │   ││ 4 ││   │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-1x3x3: "block1 block2 block3" "block1 block3 block3";
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// | 1  || 2  |
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x1-2x3-4x4: "block1 block1" "block2 block3" "block4 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍──────────┐
-// | 2        |
-// └──────────┘
-// ┍────┐┍────┐
-// | 3  || 4  |
-// └────┘└────┘
-$grid-template-4-blocks-1x1-2x2-3x4: "block1 block1" "block2 block2" "block3 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// └───┘│   ││   │
-// ┍───┐│   ││   │
-// │ 4 ││   ││   │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-4x2x3: "block1 block2 block3" "block4 block2 block3";
-
-// ┍────┐┍────┐
-// | 1  || 2  |
-// └────┘└────┘
-// ┍──────────┐
-// | 3        |
-// └──────────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-3x3-4x4: "block1 block2" "block3 block3" "block4 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   ││   │└───┘
-// │   ││   │┍───┐
-// │   ││   ││ 4 │
-// └───┘└───┘└───┘
-$grid-template-4-blocks-1x2x3-1x2x4: "block1 block2 block3" "block1 block2 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// │ 3  ││  2 │
-// └────┘│    │
-// ┍────┐│    │
-// │ 4  ││    │
-// └────┘└────┘
-$grid-template-4-blocks-1x1-3x2-4x2: "block1 block1" "block3 block2" "block4 block2";
-
-// ┍────┐┍────┐┍────┐
-// │ 1  ││ 2  ││ 3  │
-// └────┘└────┘│    │
-// ┍──────────┐│    |
-// │ 4        ││    │
-// └──────────┘└────┘
-$grid-template-4-blocks-1x2x3-4x4x3: "block1 block2 block3" "block4 block4 block3";
-
-// ┍────┐┍────┐
-// │ 1  ││ 2  │
-// │    │└────┘
-// │    │┍────┐
-// │    ││ 3  │
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-1x3-4x4: "block1 block2" "block1 block3" "block4 block4";
-
-// ┍────┐┍──────────┐
-// │ 1  ││ 2        │
-// │    │└──────────┘
-// │    │┍────┐┍────┐
-// │    ││ 3  ││ 4  │
-// └────┘└────┘└────┘
-$grid-template-4-blocks-1x2x2-1x3x4: "block1 block2 block2" "block1 block3 block4";
-
-// -----------------------------------------------------------------------------
-
-// ┍──────────┐
-// | 1        |
-// └──────────┘
-// ┍────┐┍────┐
-// │ 2  ││ 3  │
-// │    │└────┘
-// │    │┍────┐
-// │    ││ 4  │
-// └────┘└────┘
-$grid-template-4-blocks-1x1-2x3-2x4: "block1 block1" "block2 block3" "block2 block4";
-
-// ┍──────────┐┍────┐
-// │ 1        ││ 4  │
-// └──────────┘│    │
-// ┍────┐┍────┐│    │
-// │ 2  ││ 3  ││    │
-// └────┘└────┘└────┘
-$grid-template-4-blocks-1x1x4-2x3x4: "block1 block1 block4" "block2 block3 block4";
-
-// ┍────┐┍────┐
-// │ 1  ││ 2  │
-// └────┘│    │
-// ┍────┐│    │
-// │ 3  ││    │
-// └────┘└────┘
-// ┍──────────┐
-// | 4        |
-// └──────────┘
-$grid-template-4-blocks-1x2-3x2-4x4: "block1 block2" "block3 block2" "block4 block4";
-
-// ┍───┐┍───┐┍───┐
-// │ 1 ││ 2 ││ 3 │
-// │   │└───┘└───┘
-// │   |┍────────┐
-// │   ││ 4      |
-// └───┘└────────┘
-$grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block4";
-
-// =============================================================================
-// 5x Blocks
-// =============================================================================
-
-// If you want to split a column up using the repeat function, you may want to devide the min and max values by the amount of columns;
-@function grid-repeat($amount, $min:$small, $max:$max) {
-  @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
 }
 
 // Documentation: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
@@ -5667,6 +5410,265 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
   justify-content : initial $important;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+/// Grid Layouts                                                   #grid-layouts
+////////////////////////////////////////////////////////////////////////////////
+
+// =============================================================================
+// 2x Blocks
+// =============================================================================
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+$grid-template-2-blocks-1x2: "block1 block2";
+
+// =============================================================================
+// 3x Blocks
+// =============================================================================
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘└───┘└───┘
+$grid-template-3-blocks-1x3: "block1 block2 block3";
+
+// -----------------------------------------------------------------------------
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+// ┍────────────┐
+// │  3         │
+// └────────────┘
+$grid-template-3-blocks-1x2-3x3: "block1 block2" "block3 block3";
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  3  │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x2-1x3: "block1 block2" "block1 block3";
+
+// ┍────────────┐
+// │  1         │
+// └────────────┘
+// ┍─────┐┍─────┐
+// │  2  ││  3  │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x1-2x3: "block1 block1" "block2 block3";
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  3  ││     │
+// └─────┘└─────┘
+$grid-template-3-blocks-1x2-3x2: "block1 block2" "block3 block2";
+
+// =============================================================================
+// 4x Blocks
+// =============================================================================
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// └─────┘└─────┘
+// ┍─────┐┍─────┐
+// │  3  ││  4  │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-3x4: "block1 block2" "block3 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍─────┐┍─────┐
+// │  1  ││  2  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  3  │
+// │     │└─────┘
+// │     │┍─────┐
+// │     ││  4  │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-1x3-1x4: "block1 block2" "block1 block3" "block1 block4";
+
+// ┍─────────────┐
+// │ 1           │
+// └─────────────┘
+// ┍───┐┍───┐┍───┐
+// │ 2 ││ 3 ││ 4 │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x1x1-2x3x4: "block1 block1 block1" "block2 block3 block4";
+
+// ┍─────┐┍─────┐
+// │  1  ││  4  │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  2  ││     │
+// └─────┘│     │
+// ┍─────┐│     │
+// │  3  ││     │
+// └─────┘└─────┘
+$grid-template-4-blocks-1x2-2x4-3x4: "block1 block2" "block2 block4" "block3 block4";
+
+// 270 Degrees
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘└───┘└───┘
+// ┍─────────────┐
+// │ 4           │
+// └─────────────┘
+$grid-template-4-blocks-1x2x3-4x4x4: "block1 block2 block3" "block4 block4 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   │└───┘│   │
+// │   │┍───┐│   │
+// │   ││ 4 ││   │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-1x3x3: "block1 block2 block3" "block1 block3 block3";
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// | 1  || 2  |
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x1-2x3-4x4: "block1 block1" "block2 block3" "block4 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍──────────┐
+// | 2        |
+// └──────────┘
+// ┍────┐┍────┐
+// | 3  || 4  |
+// └────┘└────┘
+$grid-template-4-blocks-1x1-2x2-3x4: "block1 block1" "block2 block2" "block3 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// └───┘│   ││   │
+// ┍───┐│   ││   │
+// │ 4 ││   ││   │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-4x2x3: "block1 block2 block3" "block4 block2 block3";
+
+// ┍────┐┍────┐
+// | 1  || 2  |
+// └────┘└────┘
+// ┍──────────┐
+// | 3        |
+// └──────────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-3x3-4x4: "block1 block2" "block3 block3" "block4 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   ││   │└───┘
+// │   ││   │┍───┐
+// │   ││   ││ 4 │
+// └───┘└───┘└───┘
+$grid-template-4-blocks-1x2x3-1x2x4: "block1 block2 block3" "block1 block2 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// │ 3  ││  2 │
+// └────┘│    │
+// ┍────┐│    │
+// │ 4  ││    │
+// └────┘└────┘
+$grid-template-4-blocks-1x1-3x2-4x2: "block1 block1" "block3 block2" "block4 block2";
+
+// ┍────┐┍────┐┍────┐
+// │ 1  ││ 2  ││ 3  │
+// └────┘└────┘│    │
+// ┍──────────┐│    |
+// │ 4        ││    │
+// └──────────┘└────┘
+$grid-template-4-blocks-1x2x3-4x4x3: "block1 block2 block3" "block4 block4 block3";
+
+// ┍────┐┍────┐
+// │ 1  ││ 2  │
+// │    │└────┘
+// │    │┍────┐
+// │    ││ 3  │
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-1x3-4x4: "block1 block2" "block1 block3" "block4 block4";
+
+// ┍────┐┍──────────┐
+// │ 1  ││ 2        │
+// │    │└──────────┘
+// │    │┍────┐┍────┐
+// │    ││ 3  ││ 4  │
+// └────┘└────┘└────┘
+$grid-template-4-blocks-1x2x2-1x3x4: "block1 block2 block2" "block1 block3 block4";
+
+// -----------------------------------------------------------------------------
+
+// ┍──────────┐
+// | 1        |
+// └──────────┘
+// ┍────┐┍────┐
+// │ 2  ││ 3  │
+// │    │└────┘
+// │    │┍────┐
+// │    ││ 4  │
+// └────┘└────┘
+$grid-template-4-blocks-1x1-2x3-2x4: "block1 block1" "block2 block3" "block2 block4";
+
+// ┍──────────┐┍────┐
+// │ 1        ││ 4  │
+// └──────────┘│    │
+// ┍────┐┍────┐│    │
+// │ 2  ││ 3  ││    │
+// └────┘└────┘└────┘
+$grid-template-4-blocks-1x1x4-2x3x4: "block1 block1 block4" "block2 block3 block4";
+
+// ┍────┐┍────┐
+// │ 1  ││ 2  │
+// └────┘│    │
+// ┍────┐│    │
+// │ 3  ││    │
+// └────┘└────┘
+// ┍──────────┐
+// | 4        |
+// └──────────┘
+$grid-template-4-blocks-1x2-3x2-4x4: "block1 block2" "block3 block2" "block4 block4";
+
+// ┍───┐┍───┐┍───┐
+// │ 1 ││ 2 ││ 3 │
+// │   │└───┘└───┘
+// │   |┍────────┐
+// │   ││ 4      |
+// └───┘└────────┘
+$grid-template-4-blocks-1x2x3-1x4x4: "block1 block2 block3" "block1 block4 block4";
+
+// =============================================================================
+// 5x Blocks
+// =============================================================================
+
+// If you want to split a column up using the repeat function, you may want to devide the min and max values by the amount of columns;
+@function grid-repeat($amount, $min:$small, $max:$max) {
+  @return repeat($amount, minmax(add-unit($min/$amount), add-unit($large/$amount)));
+}
+
 @mixin blur($value:5px, $important:null) {
   @include filter(blur $value $important);
 }
@@ -5833,6 +5835,163 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
 
 @mixin url($value:null, $important:false) {
   @include filter(url $value $important);
+}
+
+@mixin gradient-bottom($args...) {
+  @include gradient(linear, bottom, $args);
+}
+
+@mixin gradient-left($args...) {
+  @include gradient(linear, left, $args);
+}
+
+@mixin gradient-radial($args...) {
+  @include gradient(radial, $args...);
+}
+
+@mixin gradient-right($args...) {
+  @include gradient(linear, right, $args);
+}
+
+@mixin gradient-top($args...) {
+  @include gradient(linear, top, $args);
+}
+
+/// Create gradients
+///
+/// @author Mark Notton
+///
+/// @access private
+///
+/// @param {list} $args - Pass in the following gradient settings.
+///   [type]       - name of the graditent must be the first parameter
+///   [rule]       - Optional. If the gradient type requires it, you can add special rules. Like directions (as a string or number).
+///                  You don't need to type in 'to' for directions. This will be included automatically if necessary.
+///   [settings]   - Add a list of arguments for each colour. This can include a colour and number per argument.
+///
+/// @require {Mixin} contains
+/// @require {Mixin} prefix-values
+/// @require {Mixin} warning
+/// @require {Function} is-string
+/// @require {Function} is-number
+/// @require {Function} add-unit
+/// @require {Function} remove-nth
+/// @require {Function} replace-nth
+/// @require {Function} arglist-to-list
+///
+/// @example scss - Usage
+/// .foo {
+///   @include gradient(radial-repeat, ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+/// }
+///
+/// @example css - CSS output
+/// .foo {
+///   background: -webkit-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -moz-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -o-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: -ms-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
+///   background: repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%); }
+/// }
+///
+
+@mixin gradient($args...) {
+
+  $settings : arglist-to-list($args);
+
+  $type: nth($settings, 1);
+
+  @if contains($type, $gradient-types) {
+
+    // Aliases
+    @if $type == linear-repeat {
+      $type : repeating-linear;
+    } @elseif $type == radial-repeat {
+      $type : repeating-radial;
+    } @elseif contains($type, circle) {
+      $type : radial;
+    }
+
+    $settings : remove-nth($settings, 1);
+
+  } @else {
+
+    $type : linear;
+
+    // @error "The first parameter must be the gradient type: #{$gradient-types}";
+
+  }
+
+  @if length($settings) > 1 {
+
+    @for $i from 1 through length($settings) {
+      $setting : nth($settings, $i);
+      // @debug $setting;
+      // Special first argument checks
+      @if ($i == 1) {
+        $unit : deg;
+
+        // Loop through the initial setting and check any unitless numbers has 'deg' as a default
+
+        @if contains($type, repeating-radial radial) {
+          $unit : '%';
+          @if is-number($setting) {
+            @include warning($type + " can not have a number as the first parameter, it should be a colour");
+          }
+          @if contains($setting, at) {
+            $setting : replace-nth($setting, 1, add-unit(nth($setting, 1), px));
+          }
+        }
+
+        @if is-number($setting) {
+          $settings : replace-nth($settings, 1, add-unit($setting, $unit));
+        } @elseif is-list($setting) {
+          @if contains($setting, to) {
+            $setting : remove($setting, to);
+          }
+          @for $l from 1 through length($setting) {
+            $list-setting : nth($setting, $l);
+            @if is-number($list-setting) {
+              $setting : replace-nth($setting, $l, add-unit($list-setting, $unit));
+            }
+          }
+          $settings : replace-nth($settings, 1, $setting);
+        }
+      } @else {
+
+        @if is-list($setting) {
+          @for $l from 1 through length($setting) {
+            $list-setting : nth($setting, $l);
+            @if is-number($list-setting) {
+              $setting : replace-nth($setting, $l, add-unit($list-setting, '%'));
+            }
+          }
+          $settings : replace-nth($settings, $i, $setting);
+        }
+
+      }
+
+    }
+
+    $new-settings : ();
+    $new-generic-settings : ();
+
+    @each $set in $settings {
+      $new-settings : append($new-settings, $set, comma);
+      // Special checks for the generic syntax that requires "to" for specific direction strings
+      @if contains($set, right bottom left top) {
+        $new-generic-settings : append($new-generic-settings, to $set, comma);
+      } @else {
+        $new-generic-settings : append($new-generic-settings, $set, comma);
+      }
+
+    }
+
+    background:#{$type}-gradient($new-generic-settings);
+
+  } @else {
+    @include warning("You'll need more gradient settings than that");
+  }
+
 }
 
 @mixin matrix($args...) {
@@ -6101,163 +6260,6 @@ $flex-flow              : merge($flex-direction, $flex-wrap);
 
 @mixin translateZ($value) {
   @include transform(translateZ $value);
-}
-
-@mixin gradient-bottom($args...) {
-  @include gradient(linear, bottom, $args);
-}
-
-@mixin gradient-left($args...) {
-  @include gradient(linear, left, $args);
-}
-
-@mixin gradient-radial($args...) {
-  @include gradient(radial, $args...);
-}
-
-@mixin gradient-right($args...) {
-  @include gradient(linear, right, $args);
-}
-
-@mixin gradient-top($args...) {
-  @include gradient(linear, top, $args);
-}
-
-/// Create gradients
-///
-/// @author Mark Notton
-///
-/// @access private
-///
-/// @param {list} $args - Pass in the following gradient settings.
-///   [type]       - name of the graditent must be the first parameter
-///   [rule]       - Optional. If the gradient type requires it, you can add special rules. Like directions (as a string or number).
-///                  You don't need to type in 'to' for directions. This will be included automatically if necessary.
-///   [settings]   - Add a list of arguments for each colour. This can include a colour and number per argument.
-///
-/// @require {Mixin} contains
-/// @require {Mixin} prefix-values
-/// @require {Mixin} warning
-/// @require {Function} is-string
-/// @require {Function} is-number
-/// @require {Function} add-unit
-/// @require {Function} remove-nth
-/// @require {Function} replace-nth
-/// @require {Function} arglist-to-list
-///
-/// @example scss - Usage
-/// .foo {
-///   @include gradient(radial-repeat, ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-/// }
-///
-/// @example css - CSS output
-/// .foo {
-///   background: -webkit-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: -moz-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: -o-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: -ms-repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%);
-///   background: repeating-radial-gradient(ellipse farthest-corner, red, black 5%, blue 5%, green 10%); }
-/// }
-///
-
-@mixin gradient($args...) {
-
-  $settings : arglist-to-list($args);
-
-  $type: nth($settings, 1);
-
-  @if contains($type, $gradient-types) {
-
-    // Aliases
-    @if $type == linear-repeat {
-      $type : repeating-linear;
-    } @elseif $type == radial-repeat {
-      $type : repeating-radial;
-    } @elseif contains($type, circle) {
-      $type : radial;
-    }
-
-    $settings : remove-nth($settings, 1);
-
-  } @else {
-
-    $type : linear;
-
-    // @error "The first parameter must be the gradient type: #{$gradient-types}";
-
-  }
-
-  @if length($settings) > 1 {
-
-    @for $i from 1 through length($settings) {
-      $setting : nth($settings, $i);
-      // @debug $setting;
-      // Special first argument checks
-      @if ($i == 1) {
-        $unit : deg;
-
-        // Loop through the initial setting and check any unitless numbers has 'deg' as a default
-
-        @if contains($type, repeating-radial radial) {
-          $unit : '%';
-          @if is-number($setting) {
-            @include warning($type + " can not have a number as the first parameter, it should be a colour");
-          }
-          @if contains($setting, at) {
-            $setting : replace-nth($setting, 1, add-unit(nth($setting, 1), px));
-          }
-        }
-
-        @if is-number($setting) {
-          $settings : replace-nth($settings, 1, add-unit($setting, $unit));
-        } @elseif is-list($setting) {
-          @if contains($setting, to) {
-            $setting : remove($setting, to);
-          }
-          @for $l from 1 through length($setting) {
-            $list-setting : nth($setting, $l);
-            @if is-number($list-setting) {
-              $setting : replace-nth($setting, $l, add-unit($list-setting, $unit));
-            }
-          }
-          $settings : replace-nth($settings, 1, $setting);
-        }
-      } @else {
-
-        @if is-list($setting) {
-          @for $l from 1 through length($setting) {
-            $list-setting : nth($setting, $l);
-            @if is-number($list-setting) {
-              $setting : replace-nth($setting, $l, add-unit($list-setting, '%'));
-            }
-          }
-          $settings : replace-nth($settings, $i, $setting);
-        }
-
-      }
-
-    }
-
-    $new-settings : ();
-    $new-generic-settings : ();
-
-    @each $set in $settings {
-      $new-settings : append($new-settings, $set, comma);
-      // Special checks for the generic syntax that requires "to" for specific direction strings
-      @if contains($set, right bottom left top) {
-        $new-generic-settings : append($new-generic-settings, to $set, comma);
-      } @else {
-        $new-generic-settings : append($new-generic-settings, $set, comma);
-      }
-
-    }
-
-    background:#{$type}-gradient($new-generic-settings);
-
-  } @else {
-    @include warning("You'll need more gradient settings than that");
-  }
-
 }
 
 @mixin animation-delay($args...) {
@@ -7556,6 +7558,1128 @@ $triangle-settings: (
 
 }
 
+/// Box Inner Shadow
+/// @param {Size} $x [0px] - X
+/// @param {Size} $y [0px] - Y
+/// @param {Size} $blur [6px] - Blur
+/// @param {Color} $color [rgba(0,0,0,.6)] - Color
+
+@mixin box-inner-shadow($args...) {
+
+  $defaults : (
+    x      : 0,
+    y      : 0,
+    blur   : 5,
+    colour : rgba(0,0,0,0.6)
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $x      : map-get($settings, x);
+  $y      : map-get($settings, y);
+  $blur   : map-get($settings, blur);
+  $colour : map-get($settings, colour);
+  $important : map-get($settings, important);
+
+  box-shadow: add-unit($x) add-unit($y) add-unit($blur) $color $important;
+}
+
+/// Box Shadow
+/// @param {Size} $x [0px] - X
+/// @param {Size} $y [0px] - Y
+/// @param {Size} $blur [5px] - Blur
+/// @param {Color} $color [rgba(0,0,0,.6)] - Color
+
+@mixin box-shadow($args...) {
+
+  $defaults : (
+    x      : 0,
+    y      : 0,
+    blur   : 5,
+    colour : rgba(0,0,0,0.6),
+		inset  : null
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $x      : map-get($settings, x);
+  $y      : map-get($settings, y);
+  $blur   : map-get($settings, blur);
+  $colour : map-get($settings, colour);
+  $inset  : map-get($settings, inset);
+  $important : map-get($settings, important);
+
+	$inset : if($inset, inset, null);
+
+  box-shadow: $inset add-unit($x) add-unit($y) add-unit($blur) $colour $important;
+}
+
+/// Define a buttons default and hover styling. Includes a support for css variables and inverting
+///
+/// @author Mark Notton
+///
+
+///
+/// @param {list | colour | css variable} $static-colours :
+///         Pass in the 2 colours (without a comma). First colour is for text,
+///         the second is for the background. You can define a css variable if
+///         you have a $variables sass map defined. You may pass in one colour if
+///         you later define this button to be inverted (as backgrounds aren't necessary)
+/// @param {list | colour | css variable} $hover-colours : Same as the previous param.
+///         However this param is optional. Ommiting this option will just reverse
+///         the colours from the first param. Inverted options can support static
+///         and background colours on hover.
+/// @param {bool|string} $borderless - 'borderless' or 'false' will exclude any border colour
+/// @param {string} $inverted - 'inverted' or 'true' will trigger an inverted styling.
+///         This isn't a simple reverse of the first $static-colours and $hover-colours options.
+///         This assumes you want the static state to have no background colour at all.
+///
+/// @example 1 scss - Usage
+///
+/// @include button(
+/// 	$initial:(
+/// 		'background' : red,
+/// 		'colour'     : white,
+/// 	),
+/// 	$hover:(
+/// 		'background' : red,
+/// 		'colour'     : red,
+/// 		'fill'       : purple,
+/// 		'stroke'     : green,
+/// 		'border'     : yellow
+/// 	)
+/// );
+@mixin button($args...) {
+
+	$transitions : ();
+	$svg-transitions : ();
+
+	// Manage settings -----------------------------------------------------------
+
+	$defaults : (
+	  'initial' : (
+			'background' : white,
+			'colour' : var(primary),
+			'fill' : null,
+			'stroke' : null,
+			'border' : null,
+			'important' : null,
+		),
+		'hover' : (
+			'background' : var(secondary),
+			'colour' : white,
+			'fill' : null,
+			'stroke' : null,
+			'border' : null,
+			'important' : null,
+		),
+		'transitions' : true
+	);
+
+	$settings : get-settings($defaults, $args...);
+
+	$initial : map-get($settings, initial);
+  $hover   : map-get($settings, hover);
+  $add-transitions : map-get($settings, transitions);
+
+	// Privately define all the default colours as provided ----------------------
+
+	$_background : map-get($initial, background);
+	$_colour     : map-get($initial, colour);
+	$_fill       : map-get($initial, fill);
+	$_stroke     : map-get($initial, stroke);
+	$_border     : map-get($initial, border);
+	$_important  : is-important(map-get($initial, important));
+
+	$_hover-background : map-get($hover, background);
+	$_hover-colour     : map-get($hover, colour);
+	$_hover-fill       : map-get($hover, fill);
+	$_hover-stroke     : map-get($hover, stroke);
+	$_hover-border     : map-get($hover, border);
+	$_hover-important  : is-important(map-get($hover, important));
+
+	// Check if the colours are colours or custom properties. --------------------
+
+	$background : if(is-colour($_background) or is-var($_background), $_background, null);
+	$colour     : if(is-colour($_colour) or is-var($_colour), $_colour, null);
+	$fill       : if(is-colour($_fill) or is-var($_fill), $_fill, null);
+	$stroke     : if(is-colour($_stroke) or is-var($_stroke), $_stroke, null);
+	$border     : if(is-colour($_border) or is-var($_border), $_border, null);
+
+	$hover-background : if(is-colour($_hover-background) or is-var($_hover-background), $_hover-background, null);
+	$hover-colour     : if(is-colour($_hover-colour) or is-var($_hover-colour), $_hover-colour, null);
+	$hover-fill       : if(is-colour($_hover-fill) or is-var($_hover-fill), $_hover-fill, null);
+	$hover-stroke     : if(is-colour($_hover-stroke) or is-var($_hover-stroke), $_hover-stroke, null);
+	$hover-border     : if(is-colour($_hover-border) or is-var($_hover-border), $_hover-border, null);
+
+	// Apply initial state properties --------------------------------------------
+
+	@if $background {
+		background-color:$background $_important;
+		$transitions : add(background-color, $transitions);
+	}
+	@if $colour {
+		color:$colour $_important;
+		$transitions : add(color, $transitions);
+	}
+	@if $fill {
+		svg { fill:$fill $_important; }
+		$svg-transitions : add(fill, $svg-transitions);
+	}
+	@if $stroke {
+		svg { stroke:$stroke $_important; }
+		$svg-transitions : add(stroke, $svg-transitions);
+	}
+	@if $border {
+		border-color:$border $_important;
+		$transitions : add(border-color, $transitions);
+	}
+
+	// Apply hover state properties ----------------------------------------------
+
+	&:hover {
+		@if $hover-background {
+			background-color:$hover-background $_hover-important;
+			$transitions : add(background-color, $transitions);
+		}
+		@if $hover-colour {
+			color:$hover-colour $_hover-important;
+			$transitions : add(color, $transitions);
+		}
+		@if $hover-fill {
+			svg { fill:$hover-fill $_hover-important; }
+			$svg-transitions : add(fill, $svg-transitions);
+		}
+		@if $hover-stroke {
+			svg { stroke:$hover-stroke $_hover-important; }
+			$svg-transitions : add(stroke, $svg-transitions);
+		}
+		@if $hover-border {
+			border-color:$hover-border $_hover-important;
+			$transitions : add(border-color, $transitions);
+		}
+	}
+
+	// Apply transitions if enabled ----------------------------------------------
+
+	$transitions : remove-duplicates($transitions);
+
+	@if $add-transitions {
+		@if length($transitions) {
+			@include transition($transitions);
+		}
+		@if length($svg-transitions) {
+			svg { @include transition($svg-transitions); }
+		}
+	}
+
+}
+
+@mixin extend-background($height-offset : false, $sudo : before) {
+
+	&:#{$sudo} {
+		content:"";
+		background:inherit;
+		background-image:inherit;
+		background-color:inherit;
+		background-attachment:inherit;
+		background-repeat:inherit;
+		position:absolute;
+		top:0; left:0; right:0; bottom:0;
+		margin:auto;
+		@include viewport-width();
+
+		@if $height-offset != false {
+			height:calc(100% + (#{$height-offset} * 2));
+		} @else {
+			height:100%;
+		}
+
+		@content;
+	}
+
+	> * { position:relative; }
+}
+
+// Add horizontal lines eitherside some text
+@mixin horizontal-lines($args...) {
+
+  $defaults : (
+    weight       : 2,
+    colour       : if(variable-exists('grey'),$grey, #787878),
+    line-spacing : if(variable-exists('gap'),$gap, 16px),
+    wrap         : false
+  );
+
+  $settings : get-settings($defaults, $args...);
+
+  $weight       : map-get($settings, weight);
+  $colour       : map-get($settings, colour);
+  $line-spacing : map-get($settings, line-spacing);
+  $wrap         : map-get($settings, wrap);
+
+  text-align:center;
+
+  @if not $wrap { white-space: nowrap; }
+
+	display:flex;
+	justify-content:space-between;
+	align-items:center;
+
+  &:before, &:after {
+    content:"";
+    height:add-unit($weight);
+    width:100%;
+    background-color:$colour;
+    position:relative;
+    display:block;
+		flex-grow:1;
+  }
+
+  &:before { margin-right:$line-spacing; }
+
+  &:after { margin-left:$line-spacing; }
+}
+
+// ------------------------------------------------------------------------ //
+// Emailers
+// ------------------------------------------------------------------------ //
+
+@mixin normalise-emailers {
+
+	html,
+	body {
+		margin: 0 auto $imp;
+		padding: 0 $imp;
+		height: 100% $imp;
+		width: 100% $imp;
+	}
+
+	* {
+		-ms-text-size-adjust: 100%;
+		-webkit-text-size-adjust: 100%;
+	}
+
+  #bodyTable {
+    height:100% $imp;
+    margin:0;
+    padding:0;
+    width:100% $imp;
+  }
+
+  .wrapper {  max-width:$max + px; }
+
+  .ExternalClass { width:100%;
+    p, span, font, td, div { line-height: 100%; }
+  }
+
+  img {
+    border:0 none;
+    height:auto;
+    line-height:100%;
+    outline:none;
+    text-decoration:none;
+    display:block;
+    -ms-interpolation-mode: bicubic;
+  }
+
+  .imageFix { display:block; }
+
+  a {
+    outline:none;
+    display:table;
+    color:#f0f9ff;
+    text-decoration:none;
+    img { border:0 none; }
+    &:hover { text-decoration:none $imp; }
+    &[href^="tel"]:hover { text-decoration:none $imp;}
+  }
+
+	// A work-around for email clients meddling in triggered links.
+	*[x-apple-data-detectors], .unstyle-auto-detected-links *, .aBn {
+		border-bottom: 0 $imp;
+		cursor: default $imp;
+		color: inherit $imp;
+		text-decoration: none $imp;
+		font-size: inherit $imp;
+		font-family: inherit $imp;
+		font-weight: inherit $imp;
+		line-height: inherit $imp;
+	}
+
+	// Centers email on Android 4.4
+	div[style*="margin: 16px 0"] { margin: 0 $imp; }
+
+  #outlook a { padding:0; }
+
+  table {
+		mso-table-lspace:0pt $imp;
+		mso-table-rspace:0pt $imp;
+		border-spacing: 0 $imp;
+		border-collapse: collapse $imp;
+		table-layout: fixed $imp;
+		margin: 0 auto $imp;
+		table table {
+			table-layout: auto;
+		}
+	}
+  table, td { border-collapse:collapse; border-spacing:0;  }
+  td, p, span, h1, h2, h3, h4, h5, h6 { font-family:Arial, sans-serif; padding:0; margin:0;  }
+  td, p, span { font-size:14px; margin:0; padding:0;  }
+  td { overflow:hidden;word-break:normal; vertical-align: top;}
+  th { padding:0;}
+
+	// Prevents Gmail from displaying a download button on large, non-linked images.
+	.a6S { display: none $imp; opacity: 0.01 $imp; }
+
+	// Prevents Gmail from changing the text color in conversation threads.
+	.im {	color: inherit $imp; }
+
+	// If the above doesn't work, add a .g-img class to any image in question.
+	img.g-img + div { display: none $imp;	}
+
+	/* What it does: Removes right gutter in Gmail iOS app: https://github.com/TedGoas/Cerberus/issues/89  */
+	/* Create one of these media queries for each additional viewport size you'd like to fix */
+
+	// iPhone 4, 4S, 5, 5S, 5C, and 5SE
+	@media only screen and (min-device-width: 320px) and (max-device-width: 374px) {
+		u ~ div .container {
+			min-width: 320px $imp;
+		}
+	}
+	// iPhone 6, 6S, 7, 8, and X
+	@media only screen and (min-device-width: 375px) and (max-device-width: 413px) {
+		u ~ div .container {
+			min-width: 375px $imp;
+		}
+	}
+	// iPhone 6+, 7+, and 8+
+	@media only screen and (min-device-width: 414px) {
+		u ~ div .container {
+			min-width: 414px $imp;
+		}
+	}
+
+  [owa] div { display:block $imp; font-size:1px; line-height:1px;}
+  [owa] div button { display:block; font-size:1px; line-height:1px;}
+
+  b, strong{ font-weight:700; }
+
+  .small-print { font-size:11px; color:#d5d6d8; }
+
+}
+
+// ------------------------------------------------------------------------ //
+// Print
+// ------------------------------------------------------------------------ //
+
+@mixin normalise-print {
+
+	@media print {
+
+		article, aside, details, figcaption, figure, footer, header, hgroup, main, nav, section, summary {
+			display: block
+		}
+
+		html {
+			font-size: 100%;
+			-ms-text-size-adjust: 100%;
+			-webkit-text-size-adjust: 100%
+		}
+		html, button, input, select, textarea {
+			font-family: sans-serif
+		}
+		body {
+			margin: 0
+		}
+		a:focus {
+			outline: thin dotted
+		}
+		a:active, a:hover {
+			outline: 0
+		}
+		h1 {
+			font-size: 2em;
+			margin: .67em 0
+		}
+		h2 {
+			font-size: 1.5em;
+			margin: .83em 0
+		}
+		h3 {
+			font-size: 1.17em;
+			margin: 1em 0
+		}
+		h4 {
+			font-size: 1em;
+			margin: 1.33em 0
+		}
+		h5 {
+			font-size: .83em;
+			margin: 1.67em 0
+		}
+		h6 {
+			font-size: .67em;
+			margin: 2.33em 0
+		}
+		abbr[title] {
+			border-bottom: 1px dotted
+		}
+		b, strong {
+			font-weight: bold
+		}
+		blockquote {
+			margin: 1em 40px
+		}
+		dfn {
+			font-style: italic
+		}
+		hr {
+			-moz-box-sizing: content-box;
+			box-sizing: content-box;
+			height: 0
+		}
+		mark {
+			background: #ff0;
+			color: #000
+		}
+		p, pre {
+			margin: 1em 0
+		}
+		code, kbd, pre, samp {
+			font-family: monospace, serif;
+			_font-family: "courier new", monospace;
+			font-size: 1em
+		}
+		pre {
+			white-space: pre;
+			white-space: pre-wrap;
+			word-wrap: break-word
+		}
+		q {
+			quotes: none
+		}
+		q:before, q:after {
+			content: "";
+			content: none
+		}
+		small {
+			font-size: 80%
+		}
+		sub, sup {
+			font-size: 75%;
+			line-height: 0;
+			position: relative;
+			vertical-align: baseline
+		}
+		sup {
+			top: -.5em
+		}
+		sub {
+			bottom: -.25em
+		}
+		dl, menu, ol, ul {
+			margin: 1em 0
+		}
+		dd {
+			margin: 0 0 0 40px
+		}
+		menu, ol, ul {
+			padding: 0 0 0 40px
+		}
+		nav ul, nav ol {
+			list-style: none;
+			list-style-image: none
+		}
+		img {
+			border: 0;
+			-ms-interpolation-mode: bicubic
+		}
+		svg:not(:root) {
+			overflow: hidden
+		}
+		figure {
+			margin: 0
+		}
+		form {
+			margin: 0
+		}
+		fieldset {
+			border: 1px solid #c0c0c0;
+			margin: 0 2px;
+			padding: .35em .625em .75em
+		}
+		legend {
+			border: 0;
+			padding: 0;
+			white-space: normal;
+		*margin-left:-7px
+		}
+		button, input, select, textarea {
+			font-size: 100%;
+			margin: 0;
+			vertical-align: baseline;
+		*vertical-align:middle
+		}
+		button, input {
+			line-height: normal
+		}
+		button, select {
+			text-transform: none
+		}
+		button, html input[type="button"], input[type="reset"], input[type="submit"] {
+			-webkit-appearance: button;
+			cursor: pointer;
+		*overflow:visible
+		}
+		button[disabled], html input[disabled] {
+			cursor: default
+		}
+		input[type="checkbox"], input[type="radio"] {
+			box-sizing: border-box;
+			padding: 0;
+		*height:13px;
+		*width:13px
+		}
+		input[type="search"] {
+			-webkit-appearance: textfield;
+			-moz-box-sizing: content-box;
+			-webkit-box-sizing: content-box;
+			box-sizing: content-box
+		}
+		input[type="search"]::-webkit-search-cancel-button, input[type="search"]::-webkit-search-decoration {
+		-webkit-appearance:none
+		}
+		button::-moz-focus-inner, input::-moz-focus-inner {
+		border:0;
+		padding:0
+		}
+		textarea {
+			overflow: auto;
+			vertical-align: top
+		}
+		table {
+			border-collapse: collapse;
+			border-spacing: 0
+		}
+
+		@page {
+			margin:2cm
+		}
+		body {
+			background: #fff;
+			font: 12pt;
+			line-height: 1.3;
+			color: #555
+		}
+		* {
+			background: #fff;
+			page-break-before: auto;
+			border: none;
+			text-decoration: none
+		}
+
+		article, aside, details, hgroup, main, section, summary {
+			display: block;
+			font-family: Georgia, "Times New Roman", Times, serif;
+		}
+		article, aside, section, summary {
+			margin-top: 0.5cm;
+		}
+
+		h1 {
+			font-size: 20pt;
+			margin: 0.4cm 0
+		}
+		h2 {
+			font-size: 16pt;
+			margin: 0.4cm 0
+		}
+		h3, h4, h5, h6 {
+			font-size: 12pt;
+			font-weight: bold;
+			margin: 0.3cm 0
+		}
+		/*h3:before, h4:before, h5:before, h6:before {
+			content: "‹ ";
+			color: #CCC
+		}
+		h3:after, h4:after, h5:after, h6:after {
+			content: " ›";
+			color: #CCC
+		}*/
+
+		h3, h4, h5, h6 {
+			text-decoration: underline
+		}
+
+		p, pre, blockquote {
+			width: 99.9%;
+			margin: 0.1cm auto;
+			padding: 0.1cm
+		}
+
+		blockquote > p {
+			margin:0;
+			padding:0
+		}
+
+		blockquote, cite {
+			font-style: italic
+		}
+
+		pre {
+			font-family: "Lucida Console", Monaco, monospace;
+			width: 96%;
+			border: 1px solid #ccc;
+			-moz-box-shadow: inset 0 0 0.2cm #eee;
+			-webkit-box-shadow: inset 0 0 0.2cm #eee;
+			box-shadow: inset 0 0 0.2cm #eee;
+			border-radius: 0.1cm;
+			-moz-border-radius: 0.1cm;
+			-webkit-border-radius: 0.1cm;
+			font-style: italic;
+		}
+		code {
+			font-family: consolas, "Lucida Console", Monaco, monospace;
+		}
+		blockquote {
+			width: 96%;
+			border-left: 0.1cm solid #ccc;
+			opacity: 0.8;
+			padding-left: 0.2cm;
+			margin-left: 0
+		}
+		p:first-letter {
+			text-transform: capitalize
+		}
+		address, dt {
+			margin-top: 0.3cm
+		}
+		ol, ul {
+			list-style-type: none;
+			list-style: none;
+			margin: 0.05cm;
+			padding: 0.05cm
+		}
+		li:before {
+			content: "  » "
+		}
+		p a:after {
+			content: " ("attr(href)")";
+			font-size: 80%
+		}
+		p a[href^="#"]:after {
+			display: none
+		}
+		p a[href^="http://"]:after, a[href^="https://"]:after {
+			content: " ("attr(href)")"
+		}
+		p a {
+			word-wrap: break-word
+		}
+		a {
+			color: #000
+		}
+		q:after {
+			content: " (source: "attr(cite)")"
+		}
+		pre, sub, sup, q {
+			font-style: italic
+		}
+		tr {
+			border-bottom: 1px solid #555
+		}
+		table {
+			width: 99%;
+			page-break-before: auto;
+			margin: 0 auto;
+		}
+		td {
+			padding: 0.2cm;
+			border: 1px solid #CCC;
+
+		}
+		tr, thead > tr, tfoot > tr {
+			border: none
+		}
+		summary {
+			padding-top: 0.1cm;
+			display: block;
+			visibility: visible;
+		}
+		details > * {
+			padding-top: 1px;
+			display: block;
+			visibility: visible
+		}
+		hr {
+			display: block;
+			height: 1px;
+			border: none;
+			border-top: 1px solid #CCC;
+			margin: 1cm
+		}
+
+		@content;
+
+	}
+
+}
+
+@mixin normalise() {
+
+	/// @author Nicolas Gallagher & Mark Notton
+	/// @see github.com/necolas/normalize.css
+
+	// ------------------------------------------------------------------------ //
+	// Global
+	// ------------------------------------------------------------------------ //
+
+	html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p,
+	blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em,
+	img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i,
+	center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table,
+	caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details,
+	embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby,
+	section, summary, time, mark, audio, video {
+		margin: 0;
+		padding: 0;
+		border: 0;
+		vertical-align: baseline;
+	}
+
+	:root {
+	  font-size: 62.5%;
+		line-height: 1.15;
+		-webkit-text-size-adjust: 100%;
+	}
+
+	html {
+		height:100%;
+		box-sizing: border-box;
+	}
+
+	*, *:before, *:after {
+		&:focus { outline:0; };
+		box-sizing: inherit;
+	}
+
+
+	html, body {
+		min-width:$min;
+		min-height:100%;
+	}
+
+	p, pre, blockquote, ol, ul, li, legend, figcaption, body, article, nav, aside, section, header, footer, main, address {
+		&:empty { display:none; }
+	}
+
+	article, aside, details, figcaption, figure, footer, header, main, menu, nav, section, summary {
+		display: block;
+	}
+
+	svg, symbol { overflow:visible; }
+
+	details { display: block;	}
+
+	summary { display: list-item;	}
+
+	template { display: none;	}
+
+	[hidden] { display: none; }
+
+	// ------------------------------------------------------------------------ //
+	// Section Elements
+	// ------------------------------------------------------------------------ //
+
+	@if $normalise-section-elements {
+
+		body {
+			font-size: 1.6rem;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			color:$text;
+			height:100%;
+			width:100%;  
+		  @extend %font-default, .default !optional;
+
+			@if mixin-exists(selection) {
+		  	@include selection;
+			}
+
+			@if $show-breakpoints {
+				&:not(.dev-mode):after { display:none; }
+			}
+
+		}
+
+		address {
+			font-style:normal;
+		}
+
+	}
+
+	// ------------------------------------------------------------------------ //
+	// Header Elements
+	// ------------------------------------------------------------------------ //
+
+	@if $normalise-header-elements {
+
+		h1, h2, h3, h4, h5, h6 {
+			-webkit-margin-before:0em;
+			-webkit-margin-after:0em;
+			-webkit-margin-start:0px;
+			-webkit-margin-end:0px;
+			font-weight: normal;
+			@extend .default !optional;
+		}
+
+		@if mixin-exists(font-size) {
+			h1{ @include font-size($h1, $h2); }
+			h2{ @include font-size($h2, $h2*1.2); }
+			h3{ @include font-size($h3, $h3*1.2); }
+			h4{ @include font-size($h4, $h4*1.2); }
+			h5{ @include font-size($h5, $h5*1.2); }
+			h6{ @include font-size($h6, $h6*1.2); }
+		}
+
+	}
+
+	// ------------------------------------------------------------------------ //
+	// Grouping Elements
+	// ------------------------------------------------------------------------ //
+
+	@if $normalise-grouping-elements {
+
+		hr {
+			border:none;
+			height:1px;
+			background-color:$text;
+			margin:$gap 0;
+			box-sizing: content-box;
+			overflow: visible;
+		}
+
+		blockquote, q {
+			quotes: none;
+			&:before, &:after {
+				content: '';
+				content: none;
+			}
+		}
+
+		ol, ul {
+			list-style: none;
+		}
+
+		pre {
+			font-family: monospace, monospace;
+			font-size: 1em;
+			background-color: white;
+			color: black;
+			padding:16px;
+			position:relative;
+			z-index:9999;
+		}
+
+	}
+
+	// ------------------------------------------------------------------------ //
+	// Table Elements
+	// ------------------------------------------------------------------------ //
+
+	@if $normalise-table-elements {
+
+		table {
+			border-collapse: collapse;
+			border-spacing: 0;
+		}
+
+	}
+
+	// ------------------------------------------------------------------------ //
+	// Form Elements
+	// ------------------------------------------------------------------------ //
+
+	@if $normalise-form-elements {
+
+		button,	input, optgroup,	select,	textarea {
+			font-family: inherit;
+			font-size: 100%;
+			line-height: 1.15;
+			margin: 0;
+		}
+
+		button,	input {
+			overflow: visible;
+		}
+
+		button,	select {
+			text-transform: none;
+		}
+
+		button,
+		[type="button"],
+		[type="reset"],
+		[type="submit"] {
+			-webkit-appearance: button;
+			background:none;
+			border:none;
+			padding:0;
+			margin:0;
+			cursor:pointer;
+			&:focus { outline:0; }
+		}
+
+		button::-moz-focus-inner,
+		[type="button"]::-moz-focus-inner,
+		[type="reset"]::-moz-focus-inner,
+		[type="submit"]::-moz-focus-inner {
+			border-style: none;
+			padding: 0;
+		}
+
+		button:-moz-focusring,
+		[type="button"]:-moz-focusring,
+		[type="reset"]:-moz-focusring,
+		[type="submit"]:-moz-focusring {
+			outline: 1px dotted ButtonText;
+		}
+
+		fieldset { padding:0;	}
+
+		legend {
+			box-sizing: border-box;
+			color: inherit;
+			display: table;
+			max-width: 100%;
+			padding: 0;
+			white-space: normal;
+		}
+
+		progress {
+			vertical-align: baseline;
+		}
+
+		[type="checkbox"],
+		[type="radio"] {
+			box-sizing: border-box;
+			padding: 0;
+		}
+
+		[type="number"]::-webkit-inner-spin-button,
+		[type="number"]::-webkit-outer-spin-button {
+			height: auto;
+		}
+
+		[type="search"] {
+			-webkit-appearance: textfield;
+			outline-offset: -2px;
+		}
+
+		[type="search"]::-webkit-search-decoration {
+			-webkit-appearance: none;
+		}
+		::-webkit-file-upload-button {
+			-webkit-appearance: button;
+			font: inherit;
+		}
+
+		[disabled] {
+			cursor: default;
+		}
+
+		@if mixin-exists(input-fields) {
+			@include input-fields() {
+				border-radius:0;
+				border:0;
+				text-rendering: optimizeLegibility;
+				-webkit-appearance:none;
+				-webkit-border-radius:0;
+				-webkit-font-smoothing: antialiased;
+
+				&:focus { outline:0; }
+
+				@if mixin-exists(placeholder) {
+					@include placeholder();
+				}
+			}
+		}
+
+	}
+
+	// ------------------------------------------------------------------------ //
+	// Embedded Elements
+	// ------------------------------------------------------------------------ //
+
+	@if $normalise-embedded-elements {
+
+		img {
+			border-style: none;
+		}
+
+	}
+
+	// ------------------------------------------------------------------------ //
+	// Text Elements
+	// ------------------------------------------------------------------------ //
+
+	@if $normalise-text-elements {
+
+		em {
+			font-style:italic;
+		}
+
+		a {
+		  background-color:transparent;
+			text-decoration:none;
+			color:$text;
+		}
+
+		abbr[title] {
+		  border-bottom: none;
+		  text-decoration: underline;
+		  text-decoration: underline dotted;
+		}
+
+	  b, strong {
+		  font-weight: bold;
+		}
+
+		code,	kbd, samp {
+		  font-family: monospace, monospace;
+		  font-size: 1em;
+		}
+
+		small {
+		  font-size: 80%;
+		}
+
+		sub, sup {
+		  font-size: 75%;
+		  line-height: 0;
+		  position: relative;
+		  vertical-align: baseline;
+		}
+
+		sub {
+		  bottom: -0.25em;
+		}
+
+		sup {
+		  top: -0.5em;
+		}
+
+		textarea {
+			resize:none;
+			overflow: auto;
+		}
+
+	}
+
+}
+
 @mixin image-size($args...) {
 
   $defaults : (
@@ -7893,759 +9017,6 @@ $triangle-settings: (
   }
 }
 
-/// Box Inner Shadow
-/// @param {Size} $x [0px] - X
-/// @param {Size} $y [0px] - Y
-/// @param {Size} $blur [6px] - Blur
-/// @param {Color} $color [rgba(0,0,0,.6)] - Color
-
-@mixin box-inner-shadow($args...) {
-
-  $defaults : (
-    x      : 0,
-    y      : 0,
-    blur   : 5,
-    colour : rgba(0,0,0,0.6)
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $x      : map-get($settings, x);
-  $y      : map-get($settings, y);
-  $blur   : map-get($settings, blur);
-  $colour : map-get($settings, colour);
-  $important : map-get($settings, important);
-
-  box-shadow: add-unit($x) add-unit($y) add-unit($blur) $color $important;
-}
-
-/// Box Shadow
-/// @param {Size} $x [0px] - X
-/// @param {Size} $y [0px] - Y
-/// @param {Size} $blur [5px] - Blur
-/// @param {Color} $color [rgba(0,0,0,.6)] - Color
-
-@mixin box-shadow($args...) {
-
-  $defaults : (
-    x      : 0,
-    y      : 0,
-    blur   : 5,
-    colour : rgba(0,0,0,0.6),
-		inset  : null
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $x      : map-get($settings, x);
-  $y      : map-get($settings, y);
-  $blur   : map-get($settings, blur);
-  $colour : map-get($settings, colour);
-  $inset  : map-get($settings, inset);
-  $important : map-get($settings, important);
-
-	$inset : if($inset, inset, null);
-
-  box-shadow: $inset add-unit($x) add-unit($y) add-unit($blur) $colour $important;
-}
-
-/// Define a buttons default and hover styling. Includes a support for css variables and inverting
-///
-/// @author Mark Notton
-///
-
-///
-/// @param {list | colour | css variable} $static-colours :
-///         Pass in the 2 colours (without a comma). First colour is for text,
-///         the second is for the background. You can define a css variable if
-///         you have a $variables sass map defined. You may pass in one colour if
-///         you later define this button to be inverted (as backgrounds aren't necessary)
-/// @param {list | colour | css variable} $hover-colours : Same as the previous param.
-///         However this param is optional. Ommiting this option will just reverse
-///         the colours from the first param. Inverted options can support static
-///         and background colours on hover.
-/// @param {bool|string} $borderless - 'borderless' or 'false' will exclude any border colour
-/// @param {string} $inverted - 'inverted' or 'true' will trigger an inverted styling.
-///         This isn't a simple reverse of the first $static-colours and $hover-colours options.
-///         This assumes you want the static state to have no background colour at all.
-///
-/// @example 1 scss - Usage
-///
-/// @include button(
-/// 	$initial:(
-/// 		'background' : red,
-/// 		'colour'     : white,
-/// 	),
-/// 	$hover:(
-/// 		'background' : red,
-/// 		'colour'     : red,
-/// 		'fill'       : purple,
-/// 		'stroke'     : green,
-/// 		'border'     : yellow
-/// 	)
-/// );
-@mixin button($args...) {
-
-	$transitions : ();
-	$svg-transitions : ();
-
-	// Manage settings -----------------------------------------------------------
-
-	$defaults : (
-	  'initial' : (
-			'background' : white,
-			'colour' : var(primary),
-			'fill' : null,
-			'stroke' : null,
-			'border' : null,
-			'important' : null,
-		),
-		'hover' : (
-			'background' : var(secondary),
-			'colour' : white,
-			'fill' : null,
-			'stroke' : null,
-			'border' : null,
-			'important' : null,
-		),
-		'transitions' : true
-	);
-
-	$settings : get-settings($defaults, $args...);
-
-	$initial : map-get($settings, initial);
-  $hover   : map-get($settings, hover);
-  $add-transitions : map-get($settings, transitions);
-
-	// Privately define all the default colours as provided ----------------------
-
-	$_background : map-get($initial, background);
-	$_colour     : map-get($initial, colour);
-	$_fill       : map-get($initial, fill);
-	$_stroke     : map-get($initial, stroke);
-	$_border     : map-get($initial, border);
-	$_important  : is-important(map-get($initial, important));
-
-	$_hover-background : map-get($hover, background);
-	$_hover-colour     : map-get($hover, colour);
-	$_hover-fill       : map-get($hover, fill);
-	$_hover-stroke     : map-get($hover, stroke);
-	$_hover-border     : map-get($hover, border);
-	$_hover-important  : is-important(map-get($hover, important));
-
-	// Check if the colours are colours or custom properties. --------------------
-
-	$background : if(is-colour($_background) or is-var($_background), $_background, null);
-	$colour     : if(is-colour($_colour) or is-var($_colour), $_colour, null);
-	$fill       : if(is-colour($_fill) or is-var($_fill), $_fill, null);
-	$stroke     : if(is-colour($_stroke) or is-var($_stroke), $_stroke, null);
-	$border     : if(is-colour($_border) or is-var($_border), $_border, null);
-
-	$hover-background : if(is-colour($_hover-background) or is-var($_hover-background), $_hover-background, null);
-	$hover-colour     : if(is-colour($_hover-colour) or is-var($_hover-colour), $_hover-colour, null);
-	$hover-fill       : if(is-colour($_hover-fill) or is-var($_hover-fill), $_hover-fill, null);
-	$hover-stroke     : if(is-colour($_hover-stroke) or is-var($_hover-stroke), $_hover-stroke, null);
-	$hover-border     : if(is-colour($_hover-border) or is-var($_hover-border), $_hover-border, null);
-
-	// Apply initial state properties --------------------------------------------
-
-	@if $background {
-		background-color:$background $_important;
-		$transitions : add(background-color, $transitions);
-	}
-	@if $colour {
-		color:$colour $_important;
-		$transitions : add(color, $transitions);
-	}
-	@if $fill {
-		svg { fill:$fill $_important; }
-		$svg-transitions : add(fill, $svg-transitions);
-	}
-	@if $stroke {
-		svg { stroke:$stroke $_important; }
-		$svg-transitions : add(stroke, $svg-transitions);
-	}
-	@if $border {
-		border-color:$border $_important;
-		$transitions : add(border-color, $transitions);
-	}
-
-	// Apply hover state properties ----------------------------------------------
-
-	&:hover {
-		@if $hover-background {
-			background-color:$hover-background $_hover-important;
-			$transitions : add(background-color, $transitions);
-		}
-		@if $hover-colour {
-			color:$hover-colour $_hover-important;
-			$transitions : add(color, $transitions);
-		}
-		@if $hover-fill {
-			svg { fill:$hover-fill $_hover-important; }
-			$svg-transitions : add(fill, $svg-transitions);
-		}
-		@if $hover-stroke {
-			svg { stroke:$hover-stroke $_hover-important; }
-			$svg-transitions : add(stroke, $svg-transitions);
-		}
-		@if $hover-border {
-			border-color:$hover-border $_hover-important;
-			$transitions : add(border-color, $transitions);
-		}
-	}
-
-	// Apply transitions if enabled ----------------------------------------------
-
-	$transitions : remove-duplicates($transitions);
-
-	@if $add-transitions {
-		@if length($transitions) {
-			@include transition($transitions);
-		}
-		@if length($svg-transitions) {
-			svg { @include transition($svg-transitions); }
-		}
-	}
-
-}
-
-@mixin extend-background($sudo : before) {
-
-	&:#{$sudo} {
-		content:"";
-		background:inherit;
-		background-color:inherit;
-		background-image:inherit;
-		position:absolute;
-		height:100%;
-		@include viewport-width();
-		@content;
-	}
-
-	> * { position:relative; }
-}
-
-// Add horizontal lines eitherside some text
-@mixin horizontal-lines($args...) {
-
-  $defaults : (
-    weight       : 2,
-    colour       : if(variable-exists('grey'),$grey, #787878),
-    line-spacing : if(variable-exists('gap'),$gap, 16px),
-    wrap         : false
-  );
-
-  $settings : get-settings($defaults, $args...);
-
-  $weight       : map-get($settings, weight);
-  $colour       : map-get($settings, colour);
-  $line-spacing : map-get($settings, line-spacing);
-  $wrap         : map-get($settings, wrap);
-
-  text-align:center;
-
-  @if not $wrap { white-space: nowrap; }
-
-	display:flex;
-	justify-content:space-between;
-	align-items:center;
-
-  &:before, &:after {
-    content:"";
-    height:add-unit($weight);
-    width:100%;
-    background-color:$colour;
-    position:relative;
-    display:block;
-		flex-grow:1;
-  }
-
-  &:before { margin-right:$line-spacing; }
-
-  &:after { margin-left:$line-spacing; }
-}
-
-// ------------------------------------------------------------------------ //
-// Emailers
-// ------------------------------------------------------------------------ //
-
-@mixin normalise-emailers {
-
-	html,
-	body {
-		margin: 0 auto $imp;
-		padding: 0 $imp;
-		height: 100% $imp;
-		width: 100% $imp;
-	}
-
-	* {
-		-ms-text-size-adjust: 100%;
-		-webkit-text-size-adjust: 100%;
-	}
-
-  #bodyTable {
-    height:100% $imp;
-    margin:0;
-    padding:0;
-    width:100% $imp;
-  }
-
-  .wrapper {  max-width:$max + px; }
-
-  .ExternalClass { width:100%;
-    p, span, font, td, div { line-height: 100%; }
-  }
-
-  img {
-    border:0 none;
-    height:auto;
-    line-height:100%;
-    outline:none;
-    text-decoration:none;
-    display:block;
-    -ms-interpolation-mode: bicubic;
-  }
-
-  .imageFix { display:block; }
-
-  a {
-    outline:none;
-    display:table;
-    color:#f0f9ff;
-    text-decoration:none;
-    img { border:0 none; }
-    &:hover { text-decoration:none $imp; }
-    &[href^="tel"]:hover { text-decoration:none $imp;}
-  }
-
-	// A work-around for email clients meddling in triggered links.
-	*[x-apple-data-detectors], .unstyle-auto-detected-links *, .aBn {
-		border-bottom: 0 $imp;
-		cursor: default $imp;
-		color: inherit $imp;
-		text-decoration: none $imp;
-		font-size: inherit $imp;
-		font-family: inherit $imp;
-		font-weight: inherit $imp;
-		line-height: inherit $imp;
-	}
-
-	// Centers email on Android 4.4
-	div[style*="margin: 16px 0"] { margin: 0 $imp; }
-
-  #outlook a { padding:0; }
-
-  table {
-		mso-table-lspace:0pt $imp;
-		mso-table-rspace:0pt $imp;
-		border-spacing: 0 $imp;
-		border-collapse: collapse $imp;
-		table-layout: fixed $imp;
-		margin: 0 auto $imp;
-		table table {
-			table-layout: auto;
-		}
-	}
-  table, td { border-collapse:collapse; border-spacing:0;  }
-  td, p, span, h1, h2, h3, h4, h5, h6 { font-family:Arial, sans-serif; padding:0; margin:0;  }
-  td, p, span { font-size:14px; margin:0; padding:0;  }
-  td { overflow:hidden;word-break:normal; vertical-align: top;}
-  th { padding:0;}
-
-	// Prevents Gmail from displaying a download button on large, non-linked images.
-	.a6S { display: none $imp; opacity: 0.01 $imp; }
-
-	// Prevents Gmail from changing the text color in conversation threads.
-	.im {	color: inherit $imp; }
-
-	// If the above doesn't work, add a .g-img class to any image in question.
-	img.g-img + div { display: none $imp;	}
-
-	/* What it does: Removes right gutter in Gmail iOS app: https://github.com/TedGoas/Cerberus/issues/89  */
-	/* Create one of these media queries for each additional viewport size you'd like to fix */
-
-	// iPhone 4, 4S, 5, 5S, 5C, and 5SE
-	@media only screen and (min-device-width: 320px) and (max-device-width: 374px) {
-		u ~ div .container {
-			min-width: 320px $imp;
-		}
-	}
-	// iPhone 6, 6S, 7, 8, and X
-	@media only screen and (min-device-width: 375px) and (max-device-width: 413px) {
-		u ~ div .container {
-			min-width: 375px $imp;
-		}
-	}
-	// iPhone 6+, 7+, and 8+
-	@media only screen and (min-device-width: 414px) {
-		u ~ div .container {
-			min-width: 414px $imp;
-		}
-	}
-
-  [owa] div { display:block $imp; font-size:1px; line-height:1px;}
-  [owa] div button { display:block; font-size:1px; line-height:1px;}
-
-  b, strong{ font-weight:700; }
-
-  .small-print { font-size:11px; color:#d5d6d8; }
-
-}
-
-@mixin normalise() {
-
-	/// @author Nicolas Gallagher & Mark Notton
-	/// @see github.com/necolas/normalize.css
-
-	// ------------------------------------------------------------------------ //
-	// Global
-	// ------------------------------------------------------------------------ //
-
-	html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p,
-	blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em,
-	img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i,
-	center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table,
-	caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details,
-	embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby,
-	section, summary, time, mark, audio, video {
-		margin: 0;
-		padding: 0;
-		border: 0;
-		vertical-align: baseline;
-	}
-
-	:root {
-	  font-size: 62.5%;
-		line-height: 1.15;
-		-webkit-text-size-adjust: 100%;
-	}
-
-	html {
-		height:100%;
-		box-sizing: border-box;
-	}
-
-	*, *:before, *:after {
-		&:focus { outline:0; };
-		box-sizing: inherit;
-	}
-
-
-	html, body {
-		min-width:$min;
-		min-height:100%;
-	}
-
-	p, pre, blockquote, ol, ul, li, legend, figcaption, body, article, nav, aside, section, header, footer, main, address {
-		&:empty { display:none; }
-	}
-
-	article, aside, details, figcaption, figure, footer, header, main, menu, nav, section, summary {
-		display: block;
-	}
-
-	svg, symbol { overflow:visible; }
-
-	details { display: block;	}
-
-	summary { display: list-item;	}
-
-	template { display: none;	}
-
-	[hidden] { display: none; }
-
-	// ------------------------------------------------------------------------ //
-	// Section Elements
-	// ------------------------------------------------------------------------ //
-
-	@if $normalise-section-elements {
-
-		body {
-			font-size: 1.6rem;
-			text-rendering: optimizeLegibility;
-			-webkit-font-smoothing: antialiased;
-			color:$text;
-			width:100%; 
-		  @extend %font-default, .default !optional;
-
-			@if mixin-exists(selection) {
-		  	@include selection;
-			}
-
-			@if $show-breakpoints {
-				&:not(.dev-mode):after { display:none; }
-			}
-
-		}
-
-		address {
-			font-style:normal;
-		}
-
-	}
-
-	// ------------------------------------------------------------------------ //
-	// Header Elements
-	// ------------------------------------------------------------------------ //
-
-	@if $normalise-header-elements {
-
-		h1, h2, h3, h4, h5, h6 {
-			-webkit-margin-before:0em;
-			-webkit-margin-after:0em;
-			-webkit-margin-start:0px;
-			-webkit-margin-end:0px;
-			font-weight: normal;
-			@extend .default !optional;
-		}
-
-		@if mixin-exists(font-size) {
-			h1{ @include font-size($h1, $h2); }
-			h2{ @include font-size($h2, $h2*1.2); }
-			h3{ @include font-size($h3, $h3*1.2); }
-			h4{ @include font-size($h4, $h4*1.2); }
-			h5{ @include font-size($h5, $h5*1.2); }
-			h6{ @include font-size($h6, $h6*1.2); }
-		}
-
-	}
-
-	// ------------------------------------------------------------------------ //
-	// Grouping Elements
-	// ------------------------------------------------------------------------ //
-
-	@if $normalise-grouping-elements {
-
-		hr {
-			border:none;
-			height:1px;
-			background-color:$text;
-			margin:$gap 0;
-			box-sizing: content-box;
-			overflow: visible;
-		}
-
-		blockquote, q {
-			quotes: none;
-			&:before, &:after {
-				content: '';
-				content: none;
-			}
-		}
-
-		ol, ul {
-			list-style: none;
-		}
-
-		pre {
-			font-family: monospace, monospace;
-			font-size: 1em;
-			background-color: white;
-			color: black;
-			padding:16px;
-			position:relative;
-			z-index:9999;
-		}
-
-	}
-
-	// ------------------------------------------------------------------------ //
-	// Table Elements
-	// ------------------------------------------------------------------------ //
-
-	@if $normalise-table-elements {
-
-		table {
-			border-collapse: collapse;
-			border-spacing: 0;
-		}
-
-	}
-
-	// ------------------------------------------------------------------------ //
-	// Form Elements
-	// ------------------------------------------------------------------------ //
-
-	@if $normalise-form-elements {
-
-		button,	input, optgroup,	select,	textarea {
-			font-family: inherit;
-			font-size: 100%;
-			line-height: 1.15;
-			margin: 0;
-		}
-
-		button,	input {
-			overflow: visible;
-		}
-
-		button,	select {
-			text-transform: none;
-		}
-
-		button,
-		[type="button"],
-		[type="reset"],
-		[type="submit"] {
-			-webkit-appearance: button;
-			background:none;
-			border:none;
-			padding:0;
-			margin:0;
-			cursor:pointer;
-			&:focus { outline:0; }
-		}
-
-		button::-moz-focus-inner,
-		[type="button"]::-moz-focus-inner,
-		[type="reset"]::-moz-focus-inner,
-		[type="submit"]::-moz-focus-inner {
-			border-style: none;
-			padding: 0;
-		}
-
-		button:-moz-focusring,
-		[type="button"]:-moz-focusring,
-		[type="reset"]:-moz-focusring,
-		[type="submit"]:-moz-focusring {
-			outline: 1px dotted ButtonText;
-		}
-
-		fieldset { padding:0;	}
-
-		legend {
-			box-sizing: border-box;
-			color: inherit;
-			display: table;
-			max-width: 100%;
-			padding: 0;
-			white-space: normal;
-		}
-
-		progress {
-			vertical-align: baseline;
-		}
-
-		[type="checkbox"],
-		[type="radio"] {
-			box-sizing: border-box;
-			padding: 0;
-		}
-
-		[type="number"]::-webkit-inner-spin-button,
-		[type="number"]::-webkit-outer-spin-button {
-			height: auto;
-		}
-
-		[type="search"] {
-			-webkit-appearance: textfield;
-			outline-offset: -2px;
-		}
-
-		[type="search"]::-webkit-search-decoration {
-			-webkit-appearance: none;
-		}
-		::-webkit-file-upload-button {
-			-webkit-appearance: button;
-			font: inherit;
-		}
-
-		[disabled] {
-			cursor: default;
-		}
-
-		@if mixin-exists(input-fields) {
-			@include input-fields() {
-				border-radius:0;
-				border:0;
-				text-rendering: optimizeLegibility;
-				-webkit-appearance:none;
-				-webkit-border-radius:0;
-				-webkit-font-smoothing: antialiased;
-
-				&:focus { outline:0; }
-
-				@if mixin-exists(placeholder) {
-					@include placeholder();
-				}
-			}
-		}
-
-	}
-
-	// ------------------------------------------------------------------------ //
-	// Embedded Elements
-	// ------------------------------------------------------------------------ //
-
-	@if $normalise-embedded-elements {
-
-		img {
-			border-style: none;
-		}
-
-	}
-
-	// ------------------------------------------------------------------------ //
-	// Text Elements
-	// ------------------------------------------------------------------------ //
-
-	@if $normalise-text-elements {
-
-		em {
-			font-style:italic;
-		}
-
-		a {
-		  background-color:transparent;
-			text-decoration:none;
-			color:$text;
-		}
-
-		abbr[title] {
-		  border-bottom: none;
-		  text-decoration: underline;
-		  text-decoration: underline dotted;
-		}
-
-	  b, strong {
-		  font-weight: bold;
-		}
-
-		code,	kbd, samp {
-		  font-family: monospace, monospace;
-		  font-size: 1em;
-		}
-
-		small {
-		  font-size: 80%;
-		}
-
-		sub, sup {
-		  font-size: 75%;
-		  line-height: 0;
-		  position: relative;
-		  vertical-align: baseline;
-		}
-
-		sub {
-		  bottom: -0.25em;
-		}
-
-		sup {
-		  top: -0.5em;
-		}
-
-		textarea {
-			resize:none;
-			overflow: auto;
-		}
-
-	}
-
-}
-
 // Columns for text
 @mixin columns($args...) {
 
@@ -8899,7 +9270,7 @@ $triangle-settings: (
       // -------------------------------------------------------------------- //
       &:placeholder-shown:not(:focus) {
         border:$border-width $border-style $inactive-border-colour;
-        background-color: var(inactive-background);
+        background-color: var($inactive-background);
         color: var($inactive-text);
         & ~ field-placeholder {
           left:$input-padding-left;

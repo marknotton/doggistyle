@@ -155,7 +155,7 @@
       // -------------------------------------------------------------------- //
       &:placeholder-shown:not(:focus) {
         border:$border-width $border-style $inactive-border-colour;
-        background-color: var(inactive-background);
+        background-color: var($inactive-background);
         color: var($inactive-text);
         & ~ field-placeholder {
           left:$input-padding-left;
