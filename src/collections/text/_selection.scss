@@ -2,7 +2,7 @@
 
   $defaults : (
     background : if(variable-exists(selection), $selection, #B2D3FB),
-    color      : if(variable-exists(selection), $selection, #B2D3FB),
+    colour     : if(variable-exists(selection), $selection, #B2D3FB),
     opacity    : 0.8,
   );
 
