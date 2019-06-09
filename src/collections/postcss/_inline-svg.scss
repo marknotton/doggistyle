@@ -26,7 +26,7 @@
     $name     : nth(string-explode($svg, '.'), 1);
     $filename : add-extension($svg, 'svg');
 
-    @at-root (without: media) {
+    @at-root {
       @svg-load #{$name} url(#{if(is-null($path) or $path == false, '', $path+'/')+$filename}) {
         fill: $fill $important;
         stroke: $stroke $important;
