@@ -67,15 +67,15 @@ gulp.task('watch', ['compile'], () => {
 
 const aliases = {
 	'mixins' : {
-		'animation'        : ['animate', true],
-		'is-chrome'        : ['chrome', true],
-		'is-edge'          : ['edge', true],
-		'is-firefox'       : ['firefox', true],
-		'is-ie'            : ['ie', true],
-		'is-opera'         : ['opera', true],
-		'is-safari'        : ['safari', true],
-		'transition-delay' : ['delay', true],
-		'breakpoint'       : ['break', true],
+		'animation'        : { name:'animate', content:true },
+		'is-chrome'        : { name:'chrome',  content:true },
+		'is-edge'          : { name:'edge',    content:true },
+		'is-firefox'       : { name:'firefox', content:true },
+		'is-ie'            : { name:'ie',      content:true },
+		'is-opera'         : { name:'opera',   content:true },
+		'is-safari'        : { name:'safari',  content:true },
+		'transition-delay' : { name:'delay',   content:true },
+		'breakpoint'       : { name:'break',   content:true },
 		'border-radius'    : 'radius',
 		'gradient-right'   : 'gradient-horizontal',
 		'gradient-top'     : 'gradient-vertical',
@@ -84,8 +84,8 @@ const aliases = {
 		'hue'              : 'hue-rotate',
 		'translateY'       : 'y',
 		'translateX'       : 'x',
-		'outside-break'    : ['break-out', true],
-		'outside-break'    : ['break-in', true],
+		'outside-break'    : { name : 'break-out', content : true },
+		'inside-break'     : { name : 'break-in', content : true },
 	},
 	'functions' : {
 		'colour'                     : 'color',
@@ -95,11 +95,15 @@ const aliases = {
 		'colour-contrast'            : 'color-contrast',
 		'get-variable-colour-value'  : 'get-variable-color-value',
 		'is-boolean'                 : 'is-bool',
-		'random-colour'              : 'random-color',
-		'random-colour'              : 'rc',
+		'random-colour'              : ['random-color', 'rc'],
 		'string-replace'             : 'str-replace',
-		'remove-unit'                : 'strip-unit',
-		'remove-unit'                : 'strip',
+		'remove-unit'                : ['strip-unit', 'strip'],
+		'calculated-vars'            : [
+			{ name : 'gutter',  args : ['gutters']},
+			{ name : 'gap',     args : ['gaps']},
+			{ name : 'gutters', args : ['gutters']},
+			{ name : 'gaps',    args : ['gaps']}
+		],
 	}
 };
 
@@ -113,14 +117,42 @@ gulp.task('aliases', function () {
 
 	Object.entries(aliases.mixins).forEach(([key, value]) => {
 
-		mixins = mixins + `/// @alias ${key}\n`
-		mixins = mixins + `@mixin ${typeof value == 'object' ? value[0] : value}($args...) {\n`
-		if (value.includes(true)) {
-			mixins = mixins + `\t@include ${key}($args...) { @content; }\n`
-		} else {
-			mixins = mixins + `\t@include ${key}($args...);\n`
+		if ( typeof value == 'string' || value instanceof Object ) {
+			value = [value]
 		}
-		mixins = mixins + `}\n\n`
+
+		value.forEach(values => {
+
+			mixins = mixins + `/// @alias ${key}\n`
+
+			if ( typeof values == 'string' ) {
+				mixins = mixins + `@mixin ${values}($args...) {\n`
+				mixins = mixins + `\t@include ${key}($args...);\n`
+				mixins = mixins + `}\n\n`
+			} else {
+
+				if ( values instanceof Object && !(values instanceof Array) ) {
+					values = [values];
+				}
+
+				values.forEach(value => {
+					if ( typeof value == 'string' ) {
+						mixins = mixins + `@mixin ${value}($args...) {\n`
+						mixins = mixins + `\t@include ${key}($args...);\n`
+					} else {
+						mixins = mixins + `@mixin ${value.name}($args...) {\n`
+						if ( value["args"] !== undefined && (value["content"] !== undefined && value['content'] == true) ) {
+							mixins = mixins + `\t@include ${key}(${value.args.toString()}, $args...) { @content; };\n`
+						} else if ( value["args"] !== undefined ) {
+							mixins = mixins + `\t@include ${key}(${value.args.toString()}, $args...);\n`
+						} else if ( value["content"] !== undefined && value['content'] == true ) {
+							mixins = mixins + `\t@include ${key}($args...) { @content; };\n`
+						}
+					}
+					mixins = mixins + `}\n\n`
+				})
+			}
+		})
 	});
 
 	// Fucntions -----------------------------------------------------------------
@@ -129,10 +161,36 @@ gulp.task('aliases', function () {
 
 	Object.entries(aliases.functions).forEach(([key, value]) => {
 
-		functions = functions + `/// @alias ${key}\n`
-		functions = functions + `@function ${typeof value == 'object' ? value[0] : value}($args...) {\n`
-		functions = functions + `\t@return ${key}($args...);\n`
-		functions = functions + `}\n\n`
+		if ( typeof value == 'string' || value instanceof Object ) {
+			value = [value]
+		}
+
+		value.forEach(values => {
+
+			functions = functions + `/// @alias ${key}\n`
+
+			if ( typeof values == 'string' ) {
+				functions = functions + `@function ${values}($args...) {\n`
+				functions = functions + `\t@return ${key}($args...);\n`
+				functions = functions + `}\n\n`
+			} else {
+
+				if ( values instanceof Object && !(values instanceof Array) ) {
+					values = [values];
+				}
+
+				values.forEach(value => {
+					if ( typeof value == 'string' ) {
+						functions = functions + `@function ${value}($args...) {\n`
+						functions = functions + `\t@return ${key}($args...);\n`
+					} else {
+						functions = functions + `@function ${value.name}($args...) {\n`
+						functions = functions + `\t@return ${key}(${value.args.toString()}, $args...);\n`
+					}
+					functions = functions + `}\n\n`
+				})
+			}
+		})
 	});
 
 	// Render File ---------------------------------------------------------------

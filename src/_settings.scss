@@ -72,14 +72,17 @@
 	// =============================================================================
 
 	$gaps : 16     !default !global;
-	$gap  : gap(1) !default !global;
-	$gap0 : gap(0) !default !global;
-	$gap1 : add-unit($gap) !default !global;
-	$gap2 : gap(2) !default !global;
-	$gap3 : gap(3) !default !global;
-	$gap4 : gap(4) !default !global;
-	$gap5 : gap(5) !default !global;
-	$gap6 : gap(6) !default !global;
+	$gap  : add-unit($gaps,   $default-unit) !default !global;
+	$gap0 : add-unit($gaps/2, $default-unit) !default !global;
+	$gap1 : $gap !default !global;
+	$gap2 : add-unit($gaps*2, $default-unit) !default !global;
+	$gap3 : add-unit($gaps*3, $default-unit) !default !global;
+	$gap4 : add-unit($gaps*4, $default-unit) !default !global;
+	$gap5 : add-unit($gaps*5, $default-unit) !default !global;
+	$gap6 : add-unit($gaps*6, $default-unit) !default !global;
+	$gap7 : add-unit($gaps*7, $default-unit) !default !global;
+	$gap8 : add-unit($gaps*8, $default-unit) !default !global;
+	$gap9 : add-unit($gaps*9, $default-unit) !default !global;
 
 	// =============================================================================
 	// Gutters                                                              #gutters
@@ -316,7 +319,7 @@
 	$set-custom-properties : true !default !global;
 
 	$_custom-properties : (
-	  gap                : add-unit($gap),
+	  gaps               : add-unit($gaps),
 	  vertical-spacing   : add-unit($vertical-spacing, vh),
 	  horizontal-spacing : add-unit($horizontal-spacing, vw),
 	  gutters            : add-unit($gutters),

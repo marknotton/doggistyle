@@ -8,47 +8,47 @@
 
 /// @alias animation
 @mixin animate($args...) {
-	@include animation($args...) { @content; }
+	@include animation($args...) { @content; };
 }
 
 /// @alias is-chrome
 @mixin chrome($args...) {
-	@include is-chrome($args...) { @content; }
+	@include is-chrome($args...) { @content; };
 }
 
 /// @alias is-edge
 @mixin edge($args...) {
-	@include is-edge($args...) { @content; }
+	@include is-edge($args...) { @content; };
 }
 
 /// @alias is-firefox
 @mixin firefox($args...) {
-	@include is-firefox($args...) { @content; }
+	@include is-firefox($args...) { @content; };
 }
 
 /// @alias is-ie
 @mixin ie($args...) {
-	@include is-ie($args...) { @content; }
+	@include is-ie($args...) { @content; };
 }
 
 /// @alias is-opera
 @mixin opera($args...) {
-	@include is-opera($args...) { @content; }
+	@include is-opera($args...) { @content; };
 }
 
 /// @alias is-safari
 @mixin safari($args...) {
-	@include is-safari($args...) { @content; }
+	@include is-safari($args...) { @content; };
 }
 
 /// @alias transition-delay
 @mixin delay($args...) {
-	@include transition-delay($args...) { @content; }
+	@include transition-delay($args...) { @content; };
 }
 
 /// @alias breakpoint
 @mixin break($args...) {
-	@include breakpoint($args...) { @content; }
+	@include breakpoint($args...) { @content; };
 }
 
 /// @alias border-radius
@@ -92,8 +92,13 @@
 }
 
 /// @alias outside-break
+@mixin break-out($args...) {
+	@include outside-break($args...) { @content; };
+}
+
+/// @alias inside-break
 @mixin break-in($args...) {
-	@include outside-break($args...) { @content; }
+	@include inside-break($args...) { @content; };
 }
 
 //==============================================================================
@@ -136,6 +141,10 @@
 }
 
 /// @alias random-colour
+@function random-color($args...) {
+	@return random-colour($args...);
+}
+
 @function rc($args...) {
 	@return random-colour($args...);
 }
@@ -146,7 +155,28 @@
 }
 
 /// @alias remove-unit
+@function strip-unit($args...) {
+	@return remove-unit($args...);
+}
+
 @function strip($args...) {
 	@return remove-unit($args...);
+}
+
+/// @alias calculated-vars
+@function gutter($args...) {
+	@return calculated-vars(gutters, $args...);
+}
+
+@function gap($args...) {
+	@return calculated-vars(gaps, $args...);
+}
+
+@function gutters($args...) {
+	@return calculated-vars(gutters, $args...);
+}
+
+@function gaps($args...) {
+	@return calculated-vars(gaps, $args...);
 }
 

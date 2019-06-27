@@ -1,14 +1,40 @@
-/// Generate gaps from a generic unit so help continuity of paddings, margins,
-/// gutters etc... throughout your design.
+/// Using custom properties, returns the calculated value of multuple gaps.
 ///
 /// @param {Number} $size
-///   Enter the amount of times you want to multiply the default padding variable
+///   Enter the amount of times you want to multiply the gapping variable
 ///
-/// @require {Variable} $gaps
+/// @param {Boolean} $calc
+///   There may be times where you don't want the calc function to be part of
+///   the return. Setting this to false will return the calculation without calc(...)
+///
+/// @require {CustomProperty} gap
 ///
 /// @example scss - Usage
 ///   margin:0 gap(3);
+///
+/// @example css - Result
+///   margin:0 calc(var(--gap, 16px) * 3);
+///
 /// @return {Number} with units
-@function gap($size:1) {
-  @return if($size == 0, to-number(add-unit($gaps/2, $default-unit)), to-number(add-unit($gaps*$size, $default-unit)));
+
+@function gap($size:1, $calc:true) {
+
+  @if ( $size == 1 ) {
+    @return #{var(gap)};
+  }
+
+  @if ( $calc == true ) {
+    @if ( $size == 0 ) {
+      @return calc(#{var(gap)}/2);
+    } @else {
+      @return calc(#{var(gap)}*#{$size});
+    }
+  } @else {
+    @if ( $size == 0 ) {
+      @return #{var(gap)}/2;
+    } @else {
+      @return #{var(gap)}*#{$size};
+    }
+  }
+
 }

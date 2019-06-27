@@ -1,0 +1,66 @@
+/// Returns the calculated value of multuple unit based custom properties.
+///
+/// @param {String} $customProperty
+///   Enter the name of the custom property you wish to reference
+///
+/// @param {Number} $multiply
+///   Enter the amount of times you want to multiply the gapping variable
+///
+/// @param {Boolean} $calc
+///   There may be times where you don't want the calc function to be part of
+///   the return. Setting this to false will return the calculation without calc(...)
+///
+/// @require {CustomProperty} gap
+///
+/// @example scss - Usage
+///   margin:0 gap(3);
+///
+/// @example css - Result
+///   margin:0 calc(var(--gap, 16px) * 3);
+///
+/// @return {Number} with units
+
+@function calculated-vars($customProperty, $args...) {
+
+  $defaults : (
+    multiply : 1,
+    calc : true,
+  );
+
+  $settings  : get-settings($defaults, $args...);
+
+  $multiply : map-get($settings, multiply);
+  $calc : map-get($settings, calc);
+  $negative : false;
+
+  @if ( $multiply < 0  ) {
+    $negative : true;
+    $calc : true;
+  }
+
+  @if ( $multiply == 1 ) {
+    @return #{var($customProperty)};
+  }
+
+  @if ( $calc == true ) {
+    @if ( $multiply == 0 ) {
+      @if ( $negative ) {
+        @return calc(-1 * #{var($customProperty)}/2);
+      } @else {
+        @return calc(#{var($customProperty)}/2);
+      }
+    } @else {
+      @if ( $negative ) {
+        @return calc(-1 * #{var($customProperty)}*#{$multiply * -1});
+      } @else {
+        @return calc(#{var($customProperty)}*#{$multiply});
+      }
+    }
+  } @else {
+    @if ( $multiply == 0 ) {
+      @return #{var($customProperty)}/2;
+    } @else {
+      @return #{var($customProperty)}*#{$multiply};
+    }
+  }
+}
