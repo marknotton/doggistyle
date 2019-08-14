@@ -1,6 +1,6 @@
 {
   "name": "doggistyle",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A collection of Sass resources organised into a single library",
   "main": "dist/_doggistyle.scss",
   "repository": "https://www.npmjs.com/package/doggistyle",
