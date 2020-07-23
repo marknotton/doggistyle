@@ -1,8 +1,0 @@
-//
-@mixin column-rule-style($setting) {
-  @if is-string($setting) and contains(join($column-global-rules, $column-rule-style-rules), $setting) {
-    @include prefixer(column-rule-style, $setting);
-  } @else {
-    @include warning("The options used for column-rule-style do not match to allowed criteria.");
-  }
-}

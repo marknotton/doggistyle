@@ -1,0 +1,18 @@
+////////////////////////////////////////////////////////////////////////////////
+/// List Items To Strings                                 #list-items-to-strings
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @group helpers-lists
+///
+
+@use '../modules/is/string' as *;
+@use 'sass:list';
+
+@function items-to-strings($list, $seperator:auto) {
+  $temp-list : $list;
+  $list : ();
+  @each $value in $temp-list {
+    $list : list.append($list, string($value), $seperator);
+  }
+  @return $list;
+}

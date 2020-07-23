@@ -1,11 +1,11 @@
 {
-  "name": "doggistyle",
-  "version": "0.2.4",
+  "name": "@doggistyle",
+  "version": "0.4.0",
   "description": "A collection of Sass resources organised into a single library",
-  "main": "library/_import.scss",
-  "repository": "https://www.npmjs.com/package/doggistyle",
+  "private": true,
+  "main": "library/src/index.scss",
+  "repository": "https://github.com/marknotton/doggistyle",
   "author": "Mark Notton <mark@marknotton.uk>",
   "license": "MIT",
-  "_location": "marknotton/doggistyle",
   "location": "marknotton/doggistyle"
 }

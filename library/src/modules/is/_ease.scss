@@ -1,0 +1,17 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Ease                                                                #is-ease
+////////////////////////////////////////////////////////////////////////////////
+
+@use 'string';
+@use 'list';
+
+/// Checks to see if string is an ease
+/// @author Mark Notton
+/// @group helpers-checks
+/// @require {function} contains
+/// @require {function} is-string
+/// @return {bool}
+
+@function ease($string) {
+  @return type-of($string) == 'string' and list.contains(string.slice(#{$string}, 0, 4), ease line step cubi init)
+}

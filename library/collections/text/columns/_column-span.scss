@@ -1,8 +1,0 @@
-//
-@mixin column-span($setting) {
-  @if is-string($setting) and contains(join($column-global-rules, (none, all)), $setting) {
-    @include prefixer(column-span, $setting);
-  } @else {
-    @include warning("The options used for column-span do not match to allowed criteria.");
-  }
-}

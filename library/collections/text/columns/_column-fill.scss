@@ -1,8 +1,0 @@
-//
-@mixin column-fill($setting) {
-  @if contains(join($column-global-rules, (auto, balance)), $setting) {
-    @include prefixer(column-fill, $setting);
-  } @else {
-    @include warning("The options used for column-fill do not match to allowed criteria.");
-  }
-}

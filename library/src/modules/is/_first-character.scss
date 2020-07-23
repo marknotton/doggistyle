@@ -1,0 +1,17 @@
+////////////////////////////////////////////////////////////////////////////////
+/// First Character                                          #is-first-character
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Compare the first character of a string
+///
+/// @author Mark Notton
+///
+
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function is-first-character($string, $character) {
+  @return str-slice(#{$string}, 1, 1) == #{$character};
+}

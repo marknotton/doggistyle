@@ -1,6 +1,0 @@
-// Blend Mix
-@mixin blend-mix($blend : multiply) {
-  @if contains($blend-modes, $blend) {
-    @include prefixer(mix-blend-mode, $blend, moz webkit);
-  }
-}

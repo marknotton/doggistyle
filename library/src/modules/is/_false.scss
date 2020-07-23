@@ -1,0 +1,11 @@
+////////////////////////////////////////////////////////////////////////////////
+/// False                                                                 #false
+////////////////////////////////////////////////////////////////////////////////
+
+/// Checks to see if value is any type of false
+/// @group helpers-checks
+/// @return {bool}
+
+@function false($value) {
+  @return not not index(false null 0 off def, $value);
+}

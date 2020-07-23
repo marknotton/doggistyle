@@ -1,0 +1,23 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Important                                                      #is-important
+////////////////////////////////////////////////////////////////////////////////
+
+/// Checks to see value is important
+/// @author Mark Notton
+
+/// @group  helpers-checks
+/// @return {bool}
+
+@function important($value, $bool:false) {
+  $_imp : null;
+
+  @if ( contains((important, !important), $value) or (is-bool($value) and $value == true) ) {
+    @if $bool {
+      $_imp : true;
+    } @else {
+      $_imp : $imp;
+    }
+  }
+
+  @return $_imp;
+}

@@ -1,6 +1,0 @@
-@mixin show-at($break) {
-  @include break($break) {
-    display:block;
-    & { @content; }
-  }
-}

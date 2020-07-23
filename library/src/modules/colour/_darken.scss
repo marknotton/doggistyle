@@ -1,0 +1,16 @@
+////////////////////////////////////////////////////////////////////////////////
+// Colour
+////////////////////////////////////////////////////////////////////////////////
+
+@use "sass:color";
+@use "sass:math";
+@use "../modules/is/colour" as is;
+
+@function darken($colour, $amount) {
+  @if ( is.colour($colour) ) {
+    @return color.scale($colour, $lightness : - math.abs($amount));
+  } @else {
+    @warn '"' + $colour + '" is not a valid colour';
+    @return $colour;
+  }
+}

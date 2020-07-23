@@ -1,0 +1,37 @@
+@mixin _browser($name, $version:false) {
+  @at-root :root {
+    &[data-browser*="#{$name}"] {
+      @if $version {
+        &[data-browser*="#{$version}"] {
+          @content;
+        }
+      } @else {
+        @content;
+      }
+    }
+  }
+}
+
+@mixin firefox($version:false) {
+  @include _browser('firefox', $version) { @content; };
+}
+
+@mixin ie($version:false) {
+  @include _browser('ie', $version) { @content; };
+}
+
+@mixin chrome($version:false) {
+  @include _browser('chrome', $version) { @content; };
+}
+
+@mixin edge($version:false) {
+  @include _browser('edge', $version) { @content; };
+}
+
+@mixin opera($version:false) {
+  @include _browser('opera', $version) { @content; };
+}
+
+@mixin safari($version:false) {
+  @include _browser('safari', $version) { @content; };
+}

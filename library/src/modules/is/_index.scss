@@ -1,0 +1,40 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Checkers                                                              #check
+////////////////////////////////////////////////////////////////////////////////
+/// Check variables for a give rule. Unless specified otherwise, all checkers 
+/// should return a bool
+/// @example "doggistyle/check" as is;
+/// @example is.number(222);
+
+@forward 'absolute-length' as is-*;
+@forward 'angle' as is-*;
+@forward 'arglist' as is-*;
+@forward 'bool' as is-*;
+// @forward 'calc' as is-*;
+@forward 'colour' as is-*;
+@forward 'duration' as is-*;
+// @forward 'ease' as is-*;
+@forward 'empty' as is-*;
+// @forward 'extension' as is-*;
+@forward 'first-character' as is-*;
+@forward 'frequency' as is-*;
+@forward 'function' as is-*;
+@forward 'hex' as is-*;
+@forward 'important' as is-*;
+@forward 'integer' as is-*;
+@forward 'length' as is-*;
+@forward 'light' as is-*;
+@forward 'list' as is-*;
+@forward 'map' as is-*;
+@forward 'null' as is-*;
+@forward 'number' as is-*;
+@forward 'percentage' as is-*;
+@forward 'position' as is-*;
+@forward 'pseudo' as is-*;
+@forward 'relative-length' as is-*;
+@forward 'resolution' as is-*;
+@forward 'selector' as is-*;
+@forward 'string' as is-*;
+@forward 'time' as is-*;
+@forward 'unit' as is-*;
+@forward 'var' as is-*;
