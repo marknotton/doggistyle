@@ -1,4 +1,4 @@
 module.exports = {
-  core : require('core'),
-  library : require('library')
+  core : require('./core'),
+  library : require('./library')
 }
