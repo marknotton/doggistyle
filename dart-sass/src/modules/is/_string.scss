@@ -1,0 +1,12 @@
+////////////////////////////////////////////////////////////////////////////////
+/// String                                                            #is-string
+////////////////////////////////////////////////////////////////////////////////
+
+/// Checks to see if value is a string
+/// @group helpers-checks
+/// @return {bool}
+
+@function string($value) {
+  @return type-of($value) == 'string';
+}
+

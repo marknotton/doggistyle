@@ -1,0 +1,14 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Cast                                                                   #cast
+////////////////////////////////////////////////////////////////////////////////
+/// Cast one variable type to another. 
+/// @example "doggistyle/cast" as to;
+
+@forward 'string' as to-*;
+@forward 'number' as to-*;
+@forward 'unit' as to-*;
+@forward 'list' as to-*;
+@forward 'string';
+@forward 'number';
+@forward 'unit';
+@forward 'list';

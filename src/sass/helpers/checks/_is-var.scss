@@ -1,0 +1,16 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Is Var                                                               #is-var
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a custom property. Eiter a as string in the
+/// cutom properties map. Or litterally starts with the var syntax
+///
+/// @author Mark Notton
+///
+/// @return {bool}
+
+@function is-var($value) {
+
+  @return string-starts-with(quote($value), 'var(') or (variable-exists(custom-properties) and map-has-keys($custom-properties, $value));
+
+}

@@ -1,0 +1,353 @@
+////////////////////////////////////////////////////////////////////////////////
+// Settings                                                            #settings
+////////////////////////////////////////////////////////////////////////////////
+
+@mixin settings() {
+
+	// ===========================================================================
+	// Options                                                            #options
+	// ===========================================================================
+
+	// Show warnings
+	$warnings : true !default !global;
+
+	// Include a variety of custom-element and markup styling
+	$global-styling : true !default !global;
+
+	// Default border radius
+	$border-radius : 10px !default !global;
+
+	// Default units
+	$default-unit : px !default !global;
+
+	// Default spacer units
+	$default-space-unit : vh !default !global;
+
+	// Default units for fonts and line-heights
+	$default-font-unit : em !default !global;
+
+	// Default units for timings
+	$default-timing-unit : s !default !global;
+
+	// Default timing
+	$default-timing : 0.2s !default !global;
+
+	// This only works when css variable colours are defined as an RGB list, NOT Hex colours.
+	$support-css-variable-alpha-colours : false !default !global;
+	$support-css-variable-alpha-colors : $support-css-variable-alpha-colours !default !global;
+
+	// ===========================================================================
+	// Normalisers                                                      #normalise
+	// ===========================================================================
+
+	$normalise                   : true  !default !global;
+	$normalise-section-elements  : true  !default !global;
+	$normalise-header-elements   : true  !default !global;
+	$normalise-grouping-elements : true  !default !global;
+	$normalise-table-elements    : true  !default !global;
+	$normalise-form-elements     : true  !default !global;
+	$normalise-embedded-elements : true  !default !global;
+	$normalise-text-elements     : true  !default !global;
+	$normalise-emailers          : false !default !global;
+
+	// ===========================================================================
+	// Aspect Ratios                                                #aspect-ratios
+	// ===========================================================================
+
+	$aspect-ratios : (
+	  '4x3'   : 75%,
+	  '16x9'  : 56.25%,
+	  '16x10' : 62.5%,
+	) !default !global;
+
+	$default-aspect-ratio : map-get($aspect-ratios, '16x9');
+
+	// ===========================================================================
+	// Directories                                                    #directories
+	// ===========================================================================
+
+	$images  : "/assets/images/"         !default !global;
+	$sprites : "/assets/images/sprites/" !default !global;
+	$fonts   : "/assets/fonts/"          !default !global;
+
+	// ===========================================================================
+	// Gaps                                                                  #gaps
+	// ===========================================================================
+	// Gaps are to be used as a consistant unit of spacing between elements.
+
+	$gaps : 16 !default !global;
+	$gap  : add-unit($gaps,   $default-unit) !default !global;
+	$gap0 : add-unit($gaps/2, $default-unit) !default !global;
+	$gap1 : $gap !default !global;
+	$gap2 : add-unit($gaps*2, $default-unit) !default !global;
+	$gap3 : add-unit($gaps*3, $default-unit) !default !global;
+	$gap4 : add-unit($gaps*4, $default-unit) !default !global;
+	$gap5 : add-unit($gaps*5, $default-unit) !default !global;
+	$gap6 : add-unit($gaps*6, $default-unit) !default !global;
+	$gap7 : add-unit($gaps*7, $default-unit) !default !global;
+	$gap8 : add-unit($gaps*8, $default-unit) !default !global;
+	$gap9 : add-unit($gaps*9, $default-unit) !default !global;
+
+	// ===========================================================================
+	// Gutters                                                            #gutters
+	// ===========================================================================
+	// Gutters are to be used as a consistant unit of spacing specifically for
+	// vertical margins/padding to the left or right of an element.
+
+	$gutter-left     : $gap2 !default !global;
+	$gutter-right    : $gap2 !default !global;
+	$gutters         : add-unit($gutter-left + $gutter-right) !default !global;
+
+	// ===========================================================================
+	// Spacers                                                            #spacers
+	// ===========================================================================
+	// Spacers are a dynmaic unit of spacing that are relative to the viewport
+
+	$spacing:            5 !default !global;
+	$vertical-spacing:   $spacing !default !global;
+	$horizontal-spacing: $spacing !default !global;
+
+	// Horizontal Spacers
+	$hspace:  space(1, vw, $horizontal-spacing) !default !global;
+	$hspace1: $hspace !default !global;
+	$hspace0: space(0, vw, $horizontal-spacing) !default !global;
+	$hspace2: space(2, vw, $horizontal-spacing) !default !global;
+	$hspace3: space(3, vw, $horizontal-spacing) !default !global;
+	$hspace4: space(4, vw, $horizontal-spacing) !default !global;
+	$hspace5: space(5, vw, $horizontal-spacing) !default !global;
+
+	// Vertical Spacers
+	$vspace:  space(1, vh, $vertical-spacing) !default !global;
+	$vspace1: $vspace !default !global;
+	$vspace0: space(0, vh, $vertical-spacing) !default !global;
+	$vspace2: space(2, vh, $vertical-spacing) !default !global;
+	$vspace3: space(3, vh, $vertical-spacing) !default !global;
+	$vspace4: space(4, vh, $vertical-spacing) !default !global;
+	$vspace5: space(5, vh, $vertical-spacing) !default !global;
+
+	// As this is likely to be used more often, these are aliased to the vspace variables
+	$space:  $vspace  !default !global;
+	$space1: $vspace1 !default !global;
+	$space0: $vspace0 !default !global;
+	$space2: $vspace2 !default !global;
+	$space3: $vspace3 !default !global;
+	$space4: $vspace4 !default !global;
+	$space5: $vspace5 !default !global;
+
+	// ===========================================================================
+	// Miscellaneous
+	// ===========================================================================
+
+	// Shorthand for !important (for the lazy)
+	$imp : !important !default !global;
+
+	// ===========================================================================
+	// Media Quries & Breakpoints                                   #media-queries
+	// ===========================================================================
+
+	$mobile-first: true !default !global;
+
+	$max-breakpoint          : 1440 !default !global;
+	$min-breakpoint          : 320  !default !global;
+	$small-breakpoint        : 480  !default !global;
+	$large-breakpoint        : 1200 !default !global;
+	$medium-breakpoint       : (($large-breakpoint - $small-breakpoint) / 2) + $small-breakpoint !default !global; // 780px
+	$small-medium-breakpoint : (($medium-breakpoint - $small-breakpoint) / 2) + $small-breakpoint !default !global; // 630px
+
+	$max-breakpoint          : add-unit($max-breakpoint)          !global;
+	$min-breakpoint          : add-unit($min-breakpoint)          !global;
+	$small-breakpoint        : add-unit($small-breakpoint)        !global;
+	$large-breakpoint        : add-unit($large-breakpoint)        !global;
+	$medium-breakpoint       : add-unit($medium-breakpoint)       !global;
+	$small-medium-breakpoint : add-unit($small-medium-breakpoint) !global;
+
+	$show-breakpoints : false !default !global;
+
+	// ===========================================================================
+	// Text
+	// ===========================================================================
+
+	@if $default-font-unit == 'rem' {
+	  $font-size: add-unit(1.6, $default-font-unit) !default !global;
+	  $h1: add-unit(remove-unit($font-size)*2.5,                                     $default-font-unit) !default !global; // 4.0em
+	  $h2: add-unit((($h1 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !default !global; // 2.8em
+	  $h3: add-unit((($h2 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !default !global; // 2.2em
+	  $h4: add-unit((($h3 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !default !global; // 1.9em
+	  $h5: add-unit((($h4 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !default !global; // 1.75em
+	  $h6: add-unit((($h5 - remove-unit($font-size)) / 2) + remove-unit($font-size), $default-font-unit) !default !global; // 1.675em
+	} @else {
+	  $font-size: add-unit(16, $default-font-unit) !default !global;
+	  $h1: add-unit(ceil((remove-unit($font-size)*2.5)),                                   $default-font-unit) !default !global; // 40px
+	  $h2: add-unit(ceil((($h1 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !default !global; // 28px
+	  $h3: add-unit(ceil((($h2 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !default !global; // 22px
+	  $h4: add-unit(ceil((($h3 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !default !global; // 19px
+	  $h5: add-unit(ceil((($h4 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !default !global; // 17px
+	  $h6: add-unit(ceil((($h5 - remove-unit($font-size)) / 2) + remove-unit($font-size)), $default-font-unit) !default !global; // 16px
+	}
+
+	// ===========================================================================
+	// Colours
+	// ===========================================================================
+
+	$default-lightness : 10 !default !global;
+	$default-darkness : 10 !default !global;
+	$define-colour-alterations : true !default !global;
+
+	@if ( $define-colour-alterations ) {
+	
+		// Commmon
+		@if variable-exists(red) {
+			$red1 : $red !default !global;
+			$red2 : darken($red, $default-darkness) !default !global;
+			$red3 : lighten($red, $default-lightness) !default !global;
+		}
+
+		@if variable-exists(orange) {
+			$orange1 : $orange !default !global;
+			$orange2 : darken($orange, $default-darkness) !default !global;
+			$orange3 : lighten($orange, $default-lightness) !default !global;
+		}
+
+		@if variable-exists(yellow) {
+			$yellow1 : $yellow !default !global;
+			$yellow2 : darken($yellow, $default-darkness) !default !global;
+			$yellow3 : lighten($yellow, $default-lightness) !default !global;
+		}
+
+		@if variable-exists(green) {
+			$green1 : $green !default !global;
+			$green2 : darken($green, $default-darkness) !default !global;
+			$green3 : lighten($green, $default-lightness) !default !global;
+		}
+
+		@if variable-exists(blue) {
+			$blue1 : $blue !default !global;
+			$blue2 : darken($blue, $default-darkness) !default !global;
+			$blue3 : lighten($blue, $default-lightness) !default !global;
+		}
+
+		@if variable-exists(pink) {
+			$pink1 : $pink !default !global;
+			$pink2 : darken($pink, $default-darkness) !default !global;
+			$pink3 : lighten($pink, $default-lightness) !default !global;
+		}
+
+		@if variable-exists(purple) {
+			$purple1 : $purple !default !global;
+			$purple2 : darken($purple, $default-darkness) !default !global;
+			$purple3 : lighten($purple, $default-lightness) !default !global;
+		}
+
+		@if variable-exists(grey) {
+			$grey1 : $grey !default !global;
+			$grey2 : darken($grey, $default-darkness) !default !global;
+			$grey3 : lighten($grey, $default-lightness) !default !global;
+		}
+
+		@if variable-exists(brown) {
+			$brown1 : $brown !default !global;
+			$brown2 : darken($brown, $default-darkness) !default !global;
+			$brown3 : lighten($brown, $default-lightness) !default !global;
+		}
+
+		@if variable-exists(white) {
+			$white1 : $white              !default !global;
+			$white2 : darken($white, $default-darkness)  !default !global;
+		}
+
+		@if variable-exists(black) {
+			$black1 : $black !default !global;
+			$black2 : lighten($black, 10) !default !global;
+		}
+
+	}
+
+
+	// Social Media
+	$facebook:    #3A5897 !default !global;
+	$twitter:     #00aced !default !global;
+	$google:      #df5146 !default !global;
+	$youtube:     #CD1F1F !default !global;
+	$linkedin:    #1D77B5 !default !global;
+	$instagram:   #E33F5E !default !global;
+	$pinterest:   #BC071D !default !global;
+	$dailymotion: #0066DC !default !global;
+	$vine:        #14B487 !default !global;
+	$snapchat:    #FCFB00 !default !global;
+	$flickr:      #EB1D82 !default !global;
+	$vimeo:       #aad450 !default !global;
+	$wordpress:   #20759A !default !global;
+	$blogger:     #F4811E !default !global;
+	$thumbler:    #36465C !default !global;
+	$reddit :     #FC4501 !default !global;
+	$ello :       #221F1F !default !global;
+
+	$social-media-colours : (
+	  facebook:   $facebook,
+	  twitter:    $twitter,
+	  google:     $google,
+	  googleplus: $google,
+	  youtube:    $youtube,
+	  linkedin:   $linkedin,
+	  instagram:  $instagram,
+	  pinterest:  $pinterest,
+	  dailymotion:$dailymotion,
+	  vine:       $vine,
+	  snapchat:   $snapchat,
+	  flickr:     $flickr,
+	  vimeo:      $vimeo,
+	  wordpress:  $wordpress,
+	  blogger:    $blogger,
+	  thumbler:   $thumbler,
+	  reddit :    $reddit ,
+	  ello :      $ello
+	) !default !global;
+
+	// Special Colours
+	$yello:       #FFCB08      !default !global;
+	$selection:   #B2D3FA      !default !global;
+	$text-colour: $black       !default !global;
+
+	// ===========================================================================
+	// Breakpoints
+	// ===========================================================================
+
+	$_breakpoints:(
+		min          : add-unit($min-breakpoint, px, true),
+		small        : add-unit($small-breakpoint, px, true),
+		small-medium : add-unit($small-medium-breakpoint, px, true),
+		medium       : add-unit($medium-breakpoint, px, true),
+		large        : add-unit($large-breakpoint, px, true),
+		max          : add-unit($max-breakpoint, px, true)
+	);
+
+	@if variable-exists(breakpoints) {
+		$breakpoints: map-merge($breakpoints, $_breakpoints) !global;
+	} @else {
+		$breakpoints : $_breakpoints !global;
+	}
+
+	// ===========================================================================
+	// Custom Properties
+	// ===========================================================================
+
+	$set-custom-properties : true !default !global;
+
+	$_custom-properties : (
+	  gaps               : add-unit($gaps),
+	  vertical-spacing   : add-unit($vertical-spacing, vh),
+	  horizontal-spacing : add-unit($horizontal-spacing, vw),
+	  gutters            : add-unit($gutters),
+	  border-radius      : add-unit($border-radius),
+	  font-size          : add-unit($font-size, $default-font-unit)
+	);
+
+	@if variable-exists(custom-properties) {
+	  $custom-properties: map-merge($custom-properties, $_custom-properties) !global;
+	} @else {
+	  $custom-properties : $_custom-properties !global;
+	}
+
+	$custom-properties: map-merge($custom-properties, $breakpoints) !global;
+
+}

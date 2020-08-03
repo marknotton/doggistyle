@@ -1,0 +1,16 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Boolean                                                          #is-boolean
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see if value is a boolean
+///
+/// @author Mark Notton
+///
+///
+/// @group helpers-checks
+///
+/// @return {bool}
+
+@function boolean($value) {
+  @return type-of($value) == 'bool';
+}

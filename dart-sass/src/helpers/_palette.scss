@@ -1,0 +1,90 @@
+////////////////////////////////////////////////////////////////////////////////
+// Colour Palette
+////////////////////////////////////////////////////////////////////////////////
+
+@use "../modules/colour";
+
+// Adjust these to amend the lightness or darkness amounts for the colours lsited below.. 
+
+$_lightness : 15% !default;
+$_darkness  : 20% !default;
+
+// =============================================================================
+// Common Colours
+// =============================================================================
+
+$red          : #97080E !default;
+$red-light    : colour.lighten($red, $_lightness) !default;
+$red-dark     : colour.darken($red, $_darkness) !default;
+
+$orange       : #DA4B0F !default;
+$orange-light : colour.lighten($orange, $_lightness) !default;
+$orange-dark  : colour.darken($orange, $_darkness) !default;
+
+$yellow       : #E9B104 !default;
+$yellow-light : colour.lighten($yellow, $_lightness) !default;
+$yellow-dark  : colour.darken($yellow, $_darkness) !default;
+
+$green        : #488C13 !default;
+$green-light  : colour.lighten($green, $_lightness) !default;
+$green-dark   : colour.darken($green, $_darkness) !default;
+
+$blue         : #1B55C0 !default;
+$blue-light   : colour.lighten($blue, $_lightness) !default;
+$blue-dark    : colour.darken($blue, $_darkness) !default;
+
+$pink         : #E05D6B !default;
+$pink-light   : colour.lighten($pink, $_lightness) !default;
+$pink-dark    : colour.darken($pink, $_darkness) !default;
+
+$purple       : #613D5A !default;
+$purple-light : colour.lighten($purple, $_lightness) !default;
+$purple-dark  : colour.darken($purple, $_darkness) !default;
+
+$grey         : #787878 !default;
+$grey-light   : colour.lighten($grey, $_lightness) !default;
+$grey-dark    : colour.darken($grey, $_darkness) !default;
+
+$brown        : #774F38 !default;
+$brown-light  : colour.lighten($brown, $_lightness) !default;
+$brown-dark   : colour.darken($brown, $_darkness) !default;
+
+$white        : #FFFFFF !default ;
+$white-dark   : colour.lighten($white, $_lightness) !default;
+
+$black        : #000000 !default ;
+$black-light  : colour.darken($black, $_darkness) !default;
+
+// =============================================================================
+// Social Media Colours
+// =============================================================================
+
+/// @see https://www.lockedownseo.com/social-media-colors/
+
+$facebook:    #1877f2 !default;
+$twitter:     #1da1f2 !default;
+$google:      #4285f4 !default;
+$youtube:     #ff0000 !default;
+$linkedin:    #007bb5 !default;
+$instagram:   #c32aa3 !default;
+$pinterest:   #bd081c !default;
+$dailymotion: #0066DC !default;
+$snapchat:    #fffc00 !default;
+$flickr:      #f40083 !default;
+$vimeo:       #1ab7ea !default;
+$thumbler:    #35465d !default;
+$reddit:      #ff4500 !default;
+$whatsapp:    #25d366 !default;
+$skype:       #00aff0 !default;
+$discord:     #7289da !default;
+
+// =============================================================================
+// Other Colours
+// =============================================================================
+
+$yello: #FFCB08 !default;
+
+/// Handles the cursor selection colour
+/// @see https://css-tricks.com/almanac/selectors/s/selection/
+
+$highlight: #B2D3FA !default; 

@@ -1,0 +1,15 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Hexadecimal                                                          #is-hex
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Checks to see value is a hexidecimal string
+///
+/// @author Mark Notton
+///
+
+///
+/// @return {bool}
+
+@function is-hex($value) {
+  @return is-colour($value) and string-starts-with(to-string($value), '#');
+}

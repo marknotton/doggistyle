@@ -1,0 +1,19 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Colour                                                            #is-colour
+////////////////////////////////////////////////////////////////////////////////
+
+/// Checks to see if value is a colour
+/// @group helpers-checks
+/// @return {bool}
+
+@function colour($value) {
+  @return type-of($value) == 'color';
+}
+
+/// @group helpers-checks
+/// @require {function} colour
+/// @return {bool}
+
+@function color($value) {
+  @return colour($value);
+}

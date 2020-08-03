@@ -1,0 +1,42 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Cast to Unit 
+////////////////////////////////////////////////////////////////////////////////
+
+/// Cast a value to a number if possible or return 0
+/// @author 3rdthemagical
+/// @link https://stackoverflow.com/questions/47630616/scss-arithmetic-operation-with-string
+/// @param {string} $value
+/// @return {number}
+
+
+@use 'sass:list';
+@use 'sass:string';
+@use 'sass:meta';
+
+@function unit($value) {
+  @if meta.type-of($value) != 'string' {
+    @error 'Value for `to-unit` should be a string.';
+  }
+
+  $units: ('px': 1px, 'cm': 1cm, 'mm': 1mm, '%': 1%, 'ch': 1ch, 'pc': 1pc, 'in': 1in, 'em': 1em, 'rem': 1rem, 'pt': 1pt, 'ex': 1ex, 'vw': 1vw, 'vh': 1vh, 'vmin': 1vmin, 'vmax': 1vmax);
+  $parsed-unit: false;
+
+  @each $unit in $units {
+    // string.index - find substring in a string
+    // 'px' in '10px' for example
+
+    // $unit is a pair of ['px': 1px] (item in $units)
+    // nth(['px': 1px], 1) returns 'px'
+    // nth(['px': 1px], 2) returns 1px
+
+    @if (string.index($value, list.nth($unit, 1))) {
+      $parsed-unit: list.nth($unit, 2);
+    }
+  }
+
+  @if (not $parsed-unit) {
+    @error 'Invalid unit `#{$value}`.';
+  }
+
+  @return $parsed-unit;
+}

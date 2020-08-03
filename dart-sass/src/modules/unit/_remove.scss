@@ -1,0 +1,36 @@
+/// Strips any units from a number
+///
+/// @author Hugo Giraudel
+///
+/// @link https://css-tricks.com/snippets/sass/remove-unit-function/
+///
+/// @param {string} $number
+///
+/// @return {number}
+///
+/// @require {function} is-number
+/// @require {function} to-number
+///
+/// @example scss - Usage
+///   remove-unit(50px)
+///
+/// @example scss - Output
+///   50
+///
+
+@use '../cast' as to;
+@use 'sass:math';
+@use 'sass:meta';
+
+@function remove($number) {
+
+  @if not meta.type-of($number) == 'number' {
+    $number : to.number($number);
+  }
+
+  @if meta.type-of($number) == 'number' and not math.is-unitless($number) {
+    @return ($number / ($number * 0 + 1));
+  }
+
+  @return $number;
+}

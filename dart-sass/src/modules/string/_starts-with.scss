@@ -1,0 +1,18 @@
+////////////////////////////////////////////////////////////////////////////////
+/// String Starts With                                       #string-starts-with
+////////////////////////////////////////////////////////////////////////////////
+
+/// Check whether `$string` starts with `$needle`
+/// @author Hugo Giraudel
+
+/// @group helpers-strings
+/// @link https://github.com/HugoGiraudel/SassyStrings/blob/master/dist/_SassyStrings.scss
+/// @param {string} $string - string to check
+/// @param {string} $needle - substring to check
+/// @return {Bool}
+
+@use 'sass:string';
+
+@function starts-with($string, $needle) {
+  @return string.slice($string, 1, string.length($needle)) == $needle;
+}

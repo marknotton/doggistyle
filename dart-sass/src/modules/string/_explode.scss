@@ -1,0 +1,47 @@
+////////////////////////////////////////////////////////////////////////////////
+/// String Explode                                               #string-explode
+////////////////////////////////////////////////////////////////////////////////
+
+/// Explode string into a list
+/// @author Hugo Giraudel
+
+/// @group helpers-strings
+/// @link https://github.com/HugoGiraudel/SassyStrings/blob/master/dist/_SassyStrings.scss
+/// @param {string} $string - String to split
+/// @param {string} $delimiter - string to use as a delimiter to split `$string`
+/// @param {string} $string - The string or array being searched and replaced on
+/// @return {List}
+
+@use 'sass:meta';
+@use 'sass:string';
+@use 'sass:list';
+
+@function explode($string, $delimiter: "", $seperator : space) {
+  $result: ();
+  $length: string.length($string);
+
+  @if string.length($delimiter) == 0 {
+    @for $i from 1 through $length {
+      $result: list.append($result, string.slice($string, $i, $i), $seperator);
+    }
+
+    @return $result;
+  }
+
+  $running: true;
+  $remaining: $string;
+
+  @while $running {
+    $index: string.index($remaining, $delimiter);
+
+    @if $index {
+      $slice: string.slice($remaining, 1, $index - 1);
+      $result: list.append($result, $slice, $seperator);
+      $remaining: string.slice($remaining, $index + string.length($delimiter));
+    } @else {
+      $running: false;
+    }
+  }
+
+  @return list.append($result, $remaining, $seperator);
+}
