@@ -121,26 +121,28 @@
 
 	// Apply hover state properties ----------------------------------------------
 
-	&:hover {
-		@if $hover-background {
-			background-color:$hover-background $_hover-important;
-			$transitions : add(background-color, $transitions);
-		}
-		@if $hover-colour {
-			color:$hover-colour $_hover-important;
-			$transitions : add(color, $transitions);
-		}
-		@if $hover-fill {
-			svg { fill:$hover-fill $_hover-important; }
-			$svg-transitions : add(fill, $svg-transitions);
-		}
-		@if $hover-stroke {
-			svg { stroke:$hover-stroke $_hover-important; }
-			$svg-transitions : add(stroke, $svg-transitions);
-		}
-		@if $hover-border {
-			border-color:$hover-border $_hover-important;
-			$transitions : add(border-color, $transitions);
+	@media ( hover : hover ) {
+		&:hover {
+			@if $hover-background {
+				background-color:$hover-background $_hover-important;
+				$transitions : add(background-color, $transitions);
+			}
+			@if $hover-colour {
+				color:$hover-colour $_hover-important;
+				$transitions : add(color, $transitions);
+			}
+			@if $hover-fill {
+				svg { fill:$hover-fill $_hover-important; }
+				$svg-transitions : add(fill, $svg-transitions);
+			}
+			@if $hover-stroke {
+				svg { stroke:$hover-stroke $_hover-important; }
+				$svg-transitions : add(stroke, $svg-transitions);
+			}
+			@if $hover-border {
+				border-color:$hover-border $_hover-important;
+				$transitions : add(border-color, $transitions);
+			}
 		}
 	}
 
