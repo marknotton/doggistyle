@@ -1,0 +1,34 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Breakpoints                                                     #breakpoints
+////////////////////////////////////////////////////////////////////////////////
+
+@function _breakpoint($string) {
+  @if type-of($string) == 'string' {
+      @if ( $string == min)          { @return $min; }
+      @if ( $string == small)        { @return $small; }
+      @if ( $string == small-medium) { @return $small-medium; }
+      @if ( $string == medium)       { @return $medium; }
+      @if ( $string == large)        { @return $large; }
+      @if ( $string == max)          { @return $max; }
+  } @else {
+    @return $string;
+  }
+}
+
+@mixin out($breakpoint) {
+  @media (min-width:#{_breakpoint($breakpoint) + 1}) {
+    @content;
+  }
+}
+
+@mixin in($breakpoint) {
+  @media (max-width:#{_breakpoint($breakpoint)}) {
+    @content;
+  }
+}
+
+@mixin between($min, $max) {
+  @media (min-width:#{_breakpoint($min)}) and (max-width:#{_breakpoint($max)}) {
+    @content;
+  }
+}

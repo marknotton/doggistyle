@@ -4,6 +4,9 @@
 
 @use 'sass:string';
 
+// This units creator will render six positive and six negative sass variables for 
+// gaps, spacers, and gutters relative to the basev values defined below.
+
 // =============================================================================
 // Base Values 
 // =============================================================================
@@ -14,21 +17,19 @@
 
 // Gaps must use an absolute and static 'px' unit. It should not be relative to any
 // parent container and is not intended for font sizes, so you should not use 'rem' or 'em'. 
-$gap : 15px !default;
+$default-gap : 15px;
+$base-gap : $default-gap !default;
 
 // Spacers must use a 'vh' unit so they are relative to the users viewport height-wise.
 // They should primarily be used for the top and bottom margins on a component level.
-$spacer : 4vh !default; 
+$default-spacer : 4vh;
+$base-spacer : $default-spacer !default; 
 
 // Gutters must use a 'vw' unit so they are relative to the users viewport width-wise. 
 // They should primarily be used for the left and right padding or margin on a parent level.
 // As a suggestion, this gutter constant should be half the size of the spacer value.
-$gutter : 3vw !default; 
-
-// Gutters must use a 'vw' unit so they are relative to the users viewport width-wise. 
-// They should primarily be used for the left and right padding or margin on a parent level.
-// As a suggestion, this gutter constant should be half the size of the spacer value.
-$scaler : 10vw !default; 
+$default-gutter : 3vw;
+$base-gutter : $default-gutter !default; 
 
 // =============================================================================
 // Asbolute Units 
@@ -46,15 +47,13 @@ $scaler : 10vw !default;
   }
 }
 
-$gap0 : gap(0.5); $gap0- : gap(-0.5);
-$gap  : gap(1);   $gap-  : gap(-1);
-$gap2 : gap(2);   $gap2- : gap(-2);
-$gap3 : gap(3);   $gap3- : gap(-3);
-$gap4 : gap(4);   $gap4- : gap(-4);
-$gap5 : gap(5);   $gap5- : gap(-5);
-$gap6 : gap(6);   $gap6- : gap(-6);
-$gap7 : gap(7);   $gap7- : gap(-7);
-$gap8 : gap(8);   $gap8- : gap(-8);
+$gap0 : gap(0.5) !default;  $gap0- : gap(-0.5) !default;
+$gap  : gap(1)   !default;  $gap-  : gap(-1)   !default;
+$gap2 : gap(2)   !default;  $gap2- : gap(-2)   !default;
+$gap3 : gap(3)   !default;  $gap3- : gap(-3)   !default;
+$gap4 : gap(4)   !default;  $gap4- : gap(-4)   !default;
+$gap5 : gap(5)   !default;  $gap5- : gap(-5)   !default;
+$gap6 : gap(6)   !default;  $gap6- : gap(-6)   !default;
 
 // =============================================================================
 // Relative Units 
@@ -94,15 +93,13 @@ $gap8 : gap(8);   $gap8- : gap(-8);
   @return _dynamic-unit(var(--spacer), $amount, $min, $negative, $use-clamp);
 }
 
-$spacer0 : var(--spacer0); $spacer0- : var(--spacer0-);
-$spacer  : var(--spacer1); $spacer-  : var(--spacer1-);
-$spacer2 : var(--spacer2); $spacer2- : var(--spacer2-);
-$spacer3 : var(--spacer3); $spacer3- : var(--spacer3-);
-$spacer4 : var(--spacer4); $spacer4- : var(--spacer4-);
-$spacer5 : var(--spacer5); $spacer5- : var(--spacer5-);
-$spacer6 : var(--spacer6); $spacer6- : var(--spacer6-);
-$spacer7 : var(--spacer7); $spacer7- : var(--spacer7-);
-$spacer8 : var(--spacer8); $spacer8- : var(--spacer8-);
+$spacer0 : var(--spacer0) !default; $spacer0- : var(--spacer0-) !default;
+$spacer  : var(--spacer1) !default; $spacer-  : var(--spacer1-) !default;
+$spacer2 : var(--spacer2) !default; $spacer2- : var(--spacer2-) !default;
+$spacer3 : var(--spacer3) !default; $spacer3- : var(--spacer3-) !default;
+$spacer4 : var(--spacer4) !default; $spacer4- : var(--spacer4-) !default;
+$spacer5 : var(--spacer5) !default; $spacer5- : var(--spacer5-) !default;
+$spacer6 : var(--spacer6) !default; $spacer6- : var(--spacer6-) !default;
 
 // Gutters ------------------------------------------------------------------------
 // Gutters are a relative viewport width (vw) unit intended to be used on a parent level;
@@ -116,14 +113,10 @@ $spacer8 : var(--spacer8); $spacer8- : var(--spacer8-);
   @return _dynamic-unit(var(--gutter), $amount, $min, $negative, $use-clamp);
 }
 
-$gutter0 : var(--gutter0); $gutter0- : var(--gutter0-);
-$gutter  : var(--gutter1); $gutter-  : var(--gutter1-);
-$gutter2 : var(--gutter2); $gutter2- : var(--gutter2-);
-$gutter3 : var(--gutter3); $gutter3- : var(--gutter3-);
-$gutter4 : var(--gutter4); $gutter4- : var(--gutter4-);
-$gutter5 : var(--gutter5); $gutter5- : var(--gutter5-);
-$gutter6 : var(--gutter6); $gutter6- : var(--gutter6-);
-$gutter7 : var(--gutter7); $gutter7- : var(--gutter7-);
-$gutter8 : var(--gutter8); $gutter8- : var(--gutter8-);
-
-$scaler : clamp(2px, 10vw, 100px);
+$gutter0 : var(--gutter0) !default; $gutter0- : var(--gutter0-) !default;
+$gutter  : var(--gutter1) !default; $gutter-  : var(--gutter1-) !default;
+$gutter2 : var(--gutter2) !default; $gutter2- : var(--gutter2-) !default;
+$gutter3 : var(--gutter3) !default; $gutter3- : var(--gutter3-) !default;
+$gutter4 : var(--gutter4) !default; $gutter4- : var(--gutter4-) !default;
+$gutter5 : var(--gutter5) !default; $gutter5- : var(--gutter5-) !default;
+$gutter6 : var(--gutter6) !default; $gutter6- : var(--gutter6-) !default;

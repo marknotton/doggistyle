@@ -15,6 +15,7 @@ $table-elements    : true !default;
 $form-elements     : true !default;
 $embedded-elements : true !default;
 $text-elements     : true !default;
+$dev-elements      : true !default;
 
 @if $normalise {
 
@@ -48,9 +49,18 @@ $text-elements     : true !default;
 			box-sizing:inherit;
 		}
 
-		html { height:100%; font-size: 10px; }
+		html { 
+			height:100%; 
+			font-size:62.5%; 
+			block-size: 100%;
+			inline-size: 100%;
+		}
 
-		body { font-size: 62.5%; }
+		body { 
+			font-size: 62.5%; 
+			min-block-size: 100%;
+			min-inline-size: 100%;
+		}
 
 		html, body {
 			min-height:100%;
@@ -107,7 +117,6 @@ $text-elements     : true !default;
 			-webkit-margin-start:0px;
 			-webkit-margin-end:0px;
 			font-weight: normal;
-			@extend .default !optional;
 		}
 
 	}
@@ -325,6 +334,32 @@ $text-elements     : true !default;
 		textarea {
 			resize:none;
 			overflow: auto;
+		}
+
+	}
+
+	// ======================================================================== //
+	// Development Elements
+	// ======================================================================== //
+
+	@if $dev-elements {
+
+		pre {
+			background-color:white;
+			color:black;
+			text-transform:none;
+			text-decoration:none;
+			text-align:left;
+			display:block;
+			padding:16px;
+			position:relative;
+			z-index:999;
+		}
+		
+		body.devmode {
+			img:not([alt]) {
+				border: 2px red dashed;
+			}
 		}
 
 	}

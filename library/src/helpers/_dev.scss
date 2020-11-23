@@ -1,0 +1,19 @@
+// =============================================================================
+// Special styling for developers
+// =============================================================================
+
+@use './collections/create/palette' as *;
+@use 'sass:list';
+@use 'sass:meta';
+@use 'sass:math';
+
+@function rc($opacity : 0.5, $colour : null) {
+
+  $colours : $red, $orange, $yellow, $green, $blue, $pink, $purple, $grey, $brown; 
+
+  @if ( meta.type-of($colour) == 'null' ) {
+    $colour : list.nth($colours, math.random(list.length($colours)));
+  }
+
+  @return rgba($colour, $opacity);
+}

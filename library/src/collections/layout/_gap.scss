@@ -1,7 +1,0 @@
-$absolute : 15px !default;
-
-@function gap($multiply : 1) {
-
-  @return $absolute * $multiply;
-
-}

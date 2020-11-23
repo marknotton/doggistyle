@@ -72,19 +72,18 @@ const doggistyle = (options = {}, sync) => {
 	// default values to the includePaths like this 
 
 	options.includePaths = options.includePaths.concat([
-		process.env.PWD + '/node_modules/@doggistyle/library/src',
-		process.env.PWD + '/node_modules/@doggistyle/library/src/collections/',
-		process.env.PWD + '/node_modules/@doggistyle/library/src/helpers/',
-		process.env.PWD + '/node_modules/@doggistyle/library/src/modules/',
-		process.env.PWD + '/node_modules/@doggistyle/library/src/variables/'
+		process.env.PWD + '/node_modules/@doggistyle/sass/library/src',
+		process.env.PWD + '/node_modules/@doggistyle/sass/library/src/collections/',
+		process.env.PWD + '/node_modules/@doggistyle/sass/library/src/helpers/',
+		process.env.PWD + '/node_modules/@doggistyle/sass/library/src/modules/',
+		process.env.PWD + '/node_modules/@doggistyle/sass/library/src/variables/'
 	])
 
-	doggistyle.functions = require('./src/Functions')(options, doggistyle.compiler)
+	// doggistyle.functions = require('./src/Functions')(options, doggistyle.compiler)
 	// doggistyle.importers = require('./src/Importers')(options, doggistyle.compiler)
 
 	options = Helpers.merge(options, {
-		functions : doggistyle.functions,
-		// importer : doggistyle.importers
+		// functions : doggistyle.functions
 	})
 
 	// Shallow clone and disconnect the references for the options object so we can

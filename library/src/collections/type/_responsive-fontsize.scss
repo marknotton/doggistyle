@@ -1,0 +1,20 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Responsive Fontsize                                     #responsive-fontsize
+////////////////////////////////////////////////////////////////////////////////
+
+@use '../helpers/breakpoints' as break;
+@use "sass:map";
+
+@mixin responsive-fontsize($min, $max, $scaler : 1.5vw, $breakpoints : (min:950px, max:1600px)) {
+  
+	// Responsive fontsize
+  @supports ( width:clamp(1px, 5vw, 10px)) {
+    font-size:clamp($min, $scaler, $max);   
+	}
+
+	// Responsive fontsize fallback for browsers that don't support 'clamp'
+	@supports not (width:clamp(1px, 5vw, 10px)) {
+		@include break.in(map.get($breakpoints, 'min')) { font-size:$min; }
+		@include break.out(map.get($breakpoints, 'max')) { font-size:$max; }
+	}
+}
