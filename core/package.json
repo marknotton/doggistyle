@@ -1,6 +1,6 @@
 {
   "name": "@doggistyle/core",
-  "version": "0.4.0",
+  "version": "0.4.3",
   "description": "Dart-Sass plugin that adds Javascript functionality to Sass funtions",
   "main": "core/index.js",
   "repository": "marknotton/doggistyle",

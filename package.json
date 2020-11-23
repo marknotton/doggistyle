@@ -1,7 +1,7 @@
 {
-  "name": "doggistyle",
-  "version": "0.4.2",
-  "description": "A collection of Sass resources organised into a single library",
+  "name": "@doggistyle",
+  "version": "0.4.3",
+  "description": "A Dart-sass plugin and a Sass collection",
   "main": "index.js",
   "repository": "https://github.com/marknotton/doggistyle",
   "author": "Mark Notton <mark@marknotton.uk>",

@@ -72,11 +72,11 @@ const doggistyle = (options = {}, sync) => {
 	// default values to the includePaths like this 
 
 	options.includePaths = options.includePaths.concat([
-		process.env.PWD + '/node_modules/doggistyle/library/src',
-		process.env.PWD + '/node_modules/doggistyle/library/src/collections/',
-		process.env.PWD + '/node_modules/doggistyle/library/src/helpers/',
-		process.env.PWD + '/node_modules/doggistyle/library/src/modules/',
-		process.env.PWD + '/node_modules/doggistyle/library/src/variables/'
+		process.env.PWD + '/node_modules/@doggistyle/library/src',
+		process.env.PWD + '/node_modules/@doggistyle/library/src/collections/',
+		process.env.PWD + '/node_modules/@doggistyle/library/src/helpers/',
+		process.env.PWD + '/node_modules/@doggistyle/library/src/modules/',
+		process.env.PWD + '/node_modules/@doggistyle/library/src/variables/'
 	])
 
 	doggistyle.functions = require('./src/Functions')(options, doggistyle.compiler)
