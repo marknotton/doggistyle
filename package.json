@@ -1,5 +1,5 @@
 {
-  "name": "@doggistyle/library",
+  "name": "@doggistyle/sass",
   "version": "0.4.3",
   "description": "A Dart-sass plugin and a Sass collection",
   "main": "index.js",
