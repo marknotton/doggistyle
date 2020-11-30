@@ -2,18 +2,39 @@
 // Special styling for developers
 // =============================================================================
 
-@use './collections/create/palette' as *;
+@use './create/palette' as *;
 @use 'sass:list';
 @use 'sass:meta';
 @use 'sass:math';
 
+$_colours : $red, $orange, $yellow, $green, $blue, $pink, $purple, $grey, $brown;
+
 @function rc($opacity : 0.5, $colour : null) {
 
-  $colours : $red, $orange, $yellow, $green, $blue, $pink, $purple, $grey, $brown; 
-
   @if ( meta.type-of($colour) == 'null' ) {
-    $colour : list.nth($colours, math.random(list.length($colours)));
+    $colour : list.nth($_colours, math.random(list.length($_colours)));
   }
 
   @return rgba($colour, $opacity);
+}
+
+@mixin rb($amount, $opacity : 0.5) {
+
+  @for $i from 1 through $amount {
+    &:nth-of-type(#{$i}) {
+
+      @if $i > list.length($_colours) {
+        $i : $i - list.length($_colours);
+        @if $i > list.length($_colours) {
+          $i : $i - list.length($_colours);
+          @if $i > list.length($_colours) {
+            $i : $i - list.length($_colours);
+          }
+        }
+      }
+      
+      background-color: rgba(list.nth($_colours, $i), $opacity);
+    }
+  }
+
 }

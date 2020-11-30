@@ -1,0 +1,39 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Crop                                                                   #crop
+////////////////////////////////////////////////////////////////////////////////
+
+@use 'sass:math';
+
+/// @see http://text-crop.eightshapes.com/?typeface-selection=google-font&typeface=Lato&custom-typeface-name=Helvetica&custom-typeface-url=&custom-typeface-weight=400&custom-typeface-style=normal&weight-and-style=100&size=36&line-height=1.2&top-crop=9&bottom-crop=8
+
+@mixin crop($font-size:16, $line-height: 1.4, $top: 0, $bottom: 0) {
+  
+  $font-size : 61;
+  $crop-line-height: 1.2;
+
+  // Apply values to calculate em-based margins that work with any font size
+  $dynamic-top-crop: math.max(($top + ($line-height - $crop-line-height) * ($font-size / 2)), 0) / $font-size;
+  $dynamic-bottom-crop: math.max(($bottom + ($line-height - $crop-line-height) * ($font-size / 2)), 0) / $font-size;
+
+  $sanatise-top-crop : math.round($dynamic-top-crop * 100) / 100;
+  $sanatise-bottom-crop : math.round($dynamic-bottom-crop * 100) / 100;
+
+  // Mixin output
+  line-height: $line-height;
+
+  &::before,
+  &::after {
+    content: '';
+    display: block;
+    height: 0;
+    width: 0;
+  }
+
+  &::before {
+    margin-bottom: - #{$sanatise-top-crop}em;
+  }
+
+  &::after {
+    margin-top: - #{$sanatise-bottom-crop}em;
+  }
+}

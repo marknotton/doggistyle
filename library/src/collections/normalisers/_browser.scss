@@ -39,7 +39,6 @@ $dev-elements      : true !default;
 		}
 
 		:root {
-			line-height: 1.15;
 			box-sizing: border-box;
 			-webkit-text-size-adjust: 100%;
 		}
@@ -57,7 +56,6 @@ $dev-elements      : true !default;
 		}
 
 		body { 
-			font-size: 62.5%; 
 			min-block-size: 100%;
 			min-inline-size: 100%;
 		}
@@ -78,7 +76,10 @@ $dev-elements      : true !default;
 
 		details { display: block;	}
 
-		summary { display: list-item;	}
+		summary {
+			display: list-item;
+			&::-webkit-details-marker { display: none; }
+		}
 
 		template { display: none;	}
 
@@ -351,6 +352,7 @@ $dev-elements      : true !default;
 			text-decoration:none;
 			text-align:left;
 			display:block;
+			font-size:16px;
 			padding:16px;
 			position:relative;
 			z-index:999;

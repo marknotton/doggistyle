@@ -1,0 +1,148 @@
+////////////////////////////////////////////////////////////////////////////////
+// Headings
+////////////////////////////////////////////////////////////////////////////////
+
+@use 'sass:string';
+@use 'sass:map';
+@use 'sass:meta';
+@use 'sass:math';
+@use './collections/type/crop' as *;
+@use './modules/unit/strip' as *;
+
+// Default Heading Values ------------------------------------------------------
+
+$h1 : (
+  'font-size'   : 3.0rem,
+  'line-height' : 1.1
+) !default;
+
+$h2 : (
+  'font-size'   : 2.5rem,
+  'line-height' : 1.3
+) !default;
+
+$h3 : (
+  'font-size'   : 2.2rem,
+  'line-height' : 1.4
+) !default;
+
+$h4 : (
+  'font-size'   : 2.0rem,
+  'line-height' : 1.4
+) !default;
+
+$h5 : (
+  'font-size'   : 1.8rem,
+  'line-height' : 1.4
+) !default;
+
+$h6 : (
+  'font-size'   : 1.6rem,
+  'line-height' : 1.4
+) !default;
+
+$base : null !default;
+
+// Fallback Line-heights should they not have been passed ----------------------
+
+@if not map.has-key($h1, "line-height") { $h1 : map.set($h1, 'line-height', 1.1); }
+@if not map.has-key($h2, "line-height") { $h2 : map.set($h2, 'line-height', 1.3); }
+@if not map.has-key($h3, "line-height") { $h3 : map.set($h3, 'line-height', 1.4); }
+@if not map.has-key($h4, "line-height") { $h4 : map.set($h4, 'line-height', 1.4); }
+@if not map.has-key($h5, "line-height") { $h5 : map.set($h5, 'line-height', 1.4); }
+@if not map.has-key($h6, "line-height") { $h6 : map.set($h6, 'line-height', 1.4); }
+
+// Define the variables so they are still accesible ----------------------------
+
+$h1-font-size   : map-get($h1, 'font-size');
+$h1-line-height : map-get($h1, 'line-height');
+
+$h2-font-size   : map-get($h2, 'font-size');
+$h2-line-height : map-get($h2, 'line-height');
+
+$h3-font-size   : map-get($h3, 'font-size');
+$h3-line-height : map-get($h3, 'line-height');
+
+$h4-font-size   : map-get($h4, 'font-size');
+$h4-line-height : map-get($h4, 'line-height');
+
+$h5-font-size   : map-get($h5, 'font-size');
+$h5-line-height : map-get($h5, 'line-height');
+
+$h6-font-size   : map-get($h6, 'font-size');
+$h6-line-height : map-get($h6, 'line-height');
+
+// Handles Crops should they not have been passed ------------------------------
+
+$_h1-crop : if(not map.has-key($h1, "crop") and meta.type-of(map-get($h1, "crop")) == 'map', false, map-get($h1, "crop"));
+$_h2-crop : if(not map.has-key($h2, "crop") and meta.type-of(map-get($h2, "crop")) == 'map', false, map-get($h2, "crop"));
+$_h3-crop : if(not map.has-key($h3, "crop") and meta.type-of(map-get($h3, "crop")) == 'map', false, map-get($h3, "crop"));
+$_h4-crop : if(not map.has-key($h4, "crop") and meta.type-of(map-get($h4, "crop")) == 'map', false, map-get($h4, "crop"));
+$_h5-crop : if(not map.has-key($h5, "crop") and meta.type-of(map-get($h5, "crop")) == 'map', false, map-get($h5, "crop"));
+$_h6-crop : if(not map.has-key($h6, "crop") and meta.type-of(map-get($h6, "crop")) == 'map', false, map-get($h6, "crop"));
+
+// Mixins for each heading -----------------------------------------------------
+
+@mixin _set-heading($font-size, $line-height, $font-size-only : false) {
+
+  // When the html fontsize is 62.5% and the body fontsize is a rem;
+  // header elements also using rem don't respect the relative sizing. So when
+  // we use clamp fontsize on the body the headers do change, but everthing else does. 
+  // This series of checks recalculates the header fontsize relative to the base font. 
+  @if meta.type-of($base) == 'number' and meta.type-of($base) != 'null' and math.unit($font-size) == 'em' {
+    $stripped-base      : strip($base);
+    $stripped-font-size : strip($font-size);
+    $font-size          : $stripped-font-size / $stripped-base + em;
+  }
+
+  font-size : $font-size;
+  
+  @if not $font-size-only { 
+    line-height : $line-height;
+  }
+}
+
+@mixin _set-crop($font-size, $line-height, $crop) {
+
+  @if (meta.type-of($crop) == 'map') {
+
+    $font-size   : strip($font-size) * 10;
+    $line-height : strip($line-height);
+    $top         : if(map.has-key($crop, "top"), strip(map.get($crop, "top")), 0);
+    $bottom      : if(map.has-key($crop, "bottom"), strip(map.get($crop, "bottom")), 0);
+
+    @include crop($font-size, $line-height, $top, $bottom);
+
+  }
+
+}
+
+@mixin h1($font-size-only : false, $crop : $_h1-crop) {
+  @include _set-heading($h1-font-size, $h1-line-height, $font-size-only);
+  @if ( $crop and not $font-size-only) { @include _set-crop($h1-font-size, $h1-line-height, $_h1-crop ); }
+}
+
+@mixin h2($font-size-only : false, $crop : $_h2-crop) {
+  @include _set-heading($h2-font-size, $h2-line-height, $font-size-only);
+  @if ( $crop and not $font-size-only) { @include _set-crop($h2-font-size, $h2-line-height, $_h2-crop ); }
+}
+
+@mixin h3($font-size-only : false, $crop : $_h3-crop) {
+  @include _set-heading($h3-font-size, $h3-line-height, $font-size-only);
+  @if ( $crop and not $font-size-only) { @include _set-crop($h3-font-size, $h3-line-height, $_h3-crop ); }
+}
+
+@mixin h4($font-size-only : false, $crop : $_h4-crop) {
+  @include _set-heading($h4-font-size, $h4-line-height, $font-size-only);
+  @if ( $crop and not $font-size-only) { @include _set-crop($h4-font-size, $h4-line-height, $_h4-crop ); }
+}
+
+@mixin h5($font-size-only : false, $crop : $_h5-crop) {
+  @include _set-heading($h5-font-size, $h5-line-height, $font-size-only);
+  @if ( $crop and not $font-size-only) { @include _set-crop($h5-font-size, $h5-line-height, $_h5-crop ); }
+}
+
+@mixin h6($font-size-only : false, $crop : $_h6-crop) {
+  @include _set-heading($h6-font-size, $h6-line-height, $font-size-only);
+  @if ( $crop and not $font-size-only) { @include _set-crop($h6-font-size, $h6-line-height, $_h6-crop ); }
+}
