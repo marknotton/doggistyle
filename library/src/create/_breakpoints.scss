@@ -1,0 +1,174 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Breakpoints                                                     #breakpoints
+////////////////////////////////////////////////////////////////////////////////
+
+@use 'sass:map';
+@use 'sass:meta';
+@use 'sass:string';
+@use 'sass:math';
+@use '../helpers/break';
+
+/// When ONLY using the following predefine breakpoint names you can use this create file like this:
+/// @example 
+/// @forward 'create/breakpoints' with (
+///   $min          : 320,
+///   $small        : 480,
+///   $small-medium : 720,
+///   $medium       : 950,
+///   $large        : 1120,
+///   $max          : 1680
+/// );
+
+$min          : null !default; // 320px
+$min-small    : null !default; 
+$small        : null !default; // 480px
+$small-medium : null !default; // 720px
+$medium       : null !default; // 950px
+$medium-large : null !default; 
+$large        : null !default; // 1120px
+$large-max    : null !default; 
+$max          : null !default; // 1680p
+
+/// When using any number of breakpoints with any name you can use this create file like this:
+/// @example 
+/// @forward 'create/breakpoints' with (
+///   $breakpoints : (
+///     'min'          : 320,
+///     'small'        : 480,
+///     'small-medium' : 720,
+///     'nav'          : 666, <-- won't be exposed becuase it's not a predefined name ($media-nav will error)
+///     'medium'       : 950,
+///     'large'        : 1120,
+///     'max'          : 1680
+///   )
+/// );
+
+$breakpoints : (
+  'min'          : $min,
+  'min-small'    : $min-small,
+  'small'        : $small,
+  'small-medium' : $small-medium,
+  'medium'       : $medium,
+  'medium-large' : $medium-large,
+  'large'        : $large,
+  'large-max'    : $large-max,
+  'max'          : $max
+) !default;
+
+/// Private add-unit functions -------------------------------------------------
+/// @see https://sass-lang.com/documentation/operators/numeric
+
+@function _add-unit($value) {
+  @if (meta.type-of($value) == 'number' and math.is-unitless($value)) {
+    @return $value * 1px;
+  }
+  @return $value;
+} 
+
+/// Update all the predefined breakpoints from the $breakpoints map -------------
+/// We have to do it this way because we can't dynamically define variables
+/// names. This is why we have the predefined names. 
+
+@if map.has-key($breakpoints, "min") { 
+  $min : _add-unit(map-get($breakpoints, "min")); 
+  @if meta.type-of(map-get($breakpoints, "min")) == 'null'  {
+    $breakpoints : map.remove($breakpoints, "min"); 
+  }
+}
+
+@if map.has-key($breakpoints, "min-small") { 
+  $min-small : _add-unit(map-get($breakpoints, "min-small")); 
+  @if meta.type-of(map-get($breakpoints, "min-small")) == 'null'  {
+    $breakpoints : map.remove($breakpoints, "min-small"); 
+  }
+}
+
+@if map.has-key($breakpoints, "small") { 
+  $small : _add-unit(map-get($breakpoints, "small")); 
+  @if meta.type-of(map-get($breakpoints, "small")) == 'null'  {
+    $breakpoints : map.remove($breakpoints, "small"); 
+  }
+}
+
+@if map.has-key($breakpoints, "small-medium") { 
+  $small-medium : _add-unit(map-get($breakpoints, "small-medium")); 
+  @if meta.type-of(map-get($breakpoints, "small-medium")) == 'null'  {
+    $breakpoints : map.remove($breakpoints, "small-medium"); 
+  }
+}
+
+@if map.has-key($breakpoints, "medium") { 
+  $medium : _add-unit(map-get($breakpoints, "medium")); 
+  @if meta.type-of(map-get($breakpoints, "medium")) == 'null'  {
+    $breakpoints : map.remove($breakpoints, "medium"); 
+  }
+}
+
+@if map.has-key($breakpoints, "medium-large") { 
+  $medium-large : _add-unit(map-get($breakpoints, "medium-large")); 
+  @if meta.type-of(map-get($breakpoints, "medium-large")) == 'null'  {
+    $breakpoints : map.remove($breakpoints, "medium-large"); 
+  }
+}
+
+@if map.has-key($breakpoints, "large") { 
+  $large : _add-unit(map-get($breakpoints, "large")); 
+  @if meta.type-of(map-get($breakpoints, "large")) == 'null'  {
+    $breakpoints : map.remove($breakpoints, "large"); 
+  }
+}
+
+@if map.has-key($breakpoints, "large-max") { 
+  $large-max : _add-unit(map-get($breakpoints, "large-max")); 
+  @if meta.type-of(map-get($breakpoints, "large-max")) == 'null'  {
+    $breakpoints : map.remove($breakpoints, "large-max"); 
+  }
+}
+
+@if map.has-key($breakpoints, "max") { 
+  $max : _add-unit(map-get($breakpoints, "max")); 
+  @if meta.type-of(map-get($breakpoints, "max")) == 'null'  {
+    $breakpoints : map.remove($breakpoints, "max"); 
+  }
+}
+
+// Make sure all the values in the $breakpoints map have units
+
+@each $key, $value in $breakpoints {
+  $breakpoints : map.set($breakpoints, $key, _add-unit($value)); 
+}
+
+/// Breakpoint function
+/// Accepts a string to pull from the $breakpoints map if it exists
+
+@function breakpoint($value) {
+  @if meta.type-of($value) == 'string' {
+    @if map.has-key($breakpoints, $value) and meta.type-of(map-get($breakpoints, $value) != null) {
+      $value : map-get($breakpoints, $value);
+    } @else {
+      @warn '"' + $value + '" breakpoint has not been defined. Check the rules wherever you are registering your "create/breakpoints" helper';
+    }
+  }
+  @return _add-unit($value);
+}
+
+/// Break mixins
+/// Redefine the break mixins with ones that use the breakpoints function for validation
+
+@mixin out($breakpoint) {
+  @include break.out(breakpoint($breakpoint)) {
+    @content;
+  }
+}
+
+@mixin in($breakpoint) {
+  @include break.in(breakpoint($breakpoint)) {
+    @content;
+  }
+}
+
+@mixin between($min, $max) {
+  @include break.between(breakpoint($min), breakpoint($max)) {
+    @content;
+  }
+}

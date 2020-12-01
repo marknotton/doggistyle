@@ -5,10 +5,13 @@ class Breakpoints extends HTMLElement {
     this.shadow = this.attachShadow({ mode: 'open' });
   }
 
+  // TODO: https://codepen.io/tylergaw/pen/jObmNNM
+  // Read all breakpoints from the document body.
+
   breakpoints = [
     { name: 'min',          theme : '#F37252' },
     { name: 'small',        theme : '#F07E00' },
-    { name: 'medium-small', theme : '#577D56' },
+    { name: 'small-medium', theme : '#577D56' },
     { name: 'medium',       theme : '#2A465C' },
     { name: 'large',        theme : '#56425E' },
     { name: 'max',          theme : '#944D6D' }

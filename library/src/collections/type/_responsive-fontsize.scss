@@ -2,7 +2,7 @@
 /// Responsive Fontsize                                     #responsive-fontsize
 ////////////////////////////////////////////////////////////////////////////////
 
-@use '../helpers/breakpoints' as break;
+@use '../helpers/break';
 @use "sass:map";
 
 @mixin responsive-fontsize($min, $max, $scaler : 1.5vw, $breakpoints : (min:950px, max:1600px)) {
