@@ -8,7 +8,6 @@
 
 @mixin crop($font-size:16, $line-height: 1.4, $top: 0, $bottom: 0) {
   
-  $font-size : 61;
   $crop-line-height: 1.2;
 
   // Apply values to calculate em-based margins that work with any font size
@@ -36,4 +35,8 @@
   &::after {
     margin-top: - #{$sanatise-bottom-crop}em;
   }
+}
+
+@mixin remove {
+  &::before, &::after { display:none; }
 }

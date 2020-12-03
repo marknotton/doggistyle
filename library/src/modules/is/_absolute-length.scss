@@ -2,6 +2,10 @@
 /// Absolute Length                                          #is-absolute-length
 ////////////////////////////////////////////////////////////////////////////////
 
+@use 'sass:meta';
+@use 'sass:math';
+@use 'sass:string';
+
 /// Checks to see if value is a type of unit that can't be manipulated relative
 /// to parent elements
 /// @name Absolute Length
@@ -14,5 +18,5 @@
 /// @return {bool}
 
 @function absolute-length($value) {
-  @return type-of($value) == 'number' and index($absolute-lengths, unit($value)) != null;
+  @return meta.type-of($value) == 'number' and string.index('cm' 'mm' 'in' 'px' 'pt' 'pc', math.unit($value)) != null;
 }

@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 /// ======================================================================== ///
-/// Doggistyle v0.4.0-beta                                       #doggistyle ///
+/// Doggistyle v0.4.4-beta                                       #doggistyle ///
 /// ======================================================================== ///
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -9,21 +9,23 @@
 /// what I hope to be a valuable toolset of features for your project.
 /// Installation and documention can be found here:
 /// @see https://github.com/marknotton/doggistyle
-/// 
-/// NOTICE: This build of Doggistyle has been written from the ground-up to 
-/// support Dart-Sass. Almost all Mixins, Functions and Variables from previous 
-/// versions will have breaking changes. 
 ///
 /// The MIT License (MIT) - Mark Notton
 ///
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Getting Started
-/// Doggistyle extends the existing functionality of Sass's built-in Modules. 
-/// Instead of @use "sass:map", just use '@use "map" which will forward on 
-/// the native methods as well as the additions. This assumes you've set your
-/// 'includePaths' to point to the Doggistyle directory.
-/// Currently the only extended modules are: map, list, string and colour. 
-/// 'sass:color' has been redefined to the UK spelling of 'colour'
+@use 'sass:map';
+@use 'sass:string';
+@use 'sass:math';
+@use 'helpers/modules' as *;
 
-@charset "UTF-8";
+$typography : null !default;
+
+$_font-size-base : map-define($typography, 'font-size');
+
+@function font-size($value) {
+  @if not is-null($_font-size-base) {
+    @return unit-px-to-em($value, $_font-size-base);
+  }
+  @return $value;
+}

@@ -6,7 +6,9 @@
 /// @group helpers-checks
 /// @return {bool}
 
+@use 'sass:meta';
+
 @function string($value) {
-  @return type-of($value) == 'string';
+  @return meta.type-of($value) == 'string';
 }
 

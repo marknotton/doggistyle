@@ -1,0 +1,15 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Font Size                                                          #fontsize
+////////////////////////////////////////////////////////////////////////////////
+
+@use "sass:math";
+@use "sass:map";
+@use './modules/unit';
+
+@function size($value, $base : 62.5) {
+  @if math.unit($value) == 'rem' or math.unit($value) == 'em' {
+    @return (unit.strip($value) / 100 * $base)+em;
+  } @else {
+    @return (unit.strip($value) / 1000 * $base)+em;
+  }  
+}

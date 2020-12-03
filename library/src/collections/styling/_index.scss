@@ -1,2 +1,4 @@
-@forward 'position';
-@forward 'image';
+@forward 'position' as position-*;
+@forward 'hover' show hover;
+@forward 'image' as image-*;
+@forward 'background' as background-*;

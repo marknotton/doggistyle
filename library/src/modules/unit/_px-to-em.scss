@@ -1,0 +1,18 @@
+@use 'sass:meta';
+@use 'sass:string';
+@use 'sass:math';
+@use 'strip' as *;
+
+@function px-to-em($value, $base) {
+
+  @if string.index('rem', math.unit($base)) != null or string.index('em', math.unit($base)) != null {
+    $base : $base * 10;
+  }
+
+  @if meta.type-of($base) == 'number' and meta.type-of($value) == 'number' {
+    $stripped-base      : strip($base);
+    $stripped-font-size : strip($value);
+    $value : $stripped-font-size / $stripped-base + em;
+  }
+  @return $value;
+}

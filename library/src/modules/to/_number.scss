@@ -8,11 +8,11 @@
 /// @param {string} $value
 /// @return {number}
 
-@use '../modules/list';
-@use '../modules/map';
-@use '../modules/string';
-@use '../modules/meta';
-@use '../modules/math';
+@use 'sass:list';
+@use 'sass:map';
+@use 'sass:string';
+@use 'sass:meta';
+@use 'sass:math';
 
 // Constants 
 $numbers    : ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9');

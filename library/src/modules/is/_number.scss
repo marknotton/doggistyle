@@ -16,15 +16,12 @@
 
 @use 'sass:math';
 @use 'sass:meta';
-@use '../modules/is/string' as *;
-@use '../modules/is/number' as *;
-// @use '../modules/is';
-@use '../modules/string';
-@use '../modules/unit';
+@use 'sass:string';
+@use './modules/to';
 
 @function number($value, $check-strings:true, $allow-units:true) {
 
-  @if $check-strings and string($value) {
+  @if $check-strings and meta.type-of($value) == 'string' {
 
     // Early check to dismiss this as a number if any spaces are found in the string.
     @if string.index($value, ' ') != null {
@@ -37,8 +34,8 @@
     }
 
     // Remove percentage symbol.
-    @if ( number($value) and math.unit($value) == '%' ) {
-     $value : string.replace($value, '%', '');
+    @if ( meta.type-of($value) == 'number' and math.unit($value) == '%' ) {
+      $value : string.replace($value, '%', '');
     }
 
     // Remove units from the value string. It had to be done this way, because
@@ -47,7 +44,7 @@
       $unit : null;
 
       @each $u in $units {
-        @if string.ends-with($value, $u) {
+        @if string.slice($value, 1, string.length($u)) == $u {
           $unit : $u;
         }
       }

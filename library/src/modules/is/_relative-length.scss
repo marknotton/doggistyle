@@ -1,7 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 /// Relative Length                                          #is-relative-length
 ////////////////////////////////////////////////////////////////////////////////
-///
+
+@use 'sass:meta';
+@use 'sass:math';
+@use 'sass:string';
+
+
 /// Checks to see if value is a type of unit that can be manipulated relative to parent elements
 ///
 /// @author Hugo Giraudel
@@ -18,5 +23,5 @@
 /// @return {bool}
 
 @function is-relative-length($value) {
-  @return is-number($value) and index($relative-units, unit($value)) != null;
+  @return meta.type-of($value) == 'number' and string.index('em' 'ex' 'ch' 'rem' 'vw' 'vh' 'vmin' 'vmax', math.unit($value)) != null;
 }

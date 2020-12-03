@@ -6,8 +6,4 @@ $relative : 'em', 'ex', 'ch', 'rem', 'lh', 'vw', 'vh', 'vmin', 'vmax';
 @forward "remove";
 @forward "percent-to-decimal";
 @forward "strip";
-
-@forward "add" as unit-*;
-@forward "remove" as unit-*;
-@forward "percent-to-decimal" as unit-*;
-@forward "strip" as unit-*;
+@forward "px-to-em";

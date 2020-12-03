@@ -25,7 +25,7 @@
 /// opacity:0.5;
 ///
 
-@use '../modules/check/percentage' as *;
+@use '../modules/is/percentage' as *;
 @use 'remove' as *;
 
 @function percent-to-decimal($number) {

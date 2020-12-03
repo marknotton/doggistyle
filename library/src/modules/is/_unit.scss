@@ -17,6 +17,8 @@
 ///
 /// @return {bool}
 
+@use 'sass:math';
+
 @function is-unit($value) {
-  @return unit($value) != '';
+  @return math.unit($value) != '';
 }

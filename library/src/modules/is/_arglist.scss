@@ -1,17 +1,17 @@
 ////////////////////////////////////////////////////////////////////////////////
 /// Arglist                                                          #is-arglist
 ////////////////////////////////////////////////////////////////////////////////
-///
+
+@use 'sass:meta';
+
 /// Checks to see if value is a arglist
 ///
 /// @author Mark Notton
-///
-
 ///
 /// @group helpers-checks
 ///
 /// @return {bool}
 
 @function arglist($value) {
-  @return type-of($value) == 'arglist';
+  @return meta.type-of($value) == 'arglist';
 }

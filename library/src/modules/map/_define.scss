@@ -1,0 +1,21 @@
+
+@use '../is';
+@use 'sass:map';
+
+// Return a value after validating is exists within a map 
+
+@function define($map, $key) {
+
+  @if is.map($map) {
+
+    @if map.has-key($map, $key) {
+
+      @return map.get($map, $key);
+
+    }
+
+  }
+
+  @return null;
+
+}

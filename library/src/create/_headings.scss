@@ -6,8 +6,8 @@
 @use 'sass:map';
 @use 'sass:meta';
 @use 'sass:math';
-@use './collections/type/crop' as *;
-@use './modules/unit/strip' as *;
+@use './collections/font';
+@use './modules/unit';
 
 // Default Heading Values ------------------------------------------------------
 
@@ -41,7 +41,7 @@ $h6 : (
   'line-height' : 1.4
 ) !default;
 
-$base : null !default;
+$base : 62.5 !default;
 
 // Fallback Line-heights should they not have been passed ----------------------
 
@@ -84,34 +84,20 @@ $_h6-crop : if(not map.has-key($h6, "crop") and meta.type-of(map-get($h6, "crop"
 // Mixins for each heading -----------------------------------------------------
 
 @mixin _set-heading($font-size, $line-height, $font-size-only : false) {
-
-  // When the html fontsize is 62.5% and the body fontsize is a rem;
-  // header elements also using rem don't respect the relative sizing. So when
-  // we use clamp fontsize on the body the headers do change, but everthing else does. 
-  // This series of checks recalculates the header fontsize relative to the base font. 
-  @if meta.type-of($base) == 'number' and meta.type-of($base) != 'null' and math.unit($font-size) == 'em' {
-    $stripped-base      : strip($base);
-    $stripped-font-size : strip($font-size);
-    $font-size          : $stripped-font-size / $stripped-base + em;
-  }
-
-  font-size : $font-size;
-  
-  @if not $font-size-only { 
-    line-height : $line-height;
-  }
+  font-size : font.size($font-size);
+  @if not $font-size-only { line-height : $line-height; }
 }
 
 @mixin _set-crop($font-size, $line-height, $crop) {
 
   @if (meta.type-of($crop) == 'map') {
 
-    $font-size   : strip($font-size) * 10;
-    $line-height : strip($line-height);
-    $top         : if(map.has-key($crop, "top"), strip(map.get($crop, "top")), 0);
-    $bottom      : if(map.has-key($crop, "bottom"), strip(map.get($crop, "bottom")), 0);
+    $font-size   : unit.strip($font-size) * 10;
+    $line-height : unit.strip($line-height);
+    $top         : if(map.has-key($crop, "top"), unit.strip(map.get($crop, "top")), 0);
+    $bottom      : if(map.has-key($crop, "bottom"), unit.strip(map.get($crop, "bottom")), 0);
 
-    @include crop($font-size, $line-height, $top, $bottom);
+    @include font.crop($font-size, $line-height, $top, $bottom);
 
   }
 

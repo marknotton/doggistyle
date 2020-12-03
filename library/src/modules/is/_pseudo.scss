@@ -1,7 +1,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 /// Pseudo                                                            #is-pseudo
 ////////////////////////////////////////////////////////////////////////////////
-///
+
+@use 'sass:string';
+
 /// Check to see is a 'before' of 'after' pseudo has been passed
 ///
 /// @author Mark Notton
@@ -12,8 +14,8 @@
 ///
 /// @return {bool}
 
-@function is-pseudo($pseudo) {
-  @return index(before after, $pseudo);
+@function pseudo($pseudo) {
+  @return string.index('before' 'after', $pseudo);
 }
 
 /// Sudo ============================================================== #is-sudo
@@ -28,6 +30,6 @@
 ///
 /// @return {bool}
 
-@function is-sudo($pseudo) {
-  @return is-pseudo($pseudo)
+@function sudo($pseudo) {
+  @return pseudo($pseudo)
 }

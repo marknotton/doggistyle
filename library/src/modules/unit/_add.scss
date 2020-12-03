@@ -30,28 +30,14 @@
 
 @use 'sass:math';
 @use 'sass:map';
-@use '../modules/argument/defaults';
+@use 'sass:meta';
 @use '../modules/to/number' as to;
-@use '../modules/is/number' as is;
 @use 'remove';
 
 
-@function add($value, $args...) {
+@function add($value, $unit, $force) {
 
-  $arguments : defaults((
-    unit    : 'px',
-    force   : false,
-		convert : true
-  ), $args...);
-
-  $unit    : map-get($arguments, unit);
-  $force   : map-get($arguments, force);
-  $convert : map-get($arguments, convert);
-
-  // @debug type-of($value);
-  @debug is-number($value);
-  // @if is.number($value) {
-  @if type-of($value) == 'number' {
+  @if meta.type-of($value) == 'number' {
     @if math.is-unitless($value) {
       @return to-number($value + $unit);
     }

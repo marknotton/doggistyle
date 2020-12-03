@@ -2,8 +2,9 @@
 /// Ease                                                                #is-ease
 ////////////////////////////////////////////////////////////////////////////////
 
-@use 'string';
-@use 'list';
+@use 'sass:string';
+@use 'sass:list';
+@use 'sass:meta';
 
 /// Checks to see if string is an ease
 /// @author Mark Notton
@@ -13,5 +14,5 @@
 /// @return {bool}
 
 @function ease($string) {
-  @return type-of($string) == 'string' and list.contains(string.slice(#{$string}, 0, 4), ease line step cubi init)
+  @return meta.type-of($string) == 'string' and list.contains(string.slice(#{$string}, 0, 4), ease line step cubi init)
 }

@@ -1,0 +1,14 @@
+@mixin hover($selector : null) {
+  @media ( hover : hover ) {
+    &:hover {
+      @content;
+    }
+  }
+
+  @if $selector {
+    &#{$selector} { 
+      @content;
+    }
+  }
+
+}

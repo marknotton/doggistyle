@@ -12,6 +12,6 @@
 ///
 /// @return {bool}
 
-@function is-selector($value) {
+@function selector($value) {
   @return #{&} == #{$value};
 }
