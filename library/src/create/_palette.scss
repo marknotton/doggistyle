@@ -78,6 +78,25 @@ $whatsapp:    #25d366 !default;
 $skype:       #00aff0 !default;
 $discord:     #7289da !default;
 
+$social-media : (
+  facebook:     $facebook,
+  twitter:      $twitter,
+  google:       $google,
+  youtube:      $youtube,
+  linkedin:     $linkedin,
+  instagram:    $instagram,
+  pinterest:    $pinterest,
+  dailymotion:  $dailymotion,
+  snapchat:     $snapchat,
+  flickr:       $flickr,
+  vimeo:        $vimeo,
+  thumbler:     $thumbler,
+  reddit:       $reddit,
+  whatsapp:     $whatsapp,
+  skype:        $skype,
+  discord:      $discord
+);
+
 // =============================================================================
 // Other Colours
 // =============================================================================
