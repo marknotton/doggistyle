@@ -24,11 +24,11 @@
     display         : block;
     position        : absolute;
     object-fit      : cover;
-    object-position : var(--position, center 33.33%);
-		width           : 100%;
-		height          : 100%; 
-		max-width       : 100%;
-		max-height      : 100%;
+    object-position : var(--image-position, center 33.33%);
+		width           : var(--image-size, var(--image-width-size, 100%));
+		height          : var(--image-size, var(--image-height-size, 100%)); 
+		max-width       : var(--image-size, var(--image-width-size, 100%));
+		max-height      : var(--image-size, var(--image-height-size, 100%));
 		top             : 0; 
 		left            : 0;
 	}

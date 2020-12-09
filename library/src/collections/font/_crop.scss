@@ -3,8 +3,38 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 @use 'sass:math';
+@use 'sass:map';
 
 /// @see http://text-crop.eightshapes.com/?typeface-selection=google-font&typeface=Lato&custom-typeface-name=Helvetica&custom-typeface-url=&custom-typeface-weight=400&custom-typeface-style=normal&weight-and-style=100&size=36&line-height=1.2&top-crop=9&bottom-crop=8
+
+@function offset($new-line-height, $font-size, $line-height, $crop) {
+  @return math.round((math.max(($crop + ($new-line-height - $line-height) * ($font-size / 2)), 0) / $font-size) * 100) / 100;
+}
+
+@mixin crop( $new-line-height : 1.4, $font:(size:16px, line-height:1.4),  $crop:(top:0, bottom:0) ) {
+  
+  $font-size        : map.get(size, $font);
+  $font-line-height : map.get(line-height, $font);
+  $crop-top         : map.get(top, $crop);
+  $crop-bottom      : map.get(bottom, $crop);
+
+  $margin-top    : offset($new-line-height, $font-size, $font-line-height, $crop-top);
+  $margin-bottom : offset($new-line-height, $font-size, $font-line-height, $crop-bottom);
+
+  line-height: $new-line-height;
+
+  &::before, &::after {
+    content: '';
+    display: block;
+    height: 0;
+    width: 0;
+  }
+
+  &::before { margin-bottom: - #{$margin-top}em; }
+  &::after { margin-top: - #{$margin-bottom}em; }
+
+}
+
 
 @mixin crop($font-size:16, $line-height: 1.4, $top: 0, $bottom: 0) {
   

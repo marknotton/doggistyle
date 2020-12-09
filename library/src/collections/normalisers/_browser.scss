@@ -130,8 +130,6 @@ $dev-elements      : true !default;
 		hr {
 			border:none;
 			height:1px;
-			// background-color:$text-colour;
-			// margin:$gap 0;
 			box-sizing: content-box;
 			overflow: visible;
 		}
@@ -142,10 +140,6 @@ $dev-elements      : true !default;
 				content: '';
 				content: none;
 			}
-		}
-
-		ol, ul {
-			list-style: none;
 		}
 
 		pre {
