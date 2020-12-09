@@ -4,66 +4,110 @@
 
 @use 'sass:math';
 @use 'sass:map';
+@use './modules/unit';
+
 
 /// @see http://text-crop.eightshapes.com/?typeface-selection=google-font&typeface=Lato&custom-typeface-name=Helvetica&custom-typeface-url=&custom-typeface-weight=400&custom-typeface-style=normal&weight-and-style=100&size=36&line-height=1.2&top-crop=9&bottom-crop=8
 
-@function offset($new-line-height, $font-size, $line-height, $crop) {
-  @return math.round((math.max(($crop + ($new-line-height - $line-height) * ($font-size / 2)), 0) / $font-size) * 100) / 100;
+@function offset($font-size, $line-height, $crop) {
+  $crop        : unit.strip($crop);
+  $font-size   : unit.strip($font-size) * 10;
+  $line-height : unit.strip($line-height);
+  @return math.round((math.max(($crop + ($line-height) * ($font-size / 2)), 0) / $font-size) * 100) / 100;
 }
 
-@mixin crop( $new-line-height : 1.4, $font:(size:16px, line-height:1.4),  $crop:(top:0, bottom:0) ) {
+@mixin crop2($font-size, $line-height, $crop-top, $crop-bottom ) {
   
-  $font-size        : map.get(size, $font);
-  $font-line-height : map.get(line-height, $font);
-  $crop-top         : map.get(top, $crop);
-  $crop-bottom      : map.get(bottom, $crop);
+  line-height: $line-height;
 
-  $margin-top    : offset($new-line-height, $font-size, $font-line-height, $crop-top);
-  $margin-bottom : offset($new-line-height, $font-size, $font-line-height, $crop-bottom);
+  @if $crop-top {
+    &::before {
+      content: '';
+      display: block;
+      height: 0;
+      width: 0;
+      margin-top: - #{offset($font-size, $line-height, $crop-top)}em;
 
-  line-height: $new-line-height;
-
-  &::before, &::after {
-    content: '';
-    display: block;
-    height: 0;
-    width: 0;
+    }
   }
 
-  &::before { margin-bottom: - #{$margin-top}em; }
-  &::after { margin-top: - #{$margin-bottom}em; }
+  @if $crop-bottom {
+    &::after {
+      content: '';
+      display: block;
+      height: 0;
+      width: 0;
+      margin-bottom: - #{offset($font-size, $line-height, $crop-bottom)}em;
+    }
+  }
+
+}
+
+@mixin crop($font-size, $line-height, $crop-top, $crop-bottom ) {
+
+  $crop-top    : unit.strip($crop-top);
+  $crop-bottom : unit.strip($crop-bottom);
+  $font-size   : unit.strip($font-size) * 10;
+  $line-height : unit.strip($line-height);
+
+  $crop-line-height: 1.2;
+
+  line-height: $line-height;
+
+
+  @if $crop-top {
+    $margin-top: math.round((math.max(($crop-top + ($line-height - $crop-line-height) * ($font-size / 2)), 0) / $font-size) * 100) / 100;
+    &::before {
+      content: '';
+      display: block;
+      height: 0;
+      width: 0;
+      margin-top: - #{$margin-top}em;
+
+    }
+  }
+
+  @if $crop-bottom {
+    $margin-bottom: math.round((math.max(($crop-bottom + ($line-height - $crop-line-height) * ($font-size / 2)), 0) / $font-size) * 100) / 100;
+    &::after {
+      content: '';
+      display: block;
+      height: 0;
+      width: 0;
+      margin-bottom: - #{$margin-bottom}em;
+    }
+  }
 
 }
 
 
-@mixin crop($font-size:16, $line-height: 1.4, $top: 0, $bottom: 0) {
-  
-  $crop-line-height: 1.2;
+@mixin crop3($crop-font-size: 51, $crop-line-height: 1.2, $top-crop: 13, $bottom-crop: 11) {
+  // Configured in Step 1
+  $line-height: 1.3;
+  $crop-font-size   : unit.strip($crop-font-size) * 10;
+
 
   // Apply values to calculate em-based margins that work with any font size
-  $dynamic-top-crop: math.max(($top + ($line-height - $crop-line-height) * ($font-size / 2)), 0) / $font-size;
-  $dynamic-bottom-crop: math.max(($bottom + ($line-height - $crop-line-height) * ($font-size / 2)), 0) / $font-size;
-
-  $sanatise-top-crop : math.round($dynamic-top-crop * 100) / 100;
-  $sanatise-bottom-crop : math.round($dynamic-bottom-crop * 100) / 100;
+  $dynamic-top-crop: max(($top-crop + ($line-height - $crop-line-height) * ($crop-font-size / 2)), 0) / $crop-font-size;
+  $dynamic-bottom-crop: max(($bottom-crop + ($line-height - $crop-line-height) * ($crop-font-size / 2)), 0) / $crop-font-size;
 
   // Mixin output
   line-height: $line-height;
 
   &::before,
   &::after {
-    content: '';
-    display: block;
-    height: 0;
-    width: 0;
+      content: '';
+      display: block;
+      height: 0;
+      width: 0;
   }
 
   &::before {
-    margin-bottom: - #{$sanatise-top-crop}em;
+      margin-bottom: -#{$dynamic-top-crop}+em;
   }
 
   &::after {
-    margin-top: - #{$sanatise-bottom-crop}em;
+      margin-top: -#{$dynamic-bottom-crop}+em;
   }
 }
 

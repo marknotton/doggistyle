@@ -74,19 +74,22 @@ $h6-line-height : map-get($h6, 'line-height');
 
 // Handles Crops should they not have been passed ------------------------------
 
-$_h1-crop : if(not map.has-key($h1, "crop") and meta.type-of(map-get($h1, "crop")) == 'map', false, map-get($h1, "crop"));
-$_h2-crop : if(not map.has-key($h2, "crop") and meta.type-of(map-get($h2, "crop")) == 'map', false, map-get($h2, "crop"));
-$_h3-crop : if(not map.has-key($h3, "crop") and meta.type-of(map-get($h3, "crop")) == 'map', false, map-get($h3, "crop"));
-$_h4-crop : if(not map.has-key($h4, "crop") and meta.type-of(map-get($h4, "crop")) == 'map', false, map-get($h4, "crop"));
-$_h5-crop : if(not map.has-key($h5, "crop") and meta.type-of(map-get($h5, "crop")) == 'map', false, map-get($h5, "crop"));
-$_h6-crop : if(not map.has-key($h6, "crop") and meta.type-of(map-get($h6, "crop")) == 'map', false, map-get($h6, "crop"));
+$_h1-crop-top    : if(map.has-key($h1, "crop-top"), map-get($h1, "crop-top"), false);
+$_h2-crop-top    : if(map.has-key($h2, "crop-top"), map-get($h2, "crop-top"), false);
+$_h3-crop-top    : if(map.has-key($h3, "crop-top"), map-get($h3, "crop-top"), false);
+$_h4-crop-top    : if(map.has-key($h4, "crop-top"), map-get($h4, "crop-top"), false);
+$_h5-crop-top    : if(map.has-key($h5, "crop-top"), map-get($h5, "crop-top"), false);
+$_h6-crop-top    : if(map.has-key($h6, "crop-top"), map-get($h6, "crop-top"), false);
+
+$_h1-crop-bottom : if(map.has-key($h1, "crop-bottom"), map-get($h1, "crop-bottom"), false);
+$_h2-crop-bottom : if(map.has-key($h2, "crop-bottom"), map-get($h2, "crop-bottom"), false);
+$_h3-crop-bottom : if(map.has-key($h3, "crop-bottom"), map-get($h3, "crop-bottom"), false);
+$_h4-crop-bottom : if(map.has-key($h4, "crop-bottom"), map-get($h4, "crop-bottom"), false);
+$_h5-crop-bottom : if(map.has-key($h5, "crop-bottom"), map-get($h5, "crop-bottom"), false);
+$_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom"), false);
+
 
 // Mixins for each heading -----------------------------------------------------
-
-@mixin _set-heading($font-size, $line-height, $font-size-only : false) {
-  font-size : font.size($font-size);
-  @if not $font-size-only { line-height : $line-height; }
-}
 
 @mixin _set-crop($font-size, $line-height, $crop) {
 
@@ -97,38 +100,106 @@ $_h6-crop : if(not map.has-key($h6, "crop") and meta.type-of(map-get($h6, "crop"
     $top         : if(map.has-key($crop, "top"), unit.strip(map.get($crop, "top")), 0);
     $bottom      : if(map.has-key($crop, "bottom"), unit.strip(map.get($crop, "bottom")), 0);
 
-    @include font.crop($font-size, $line-height, $top, $bottom);
+    @include font.crop3($font-size, $line-height, $top, $bottom);
 
   }
 
 }
 
-@mixin h1($font-size-only : false, $crop : $_h1-crop) {
-  @include _set-heading($h1-font-size, $h1-line-height, $font-size-only);
-  @if ( $crop and not $font-size-only) { @include _set-crop($h1-font-size, $h1-line-height, $_h1-crop ); }
+@mixin h1($font-size-only : false, $crop : true) {
+
+  font-size : font.size($h1-font-size);
+
+  @if not $font-size-only { 
+
+    line-height : $h1-line-height; 
+
+    @if ( $crop ) { 
+      @include font.crop3($h1-font-size, $h1-line-height, $_h1-crop-top, $_h1-crop-bottom ); 
+    }
+
+  }
+
 }
 
-@mixin h2($font-size-only : false, $crop : $_h2-crop) {
-  @include _set-heading($h2-font-size, $h2-line-height, $font-size-only);
-  @if ( $crop and not $font-size-only) { @include _set-crop($h2-font-size, $h2-line-height, $_h2-crop ); }
+@mixin h2($font-size-only : false, $crop : true) {
+
+  font-size : font.size($h2-font-size);
+
+  @if not $font-size-only { 
+
+    line-height : $h2-line-height; 
+
+    @if ( $crop ) { 
+      @include font.crop3($h2-font-size, $h2-line-height, $_h2-crop-top, $_h2-crop-bottom ); 
+    }
+    
+  }
+
 }
 
-@mixin h3($font-size-only : false, $crop : $_h3-crop) {
-  @include _set-heading($h3-font-size, $h3-line-height, $font-size-only);
-  @if ( $crop and not $font-size-only) { @include _set-crop($h3-font-size, $h3-line-height, $_h3-crop ); }
+@mixin h3($font-size-only : false, $crop : true) {
+
+  font-size : font.size($h3-font-size);
+
+  @if not $font-size-only { 
+
+    line-height : $h3-line-height; 
+
+    @if ( $crop ) { 
+      @include font.crop3($h3-font-size, $h3-line-height, $_h3-crop-top, $_h3-crop-bottom ); 
+    }
+    
+  }
+
 }
 
-@mixin h4($font-size-only : false, $crop : $_h4-crop) {
-  @include _set-heading($h4-font-size, $h4-line-height, $font-size-only);
-  @if ( $crop and not $font-size-only) { @include _set-crop($h4-font-size, $h4-line-height, $_h4-crop ); }
+@mixin h4($font-size-only : false, $crop : true) {
+
+  font-size : font.size($h4-font-size);
+
+  @if not $font-size-only { 
+
+    line-height : $h4-line-height; 
+
+    @if ( $crop ) { 
+      @include font.crop3($h4-font-size, $h4-line-height, $_h4-crop-top, $_h4-crop-bottom ); 
+    }
+    
+  }
+
 }
 
-@mixin h5($font-size-only : false, $crop : $_h5-crop) {
-  @include _set-heading($h5-font-size, $h5-line-height, $font-size-only);
-  @if ( $crop and not $font-size-only) { @include _set-crop($h5-font-size, $h5-line-height, $_h5-crop ); }
+@mixin h5($font-size-only : false, $crop : true) {
+
+  font-size : font.size($h5-font-size);
+
+  @if not $font-size-only { 
+
+    line-height : $h5-line-height; 
+
+    @if ( $crop ) { 
+      @include font.crop3($h5-font-size, $h5-line-height, $_h5-crop-top, $_h5-crop-bottom ); 
+    }
+    
+  }
+
 }
 
-@mixin h6($font-size-only : false, $crop : $_h6-crop) {
-  @include _set-heading($h6-font-size, $h6-line-height, $font-size-only);
-  @if ( $crop and not $font-size-only) { @include _set-crop($h6-font-size, $h6-line-height, $_h6-crop ); }
+@mixin h6($font-size-only : false, $crop : true) {
+
+  font-size : font.size($h6-font-size);
+
+  @if not $font-size-only { 
+
+    line-height : $h6-line-height; 
+
+    @if ( $crop ) { 
+      @include font.crop2($h6-font-size, $h6-line-height, $_h6-crop-top, $_h6-crop-bottom ); 
+    }
+    
+  }
+
 }
+
+
