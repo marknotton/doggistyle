@@ -100,7 +100,7 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
     $top         : if(map.has-key($crop, "top"), unit.strip(map.get($crop, "top")), 0);
     $bottom      : if(map.has-key($crop, "bottom"), unit.strip(map.get($crop, "bottom")), 0);
 
-    @include font.crop3($font-size, $line-height, $top, $bottom);
+    @include font.crop($font-size, $line-height, $top, $bottom);
 
   }
 
@@ -115,7 +115,7 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
     line-height : $h1-line-height; 
 
     @if ( $crop ) { 
-      @include font.crop3($h1-font-size, $h1-line-height, $_h1-crop-top, $_h1-crop-bottom ); 
+      @include font.crop($h1-font-size, $h1-line-height, $_h1-crop-top, $_h1-crop-bottom ); 
     }
 
   }
@@ -131,7 +131,7 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
     line-height : $h2-line-height; 
 
     @if ( $crop ) { 
-      @include font.crop3($h2-font-size, $h2-line-height, $_h2-crop-top, $_h2-crop-bottom ); 
+      @include font.crop($h2-font-size, $h2-line-height, $_h2-crop-top, $_h2-crop-bottom ); 
     }
     
   }
@@ -147,7 +147,7 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
     line-height : $h3-line-height; 
 
     @if ( $crop ) { 
-      @include font.crop3($h3-font-size, $h3-line-height, $_h3-crop-top, $_h3-crop-bottom ); 
+      @include font.crop($h3-font-size, $h3-line-height, $_h3-crop-top, $_h3-crop-bottom ); 
     }
     
   }
@@ -163,7 +163,7 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
     line-height : $h4-line-height; 
 
     @if ( $crop ) { 
-      @include font.crop3($h4-font-size, $h4-line-height, $_h4-crop-top, $_h4-crop-bottom ); 
+      @include font.crop($h4-font-size, $h4-line-height, $_h4-crop-top, $_h4-crop-bottom ); 
     }
     
   }
@@ -179,7 +179,7 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
     line-height : $h5-line-height; 
 
     @if ( $crop ) { 
-      @include font.crop3($h5-font-size, $h5-line-height, $_h5-crop-top, $_h5-crop-bottom ); 
+      @include font.crop($h5-font-size, $h5-line-height, $_h5-crop-top, $_h5-crop-bottom ); 
     }
     
   }
