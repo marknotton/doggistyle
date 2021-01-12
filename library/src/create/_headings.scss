@@ -42,6 +42,7 @@ $h6 : (
 ) !default;
 
 $base : 62.5 !default;
+$enable-cropping : false !default;
 
 // Fallback Line-heights should they not have been passed ----------------------
 
@@ -106,7 +107,7 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 
 }
 
-@mixin h1($font-size-only : false, $crop : true) {
+@mixin h1($font-size-only : false, $crop : $enable-cropping) {
 
   font-size : font.size($h1-font-size);
 
@@ -122,7 +123,7 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 
 }
 
-@mixin h2($font-size-only : false, $crop : true) {
+@mixin h2($font-size-only : false, $crop : $enable-cropping) {
 
   font-size : font.size($h2-font-size);
 
@@ -138,7 +139,7 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 
 }
 
-@mixin h3($font-size-only : false, $crop : true) {
+@mixin h3($font-size-only : false, $crop : $enable-cropping) {
 
   font-size : font.size($h3-font-size);
 
@@ -154,7 +155,7 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 
 }
 
-@mixin h4($font-size-only : false, $crop : true) {
+@mixin h4($font-size-only : false, $crop : $enable-cropping) {
 
   font-size : font.size($h4-font-size);
 
@@ -170,7 +171,7 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 
 }
 
-@mixin h5($font-size-only : false, $crop : true) {
+@mixin h5($font-size-only : false, $crop : $enable-cropping) {
 
   font-size : font.size($h5-font-size);
 
@@ -186,7 +187,7 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 
 }
 
-@mixin h6($font-size-only : false, $crop : true) {
+@mixin h6($font-size-only : false, $crop : $enable-cropping) {
 
   font-size : font.size($h6-font-size);
 
