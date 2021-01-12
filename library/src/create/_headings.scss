@@ -112,10 +112,10 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 
   @if not $font-size-only { 
 
-    line-height : $h1-line-height; 
-
     @if ( $crop ) { 
       @include font.crop($h1-font-size, $h1-line-height, $_h1-crop-top, $_h1-crop-bottom ); 
+    } @else {
+      line-height : $h1-line-height; 
     }
 
   }
@@ -128,10 +128,10 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 
   @if not $font-size-only { 
 
-    line-height : $h2-line-height; 
-
     @if ( $crop ) { 
       @include font.crop($h2-font-size, $h2-line-height, $_h2-crop-top, $_h2-crop-bottom ); 
+    } @else {
+      line-height : $h2-line-height; 
     }
     
   }
@@ -144,10 +144,10 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 
   @if not $font-size-only { 
 
-    line-height : $h3-line-height; 
-
     @if ( $crop ) { 
       @include font.crop($h3-font-size, $h3-line-height, $_h3-crop-top, $_h3-crop-bottom ); 
+    } @else {
+      line-height : $h3-line-height; 
     }
     
   }
@@ -160,10 +160,10 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 
   @if not $font-size-only { 
 
-    line-height : $h4-line-height; 
-
     @if ( $crop ) { 
       @include font.crop($h4-font-size, $h4-line-height, $_h4-crop-top, $_h4-crop-bottom ); 
+    } @else {
+      line-height : $h4-line-height; 
     }
     
   }
@@ -176,10 +176,10 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 
   @if not $font-size-only { 
 
-    line-height : $h5-line-height; 
-
     @if ( $crop ) { 
       @include font.crop($h5-font-size, $h5-line-height, $_h5-crop-top, $_h5-crop-bottom ); 
+    } @else {
+      line-height : $h5-line-height; 
     }
     
   }
@@ -192,10 +192,10 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 
   @if not $font-size-only { 
 
-    line-height : $h6-line-height; 
-
     @if ( $crop ) { 
       @include font.crop2($h6-font-size, $h6-line-height, $_h6-crop-top, $_h6-crop-bottom ); 
+    } @else {
+      line-height : $h6-line-height; 
     }
     
   }
