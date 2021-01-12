@@ -9,7 +9,7 @@
   
 	// Responsive fontsize
   @supports ( width:clamp(1px, 5vw, 10px)) {
-    font-size:clamp($min, $scaler, $max);   
+    font-size:clamp(#{$min}, #{$scaler}, #{$max});   
 	}
 
 	// Responsive fontsize fallback for browsers that don't support 'clamp'
