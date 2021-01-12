@@ -61,17 +61,13 @@ $gap6 : gap(6)   !default;  $gap6- : gap(-6)   !default;
 
 
 @function _dynamic-unit($custom-property, $amount : 1, $min : $gap, $negative : false, $use-clamp : true, $growth : 6) {
-   
+
   // Calc Method
   $result : calc((#{$custom-property} * #{$amount}) + #{if($min == 0, 0px, $min)});
   
   // Clamp Method
   @if ( $use-clamp ) {   
-    $result : clamp(
-      string.unquote("#{$min} * #{$amount}"),
-      string.unquote("#{$custom-property} * #{$amount}"), 
-      string.unquote("#{$min} * #{$amount * $growth}")
-    );
+    $result : clamp(#{$min} * #{$amount}, #{$custom-property} * #{$amount}, #{$min} * #{$amount * $growth});
   } 
 
   @if ( $negative ) {
