@@ -1,6 +1,6 @@
 {
   "name": "@doggistyle/sass",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "A Dart-sass plugin and a collection of Sass mixins, functions and other helpers",
   "main": "index.js",
   "repository": "https://github.com/marknotton/doggistyle",
