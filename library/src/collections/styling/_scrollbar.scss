@@ -1,0 +1,26 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Scrollbar                                                         #scrollbar
+////////////////////////////////////////////////////////////////////////////////
+
+@use '../helpers/break';
+
+@mixin scrollbar-styling($settings:null) {
+
+  $settings : ();
+
+  --scrollbar-width : 8px;
+  --scrollbar-height : var(--scrollbar-width); 
+
+  --scrollbar-button-width : 0;
+  --scrollbar-button-height : 0;
+
+  --scrollbar-track-border : 0;
+  --scrollbar-track-border-radius : 0;
+  --scrollbar-track-background : 0;
+
+  --scrollbar-thumb-border : 0;
+  --scrollbar-thumb-border-radius : 0;
+  --scrollbar-thumb-background : 0;
+
+  
+}
