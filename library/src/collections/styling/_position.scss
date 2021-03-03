@@ -12,48 +12,35 @@
 	height:100%; 
 }
 
-@mixin blowout($horizontal : true, $vertical : false, $min-viewport : 320px) {
-  position:absolute; 
+@mixin blowout($horizontal : true, $vertical : false, $min-viewport : 480px) {
   
+  position:absolute;
+
   @if $horizontal and $vertical {
     top       : 50%; 
     left      : 50%; 
     width     : 100vw;
     height    : 100vh; 
     transform : translate(var(--translateX, -50%), var(--translateY, -50%));
-
-    // @if $min-viewport {
-    //   @include break.in($min-viewport) {
-    //   }
-    // }
-
-  } @else if  $horizontal  {
+  } @else if $horizontal  {
     top       : 0; 
     left      : 50%; 
     width     : 100vw;
     height    : 100%; 
     transform : translateX(var(--translateX, -50%));
-
-    // @if $min-viewport {
-    //   @include break.in($min-viewport) {
-
-    //   }
-    // }
-
-  } @else if  $vertical  {
+  } @else if $vertical  {
     top       : 50%; 
     left      : 0; 
     width     : 100%;
     height    : 100vh; 
     transform : translateY(var(--translateY, -50%));
-
-    // @if $min-viewport {
-    //   @include break.in($min-viewport) {
-    //   }
-    // }
-
   }
 
-
+  @if $min-viewport {
+    @include break.in($min-viewport) {
+      width:100%;
+      left: calc(50% - (var(--gutter) * 2));
+    }
+  }
 
 }

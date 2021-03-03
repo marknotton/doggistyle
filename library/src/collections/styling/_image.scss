@@ -4,7 +4,7 @@
 
 @use 'position';
 
-@mixin srcset($position:'expanded') {
+@mixin srcset($position:false) {
 
   display             : block;
 	background-position : var(--position, center 33%);
