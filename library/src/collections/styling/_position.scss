@@ -19,7 +19,7 @@
   transform:translate(-50%, -50%); 
 }
 
-@mixin blowout($horizontal : true, $vertical : false, $min-viewport : 480px) {
+@mixin blowout($horizontal : true, $vertical : false) {
   
   position:absolute;
 
@@ -41,13 +41,6 @@
     width     : 100%;
     height    : 100vh; 
     transform : translateY(var(--translateY, -50%));
-  }
-
-  @if $min-viewport {
-    @include break.in($min-viewport) {
-      width:100%;
-      left: calc(50% - (var(--gutter) * 2));
-    }
   }
 
 }
