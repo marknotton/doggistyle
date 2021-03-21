@@ -78,7 +78,7 @@ $dev-elements      : true !default;
 
 		summary {
 			display: list-item;
-			&::-webkit-details-marker { display: none; }
+			&::marker { display: none; }
 		}
 
 		template { display: none;	}
