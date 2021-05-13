@@ -16,6 +16,18 @@
   }
 }
 
+@mixin feature($name) {
+  @at-root :root[data-browser-feature*="#{$name}"] & {
+    @content;
+  }
+}
+
+@mixin without-feature($name) {
+  @at-root :root:not([data-browser-feature*="#{$name}"]) & {
+    @content;
+  }
+}
+
 @mixin firefox($version:false) {
   @include _browser('firefox', $version) { @content; };
 }
@@ -39,3 +51,4 @@
 @mixin safari($version:false) {
   @include _browser('safari', $version) { @content; };
 }
+

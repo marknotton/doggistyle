@@ -42,6 +42,7 @@ $h6 : (
 ) !default;
 
 $base : 62.5 !default;
+$scaler : 1.5vw !default;
 $enable-cropping : false !default;
 
 // Fallback Line-heights should they not have been passed ----------------------
@@ -55,23 +56,35 @@ $enable-cropping : false !default;
 
 // Define the variables so they are still accesible ----------------------------
 
-$h1-font-size   : map-get($h1, 'font-size');
-$h1-line-height : map-get($h1, 'line-height');
+$h1-font-size     : map-get($h1, 'font-size');
+$h1-line-height   : map-get($h1, 'line-height');
+$h1-font-size-min : if(map.has-key($h1, "font-size-min"), map-get($h1, "font-size-min"), false);
+$h1-scaler        : if(map.has-key($h1, "scaler"), map-get($h1, "scaler"), $scaler);
 
-$h2-font-size   : map-get($h2, 'font-size');
-$h2-line-height : map-get($h2, 'line-height');
+$h2-font-size     : map-get($h2, 'font-size');
+$h2-line-height   : map-get($h2, 'line-height');
+$h2-font-size-min : if(map.has-key($h2, "font-size-min"), map-get($h2, "font-size-min"), false);
+$h2-scaler        : if(map.has-key($h2, "scaler"), map-get($h2, "scaler"), $scaler);
 
-$h3-font-size   : map-get($h3, 'font-size');
-$h3-line-height : map-get($h3, 'line-height');
+$h3-font-size     : map-get($h3, 'font-size');
+$h3-line-height   : map-get($h3, 'line-height');
+$h3-font-size-min : if(map.has-key($h3, "font-size-min"), map-get($h3, "font-size-min"), false);
+$h3-scaler        : if(map.has-key($h3, "scaler"), map-get($h3, "scaler"), $scaler);
 
-$h4-font-size   : map-get($h4, 'font-size');
-$h4-line-height : map-get($h4, 'line-height');
+$h4-font-size     : map-get($h4, 'font-size');
+$h4-line-height   : map-get($h4, 'line-height');
+$h4-font-size-min : if(map.has-key($h4, "font-size-min"), map-get($h4, "font-size-min"), false);
+$h4-scaler        : if(map.has-key($h4, "scaler"), map-get($h4, "scaler"), $scaler);
 
-$h5-font-size   : map-get($h5, 'font-size');
-$h5-line-height : map-get($h5, 'line-height');
+$h5-font-size     : map-get($h5, 'font-size');
+$h5-line-height   : map-get($h5, 'line-height');
+$h5-font-size-min : if(map.has-key($h5, "font-size-min"), map-get($h5, "font-size-min"), false);
+$h5-scaler        : if(map.has-key($h5, "scaler"), map-get($h5, "scaler"), $scaler);
 
-$h6-font-size   : map-get($h6, 'font-size');
-$h6-line-height : map-get($h6, 'line-height');
+$h6-font-size     : map-get($h6, 'font-size');
+$h6-line-height   : map-get($h6, 'line-height');
+$h6-font-size-min : if(map.has-key($h6, "font-size-min"), map-get($h6, "font-size-min"), false);
+$h6-scaler        : if(map.has-key($h6, "scaler"), map-get($h6, "scaler"), $scaler);
 
 // Handles Crops should they not have been passed ------------------------------
 
@@ -111,6 +124,10 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 
   font-size : font.size($h1-font-size);
 
+  @if ( $h1-font-size-min and $h1-font-size-min < $h1-font-size ) {
+    font-size : clamp(#{font.size($h1-font-size-min)}, #{$h1-scaler}, #{font.size($h1-font-size)});
+  }
+
   @if not $font-size-only { 
 
     @if ( $crop ) { 
@@ -126,6 +143,10 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 @mixin h2($font-size-only : false, $crop : $enable-cropping) {
 
   font-size : font.size($h2-font-size);
+
+  @if ( $h2-font-size-min and $h2-font-size-min < $h2-font-size ) {
+    font-size : clamp(#{font.size($h2-font-size-min)}, #{$h2-scaler}, #{font.size($h2-font-size)});
+  }
 
   @if not $font-size-only { 
 
@@ -143,6 +164,10 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 
   font-size : font.size($h3-font-size);
 
+  @if ( $h3-font-size-min and $h3-font-size-min < $h3-font-size ) {
+    font-size : clamp(#{font.size($h3-font-size-min)}, #{$h3-scaler}, #{font.size($h3-font-size)});
+  }
+
   @if not $font-size-only { 
 
     @if ( $crop ) { 
@@ -158,6 +183,10 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 @mixin h4($font-size-only : false, $crop : $enable-cropping) {
 
   font-size : font.size($h4-font-size);
+
+  @if ( $h4-font-size-min and $h4-font-size-min < $h4-font-size ) {
+    font-size : clamp(#{font.size($h4-font-size-min)}, #{$h4-scaler}, #{font.size($h4-font-size)});
+  }
 
   @if not $font-size-only { 
 
@@ -175,6 +204,10 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 
   font-size : font.size($h5-font-size);
 
+  @if ( $h5-font-size-min and $h5-font-size-min < $h5-font-size ) {
+    font-size : clamp(#{font.size($h5-font-size-min)}, #{$h5-scaler}, #{font.size($h5-font-size)});
+  }
+
   @if not $font-size-only { 
 
     @if ( $crop ) { 
@@ -190,6 +223,10 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 @mixin h6($font-size-only : false, $crop : $enable-cropping) {
 
   font-size : font.size($h6-font-size);
+
+  @if ( $h6-font-size-min and $h6-font-size-min < $h6-font-size ) {
+    font-size : clamp(#{font.size($h6-font-size-min)}, #{$h6-scaler}, #{font.size($h6-font-size)});
+  }
 
   @if not $font-size-only { 
 
