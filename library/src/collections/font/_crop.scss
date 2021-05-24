@@ -13,7 +13,7 @@
   $crop        : unit.strip($crop);
   $font-size   : unit.strip($font-size) * 10;
   $line-height : unit.strip($line-height);
-  @return math.round((math.max(($crop + ($line-height) * ($font-size / 2)), 0) / $font-size) * 100) / 100;
+  @return math.div(math.round(math.div(math.max(($crop + ($line-height) * ($font-size / 2)), 0), $font-size) * 100), 100);
 }
 
 @mixin crop2($font-size, $line-height, $crop-top, $crop-bottom ) {
@@ -56,7 +56,7 @@
 
 
   @if $crop-top {
-    $margin-top: math.round((math.max(($crop-top + ($line-height - $crop-line-height) * ($font-size / 2)), 0) / $font-size) * 100) / 100;
+    $margin-top: math.div(math.round(math.div(math.max(($crop-top + ($line-height - $crop-line-height) * ($font-size / 2)), 0), $font-size) * 100), 100);
     &::before {
       content: '';
       display: block;
@@ -68,7 +68,7 @@
   }
 
   @if $crop-bottom {
-    $margin-bottom: math.round((math.max(($crop-bottom + ($line-height - $crop-line-height) * ($font-size / 2)), 0) / $font-size) * 100) / 100;
+    $margin-bottom: math.div(math.round(math.div(math.max(($crop-bottom + ($line-height - $crop-line-height) * ($font-size / 2)), 0), $font-size) * 100), 100);
     &::after {
       content: '';
       display: block;
@@ -88,8 +88,8 @@
 
 
   // Apply values to calculate em-based margins that work with any font size
-  $dynamic-top-crop: max(($top-crop + ($line-height - $crop-line-height) * ($crop-font-size / 2)), 0) / $crop-font-size;
-  $dynamic-bottom-crop: max(($bottom-crop + ($line-height - $crop-line-height) * ($crop-font-size / 2)), 0) / $crop-font-size;
+  $dynamic-top-crop: math.div(max(($top-crop + ($line-height - $crop-line-height) * ($crop-font-size / 2)), 0), $crop-font-size);
+  $dynamic-bottom-crop: math.div(max(($bottom-crop + ($line-height - $crop-line-height) * ($crop-font-size / 2)), 0), $crop-font-size);
 
   // Mixin output
   line-height: $line-height;

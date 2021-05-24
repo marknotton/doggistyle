@@ -12,7 +12,7 @@
   @if meta.type-of($base) == 'number' and meta.type-of($value) == 'number' {
     $stripped-base      : strip($base);
     $stripped-font-size : strip($value);
-    $value : $stripped-font-size / $stripped-base + em;
+    $value : math.div($stripped-font-size, $stripped-base) + em;
   }
   @return $value;
 }

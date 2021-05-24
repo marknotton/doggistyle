@@ -25,15 +25,17 @@
 /// opacity:0.5;
 ///
 
+@use "sass:math";
+
 @use '../modules/is/percentage' as *;
 @use 'remove' as *;
 
 @function percent-to-decimal($number) {
   @if percentage($number) {
-    @return remove($number)/100;
+    @return math.div(remove($number), 100);
   } @else {
     @if $number > 1 {
-      @return $number/100;
+      @return math.div($number, 100);
     } @else {
       @return $number;
     }

@@ -2,6 +2,8 @@
 // Units
 ////////////////////////////////////////////////////////////////////////////////
 
+@use "sass:math";
+
 @use 'sass:string';
 @use 'sass:meta';
 
@@ -67,7 +69,7 @@ $gap6 : gap(6);   $gap6- : gap(-6);
   // Clamp Method
   @if ( $use-clamp ) {
     @if ( $amount == 0 ) {
-      $result : clamp(#{$min / 2}, #{$custom-property} * 0.5, #{$max});
+      $result : clamp(#{math.div($min, 2)}, #{$custom-property} * 0.5, #{$max});
     } @else if ( $amount == 1 ) {
       $result : clamp(#{$min}, #{$custom-property}, #{$max});
     } @else {
@@ -90,7 +92,7 @@ $gap6 : gap(6);   $gap6- : gap(-6);
 // The '$gap' is added so that vh spacing will never scale too close to 0px. 
 
 @function spacer($amount : 1, $min : $base-gap, $max : null, $use-negative : false, $use-clamp : true) {
-  @if ( $amount == 0) { $amount : 0.5; $min : $min / 2; }
+  @if ( $amount == 0) { $amount : 0.5; $min : math.div($min, 2); }
   @if ( meta.type-of($max) == 'null' ) { 
     @if ( meta.type-of($min) == 'string' and string.index($min, 'var') ) {
       $max : calc(#{$min} * #{$amount + 1}); 
@@ -117,7 +119,7 @@ $spacer6 : var(--spacer6); $spacer6- : var(--spacer6-);
 // The '$gap' is added so that vw spacing will never scale too close to 0px. 
 
 @function gutter($amount : 1, $min : $base-gap, $max : null, $use-negative : false, $use-clamp : true) {
-  @if ( $amount == 0) { $amount : 0.5; $min : $min / 2; }
+  @if ( $amount == 0) { $amount : 0.5; $min : math.div($min, 2); }
   @if ( meta.type-of($max) == 'null' ) { 
     @if ( meta.type-of($min) == 'string' and string.index($min, 'var') ) {
       $max : calc(#{$min} * #{$amount + 1}); 

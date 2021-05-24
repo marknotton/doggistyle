@@ -149,13 +149,13 @@ $unit-value : (1px, 1cm, 1mm, 1%, 1ch, 1pc, 1in, 1em, 1rem, 1pt, 1ex, 1vw, 1vh, 
       $result: $result * 10 + ($index - 1);
     }
     @else {
-      @return $pointer, $result / $runs;
+      @return $pointer, math.div($result, $runs);
     }
 
     $pointer: $pointer + 1;
   }
 
-  @return $pointer, $result / $runs;
+  @return $pointer, math.div($result, $runs);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
