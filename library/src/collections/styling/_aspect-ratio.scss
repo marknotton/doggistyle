@@ -8,12 +8,13 @@
 
 @mixin aspect-ratio($ratio : '16/9') {
 
+  --aspect-ratio: #{string.unquote($ratio)};
   aspect-ratio: var(--aspect-ratio);
 
   @supports not (aspect-ratio: #{string.unquote($ratio)}) {
-    --aspect-ratio: #{string.unquote($ratio)};
     aspect-ratio:initial;
     padding-bottom: calc(100%/(var(--aspect-ratio)));
     height: 0;
+    > * { position: absolute; } 
   }
 }
