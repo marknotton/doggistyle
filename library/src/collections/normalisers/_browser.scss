@@ -78,7 +78,8 @@ $dev-elements      : true !default;
 
 		summary {
 			display: list-item;
-			&::marker { display: none; }
+			-webkit-appearance:none;
+			&::-webkit-details-marker, &::marker { display:none; }
 		}
 
 		template { display: none;	}
@@ -172,6 +173,10 @@ $dev-elements      : true !default;
 	// ======================================================================== //
 
 	@if $form-elements {
+
+		button {
+			touch-action: manipulation;
+		}
 
 		button,	input, optgroup,	select,	textarea {
 			font-family: inherit;
@@ -288,7 +293,7 @@ $dev-elements      : true !default;
 		a {
 			background-color:transparent;
 			text-decoration:none;
-			// color:$text-colour;
+			touch-action: manipulation;
 		}
 
 		abbr[title] {

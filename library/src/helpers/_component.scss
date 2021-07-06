@@ -1,0 +1,39 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Component                                                         #component
+////////////////////////////////////////////////////////////////////////////////
+
+@use "sass:list";
+
+/// @example @include component-exists('background-image') { opacity:0.5; }
+/// Pass in multuiple compenent names if you want to check they all exist
+
+@mixin exists($names...) {
+
+  $selector : 'body';
+  $parent :if(list.nth(list.nth(&, 1), 1) == ':root', '', &);
+
+  @each $name in $names {
+    $selector : $selector + '[data-components*="#{$name}"]';
+  }
+
+  @at-root #{$selector} #{$parent} {
+    @content;
+  }
+}
+
+/// @example @include component-doesnt-exists('background-image') { opacity:0.5; }
+/// Pass in multuiple compenent names if you want to check none exist
+
+@mixin doesnt-exists($names...) {
+
+  $selector : 'body';
+  $parent :if(list.nth(list.nth(&, 1), 1) == ':root', '', &);
+  
+  @each $name in $names {
+    $selector : $selector + ':not([data-components*="#{$name}"])';
+  }
+
+  @at-root #{$selector} #{$parent} {
+    @content;
+  }
+}
