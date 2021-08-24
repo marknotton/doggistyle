@@ -1,0 +1,32 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Custom Properties                                         #custom-properties
+////////////////////////////////////////////////////////////////////////////////
+
+@use './create/_units' as *;
+
+@mixin gutters($amount : 6, $min : null, $max : null) {
+  @for $i from 0 through $amount { --gutter#{$i}  : #{gutter($i, $min, $max)}; }
+  @for $i from 0 through $amount { --gutter#{$i}- : #{gutter($i, $min, $max, $use-negative : true)}; }
+  @supports not ( width:clamp(1px, 5vw, 10px)) {
+    @for $i from 0 through $amount {
+      --gutter#{$i}  : #{gutter($i, $min : $base-gap * 4, $use-clamp : false )}; 
+      --gutter#{$i}- : #{gutter($i, $min : $base-gap * 4, $use-clamp : false, $use-negative : true )};
+    }    
+  }
+}
+
+@mixin spacers($amount : 6, $min : null, $max : null) {
+  @for $i from 0 through $amount { --spacer#{$i}  : #{spacer($i, $min, $max )}; }
+  @for $i from 0 through $amount { --spacer#{$i}- : #{spacer($i, $min, $max, $use-negative : true)}; }
+  @supports not ( width:clamp(1px, 5vw, 10px)) {
+    @for $i from 0 through $amount {
+      --spacer#{$i}  : #{spacer($i, $min : $base-gap * 4, $use-clamp : false )}; 
+      --spacer#{$i}- : #{spacer($i, $min : $base-gap * 4, $use-clamp : false, $use-negative : true )};
+    }    
+  }
+}
+
+/// Defines the width size of a single gutter that is beyond a given max-width
+@mixin negative-single-gutter-width($max) {
+  --negative-single-gutter-width : calc(((100% - #{$max}) / 2));
+}

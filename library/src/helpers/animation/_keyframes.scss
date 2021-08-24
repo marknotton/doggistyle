@@ -1,0 +1,11 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Keyframes                                                         #keyframes
+////////////////////////////////////////////////////////////////////////////////
+
+
+/// @example animation-keyframes('name') { ... }
+@mixin keyframes($name) {
+  @at-root (without: media) {
+    @keyframes #{$name} { @content; }
+  }
+}

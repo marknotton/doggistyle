@@ -1,0 +1,69 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Image                                                              #image
+////////////////////////////////////////////////////////////////////////////////
+
+@mixin srcset() {
+
+  display             : block;
+	position            : relative; 
+	background-position : var(--position, center 33%);
+	background-size     : cover;
+	background-repeat   : no-repeat;
+	overflow            : hidden;
+	
+  img {
+    display         : block;
+    position        : absolute;
+    object-fit      : cover;
+    object-position : var(--image-position, center 33.33%);
+		width           : var(--image-size, var(--image-width-size, 100%));
+		height          : var(--image-size, var(--image-height-size, 100%)); 
+		max-width       : var(--image-size, var(--image-width-size, 100%));
+		max-height      : var(--image-size, var(--image-height-size, 100%));
+		inset           : 0px; 
+		@supports not (inset:0px) { top:0; left:0; right:0; bottom:0; }
+	}
+
+	@content;
+}
+
+@mixin figure {
+	position:relative;
+	border:var(--figure-border, 1px solid var(--figure-border-colour, #E8E8E8));
+	padding:var(--figure-padding, 0.5em);
+	border-radius: var(--figure-border-radius);
+	background-color: var(--figure-background-colour, white);
+	img {
+		position:relative; 
+		width:100%; 
+		height:auto; 
+		display:block; 
+		border-radius:var(--figure-inner-border-radius, calc(var(--figure-border-radius) / 100 * 66));
+	}
+	figcaption {
+		text-align:left;
+		margin-top:0.8em;
+	}
+	a { 
+		display:block;
+		border-radius:inherit;
+		@media ( hover:hover ) {
+			&:after {
+				content:"";
+				position:absolute; 
+				inset:-1px; 
+				border-radius:inherit;
+				border:var(--figure-border, 1px solid var(--figure-link-colour, #0500CD));
+				transition:border-color var(--transition, var(--transition-duration, 0.2s) var(--transition-ease, eae-in-out) var(--transition-delay, 0)); 
+				@supports not (inset:0px) {
+					top:-1px; left:-1px; right:-1px; bottom:-1px; 
+				}
+			}
+			&:hover:after {
+				--figure-link-colour : var(--figure-link-colour-hover, #54198B);
+			}
+		}
+	}
+
+	@content;
+}

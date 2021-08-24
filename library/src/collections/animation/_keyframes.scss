@@ -1,5 +1,0 @@
-@mixin keyframes($name) {
-  @at-root (without: media) {
-    @keyframes #{$name} { @content; }
-  }
-}

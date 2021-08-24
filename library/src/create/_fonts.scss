@@ -1,0 +1,40 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Fonts                                                                 #fonts
+////////////////////////////////////////////////////////////////////////////////
+
+// $typefaces : (
+//   (
+//     filename : "OpenSans-Bold",
+//     formats : ('ttf'),
+//     weight : 700,
+//     style : normal
+//   ),
+// ) !default;
+
+$typefaces : () !default;
+
+$path : "../../../assets/fonts/" !default;
+
+@each $typeface in $typefaces {
+
+  $filename : map.get($typeface, filename);
+  $formats  : map.get($typeface, formats);
+  $weight   : map.get($typeface, weight);
+  $style    : map.get($typeface, style);
+
+  $src : ();
+
+  @each $format in $formats {
+    $value : url($path+$filename+"."+$format) format(string.quote($format));
+    $src : list.append($src, $value, $separator: comma);
+  }
+
+  @font-face {
+    font-family:$filename;
+    src:$src;
+    font-display:swap;
+    font-style:$style;
+    font-weight:$weight;
+  }
+
+}

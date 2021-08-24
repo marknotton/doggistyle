@@ -15,7 +15,7 @@
 /// @return {bool}
 
 @function pseudo($pseudo) {
-  @return string.index('before' 'after', $pseudo);
+  @return string.index('before' 'after' 'marker', $pseudo);
 }
 
 /// Sudo ============================================================== #is-sudo

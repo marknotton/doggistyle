@@ -1,0 +1,204 @@
+html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, 
+pre, a, abbr, address, cite, code, del, dfn, img, ins, kbd, q, s, b,
+samp, small, sub, sup, u, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, 
+table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, 
+embed, figure, figcaption, footer, header, menu, nav, output, section, summary, 
+time, mark, audio, video, input, optgroup, select, textarea, button, em, strong {
+	margin         : 0;
+	padding        : 0;
+	border         : 0;
+	font-size      : 100%;
+	font           : inherit;
+	vertical-align : baseline;
+}
+
+:root {
+  box-sizing: border-box;
+  -webkit-text-size-adjust: 100%;
+}
+
+*, *:after, *:before {
+  &:focus { outline:0; };
+  box-sizing:inherit;
+}
+
+html { 
+  min-height  : 100%;
+  height      : 100%; 
+  font-size   : 62.5%; 
+  block-size  : 100%;
+  inline-size : 100%;
+}
+
+body {
+  width           : 100%;
+  min-height      : 100%;
+	line-height     : 1;
+  min-block-size  : 100%;
+  min-inline-size : 100%;
+  font-size       : 1.6em;
+  text-rendering  : optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+p, pre, blockquote, ol, ul, li, legend, figcaption, body, article, nav, 
+aside, section, header, footer, address {
+  &:empty { display:none; }
+}
+
+article, aside, details, figcaption, figure, footer, header, menu, nav, section {
+	display: block;
+}
+
+template, [hidden] { display: none; }
+
+ol, ul {
+  list-style-position: inside;
+}
+
+hr {
+  border:none;
+  height:1px;
+  background: var(--hr-colour, black);
+  box-sizing: content-box;
+  overflow: visible;
+}
+
+blockquote, q {
+  // quotes: "" "”" "‘" "’";
+  quotes: "\201C" "\201D" "\2018" "\2019";
+  &:before { content: open-quote; display: inline-block; }
+  &:after { content: close-quote; display: inline-block; }
+}
+
+cite, figcaption {
+  font-style: italic;
+  font-size:0.8em;
+}
+
+pre, code, kbd, samp {
+  font-family: monospace, monospace;
+  font-size: 1em;
+  background-color: var(--code-background-colour, #EEEEEE);
+  border-radius: 0.2em;
+  padding:0.2em 0.4em;
+  position:relative;
+  overflow: auto;
+}
+
+kbd { box-shadow:inset 0px 0px 0px 1px  var(--kbd-border-colour, #d7d7d7);}
+
+pre.sf-dump { z-index:9999; }
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+svg, symbol { 
+  overflow:visible; 
+  max-width:100%; 
+  display:inline-block; 
+}
+
+picture {
+  display: inline-block;
+}
+
+img { 
+  border-style: none;
+  display:block;  
+  max-width:100%; 
+}
+
+video { max-width:100%; }
+
+var { font-style: revert; }
+
+small { font-size: 0.8em; }
+
+progress { vertical-align: baseline; }
+
+sub, sup {
+  font-size: 0.8em;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sub { bottom: -0.3em; }
+sup { top: -0.5em; }
+
+a {
+  text-decoration:none;
+  touch-action: manipulation;
+  color:inherit;
+}
+
+abbr[title], ins {
+  border-bottom: none;
+  text-decoration: underline dotted;
+  text-underline-position: under;
+}
+
+u {
+  text-decoration: var(--unarticulated-colour, #f00) wavy underline;
+}
+
+textarea {
+  resize:none;
+  overflow: auto;
+}
+
+/// @see https://css-tricks.com/the-cleanest-trick-for-autogrowing-textareas/
+textarea-autogrow {
+  display: grid;
+  max-height:var(--textarea-max-height, 20ch);
+  width:fit-content;
+
+  &::after {
+    content: attr(data-replicated-value) " ";
+    white-space: pre-wrap;
+    visibility: hidden;
+    padding: inherit;
+    font: inherit;
+  }
+
+  textarea {
+    resize: none;
+    max-height:inherit;
+    overflow: auto;
+  }
+
+  textarea, &::after {
+    grid-area: 1 / 1 / 2 / 2;
+  }
+
+}
+
+input:focus, textarea:focus, select:focus{
+  outline: none;
+}
+
+details > summary {
+  list-style: none;
+  -webkit-appearance:none;
+  &::-webkit-details-marker, &::marker {
+    display: none;
+  }
+}
+
+button,
+[type="button"],
+[type="reset"],
+[type="submit"] {
+  touch-action: manipulation;
+  -webkit-appearance: button;
+  background:none;
+  cursor:pointer;
+}
+
+[disabled] {
+  cursor: default;
+  pointer-events: none;
+}

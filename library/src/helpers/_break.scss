@@ -2,18 +2,21 @@
 /// Break                                                                 #break
 ////////////////////////////////////////////////////////////////////////////////
 
+/// @example break-in(large) { ... } 
 @mixin out($breakpoint) {
   @media (min-width:#{$breakpoint + 1}) {
     @content;
   }
 }
 
+/// @example break-in(large) { ... } 
 @mixin in($breakpoint) {
   @media (max-width:#{$breakpoint}) {
     @content;
   }
 }
 
+/// @example break-beteen(small, large) { ... } 
 @mixin between($min, $max) {
   @media (min-width:#{$min}) and (max-width:#{$max}) {
     @content;

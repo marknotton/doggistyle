@@ -1,0 +1,26 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Animation                                                         #animation
+////////////////////////////////////////////////////////////////////////////////
+
+@use 'keyframes' as *;
+
+/// @example 
+/// animation('rotate', $duration : 0.5s ) { 
+///   start { transform : rotate(0deg); }
+///   end   { transform : rotate(0deg); }
+/// }
+@mixin animation($name, $duration:1s, $delay:0s, $loop:1, $direction:normal, $ease:ease, $fill:none) {
+
+  animation:
+    #{$name}
+    var(--animation-#{$name}-duration,  var(--animation-duration,  #{$duration}))
+    var(--animation-#{$name}-ease,      var(--animation-ease,      #{$ease}))
+    var(--animation-#{$name}-delay,     var(--animation-delay,     #{$delay}))
+    var(--animation-#{$name}-loop,      var(--animation-loop,      #{$loop}))
+    var(--animation-#{$name}-direction, var(--animation-direction, #{$direction}))
+    var(--animation-#{$name}-fill,      var(--animation-fill,      #{$fill}))
+  ;
+
+  @include keyframes($name) { @content; }
+
+}
