@@ -88,7 +88,10 @@ pre, code, kbd, samp {
 
 kbd { box-shadow:inset 0px 0px 0px 1px  var(--kbd-border-colour, #d7d7d7);}
 
-pre.sf-dump { z-index:9999; }
+pre.sf-dump { 
+  z-index:9999; 
+  --code-background-colour : none;
+}
 
 table {
 	border-collapse: collapse;
