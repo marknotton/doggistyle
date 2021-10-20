@@ -27,7 +27,8 @@ $medium       : null !default; // 950px
 $medium-large : null !default; 
 $large        : null !default; // 1120px
 $large-max    : null !default; 
-$max          : null !default; // 1680p
+$max          : null !default; // 1680px
+$full         : null !default; // $max + gaps * 4 (to include the gutters)
 
 /// When using any number of breakpoints with any name you can use this create file like this:
 /// @example 
@@ -52,7 +53,8 @@ $breakpoints : (
   'medium-large' : $medium-large,
   'large'        : $large,
   'large-max'    : $large-max,
-  'max'          : $max
+  'max'          : $max,
+  'full'         : $full
 ) !default;
 
 /// Private add-unit functions -------------------------------------------------
@@ -129,6 +131,13 @@ $breakpoints : (
   $max : _add-unit(map-get($breakpoints, "max")); 
   @if meta.type-of(map-get($breakpoints, "max")) == 'null'  {
     $breakpoints : map.remove($breakpoints, "max"); 
+  }
+}
+
+@if map.has-key($breakpoints, "full") { 
+  $full : _add-unit(map-get($breakpoints, "full")); 
+  @if meta.type-of(map-get($breakpoints, "full")) == 'null'  {
+    $breakpoints : map.remove($breakpoints, "full"); 
   }
 }
 

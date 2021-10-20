@@ -6,10 +6,10 @@
 
 /// @example 
 /// animation('rotate', $duration : 0.5s ) { 
-///   start { transform : rotate(0deg); }
-///   end   { transform : rotate(0deg); }
+///   from { transform : rotate(0deg); }
+///   to   { transform : rotate(0deg); }
 /// }
-@mixin animation($name, $duration:1s, $delay:0s, $loop:1, $direction:normal, $ease:ease, $fill:none) {
+@mixin animation($name, $duration:1s, $delay:0s, $loop:1, $direction:normal, $ease:ease, $fill:forwards) {
 
   animation:
     #{$name}

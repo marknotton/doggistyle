@@ -90,6 +90,7 @@ kbd { box-shadow:inset 0px 0px 0px 1px  var(--kbd-border-colour, #d7d7d7);}
 
 pre.sf-dump { 
   z-index:9999; 
+  min-width: 500px;
   --code-background-colour : none;
 }
 
