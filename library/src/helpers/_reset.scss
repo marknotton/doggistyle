@@ -154,32 +154,6 @@ textarea {
   overflow: auto;
 }
 
-/// @see https://css-tricks.com/the-cleanest-trick-for-autogrowing-textareas/
-textarea-autogrow {
-  display: grid;
-  max-height:var(--textarea-max-height, 20ch);
-  width:fit-content;
-
-  &::after {
-    content: attr(data-replicated-value) " ";
-    white-space: pre-wrap;
-    visibility: hidden;
-    padding: inherit;
-    font: inherit;
-  }
-
-  textarea {
-    resize: none;
-    max-height:inherit;
-    overflow: auto;
-  }
-
-  textarea, &::after {
-    grid-area: 1 / 1 / 2 / 2;
-  }
-
-}
-
 input:focus, textarea:focus, select:focus{
   outline: none;
 }
