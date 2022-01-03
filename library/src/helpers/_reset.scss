@@ -65,7 +65,6 @@ hr {
 }
 
 blockquote, q {
-  // quotes: "" "”" "‘" "’";
   quotes: "\201C" "\201D" "\2018" "\2019";
   &:before { content: open-quote; display: inline-block; }
   &:after { content: close-quote; display: inline-block; }
@@ -86,7 +85,7 @@ pre, code, kbd, samp {
   overflow: auto;
 }
 
-kbd { box-shadow:inset 0px 0px 0px 1px  var(--kbd-border-colour, #d7d7d7);}
+kbd { box-shadow:inset 0px 0px 0px 1px var(--kbd-border-colour, #d7d7d7);}
 
 pre.sf-dump { 
   z-index:9999; 

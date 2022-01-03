@@ -55,4 +55,4 @@ $white-dark   : colour.lighten($white, $_lightness) !default;
 $black        : #000000 !default ;
 $black-light  : colour.darken($black, $_darkness) !default;
 
-@forward "./variables/common-colours";
+@forward "./variables/brand-colours";

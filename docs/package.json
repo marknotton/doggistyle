@@ -1,0 +1,27 @@
+{
+	"name": "@doggistyle/docs",
+	"version": "0.0.1",
+	"description": "Doggistyle Documentation",
+	"repository": "marknotton/doggistyle",
+	"author": "Mark Notton <mark@marknotton.uk>",
+	"license": "MIT",
+	"location": "marknotton/doggistyle/docs",
+	"homepage": "https://marknotton.github.io/doggistyle/",
+	"devDependencies": {
+		"@marknotton/dependencies": "^1.0.7",
+		"@rollup/stream": "^2.0.0",
+		"autoprefixer": "^10.3.7",
+		"gulp": "^4.0.2",
+		"gulp-dart-sass": "^1.0.2",
+		"gulp-plumber": "^1.2.1",
+		"gulp-postcss": "^9.0.1",
+		"minimatch": "^3.0.4",
+		"postcss": "^8.3.9",
+		"rollup": "^2.58.0"
+	},
+  "aliases": {
+		"gulp-dart-sass": "sass",
+		"gulp-postcss": "postcssGulp",
+		"postcss": "postcss-postcss"
+	}
+}

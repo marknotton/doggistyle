@@ -1,12 +1,9 @@
 ////////////////////////////////////////////////////////////////////////////////
-/// Common Colours                                               #common-colours
+/// Brand Colours                                                 #brand-colours
 ////////////////////////////////////////////////////////////////////////////////
 
-// =============================================================================
-// Social Media Colours
-// =============================================================================
-
-/// @see https://www.lockedownseo.com/social-media-colors/
+/// @author John Lock
+/// @link https://www.lockedownseo.com/social-media-colors/
 
 $facebook:    #4267B2 !default;
 $twitter:     #1da1f2 !default;
@@ -19,13 +16,14 @@ $dailymotion: #0066DC !default;
 $snapchat:    #fffc00 !default;
 $flickr:      #f40083 !default;
 $vimeo:       #1ab7ea !default;
-$thumbler:    #35465d !default;
+$tumbler:     #35465d !default;
 $reddit:      #ff4500 !default;
 $whatsapp:    #25d366 !default;
 $skype:       #00aff0 !default;
 $discord:     #7289da !default;
+$yello:       #FFCB08 !default;
 
-$social-media : (
+$brand-colours : (
   facebook:     $facebook,
   twitter:      $twitter,
   google:       $google,
@@ -37,20 +35,10 @@ $social-media : (
   snapchat:     $snapchat,
   flickr:       $flickr,
   vimeo:        $vimeo,
-  thumbler:     $thumbler,
+  tumbler:      $tumbler,
   reddit:       $reddit,
   whatsapp:     $whatsapp,
   skype:        $skype,
-  discord:      $discord
+  discord:      $discord,
+  yello:        $yello,
 );
-
-// =============================================================================
-// Other Colours
-// =============================================================================
-
-$yello: #FFCB08 !default;
-
-/// Handles the cursor selection colour
-/// @see https://css-tricks.com/almanac/selectors/s/selection/
-
-$highlight: #B2D3FA !default; 
