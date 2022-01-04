@@ -10,8 +10,8 @@
   "dependencies": {
     "@marknotton/lumberjack": "^1.1.2",
     "color-convert": "^2.0.1",
-    "color-rgba": "^2.1.1",
-    "gulp-dart-sass": "^1.0.0",
+    "color-rgba": "^2.3.0",
+    "gulp-dart-sass": "^1.0.2",
     "lodash.clonedeep": "^4.5.0",
     "lodash.merge": "^4.6.2",
     "plugin-error": "^1.0.1"

@@ -26,6 +26,11 @@
   border-right: 2px solid;
   color: var(--theme-color,#42b983);
 }
+.sidebar ul li ul li:before {
+  content: "-";
+    padding-right: 4px;
+    float: left;
+}
 
 h2#eases + p + table tbody > tr:nth-of-type(2),
 h2#eases + p + table tbody > tr:nth-of-type(12),

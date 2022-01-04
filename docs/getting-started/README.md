@@ -1,4 +1,6 @@
-# Installation
+# Getting Started
+
+## Installation
 
 Install the [NPM pacakge](https://www.npmjs.com/package/@doggistyle/sass) inside to your project:
 
@@ -43,3 +45,16 @@ This must be included in every stylesheet where you require the power of Doggist
 @forward "doggistyle";
 ```
 
+## Configs
+
+You can define your global defaults by passing in a map for each config group:
+
+```css
+  @forward "doggistyle" with (
+    $typography  : $typographyConfigs,
+    $breakpoints : $breakpointConfigs,
+    $palette     : $paletteConfigs,
+    $units       : $unitsConfigs,
+    $grid        : $gridConfigs
+  );
+```

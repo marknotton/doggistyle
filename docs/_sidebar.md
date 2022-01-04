@@ -1,13 +1,12 @@
-- Getting started
+- [Getting started](getting-started/ "Doggistyle - Getting Started")
 
-  - [Installation](installation.md)
+- [Collections](collections/ "Doggistyle - Collections")
 
-- [Collections](collections)
+  - [Variables](collections/variables.md "Doggistyle - Variables")
+  - [Create](collections/create.md "Doggistyle - Create")
+    - [Grid](collections/grid.md "Doggistyle - Grid")
+  - [Elements](collections/elements.md "Doggistyle - Elements")
+  - [Modules](collections/modules.md "Doggistyle - Modules")
+  - [Helpers](collections/helpers.md "Doggistyle - Helpers")
 
-  - [Variables](collections/variables.md)
-  - [Create](collections/create.md)
-  - [Elements](collections/elements.md)
-  - [Modules](collections/modules.md)
-  - [Helpers](collections/helpers.md)
-
-- [Thank you](thank-you.md)
+- [Thank you](thank-you.md "Doggistyle - Thank you")
