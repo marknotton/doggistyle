@@ -1,23 +1,64 @@
 @use 'sass:map';
+@use 'sass:meta';
+@use 'sass:list';
+@use '../helpers/break';
 
-$_base-columns   : 6;
-$_base-gaps      : 0px clamp(16px, 3vw, 32px);
-$_base-max-width : 1280px;
-$_base-min-width : 480px;
+$_base-column-count : 6;
+$_base-gaps         : 0px clamp(16px, 3vw, 32px);
+$_base-max-width    : 1280px;
+$_base-min-width    : 480px;
 
 $base : (
-  'columns'      : $_base-columns,
+  'column-count' : $_base-column-count,
   'gaps'         : $_base-gaps,
   'max-width'    : $_base-max-width,
   'min-width'    : $_base-min-width
 ) !default;
 
-$base-columns   : if(map.has-key($base, "columns"),   map-get($base, "columns"), $_base_columns) !default;
-$base-gaps      : if(map.has-key($base, "gaps"),      map-get($base, "gaps"), $_base_gaps) !default;
-$base-max-width : if(map.has-key($base, "max-width"), map-get($base, "max-width"), $_base_max-width) !default;
-$base-min-width : if(map.has-key($base, "min-width"), map-get($base, "min-width"), $_base_min-width) !default;
+$base-column-count : if(map.has-key($base, "columns"),   map-get($base, "columns"), $_base_column-count) !default;
+$base-gaps         : if(map.has-key($base, "gaps"),      map-get($base, "gaps"), $_base_gaps) !default;
+$base-max-width    : if(map.has-key($base, "max-width"), map-get($base, "max-width"), $_base_max-width) !default;
+$base-min-width    : if(map.has-key($base, "min-width"), map-get($base, "min-width"), $_base_min-width) !default;
+$base-gap-gutter   : var(--grid-gap, 0px);
+$base-gap-spacer   : var(--grid-gap, 0px);
 
-@mixin base() {
+@if ( meta.type-of($base-gaps) == 'list' ) {
+  $base-gap-spacer : list.nth($base-gaps, 1);
+  @if(list.length($base-gaps) > 1) {
+    $base-gap-gutter : list.nth($base-gaps, 2);
+  } @else {
+    $base-gap-gutter : list.nth($base-gaps, 1);
+  }
+}
+
+$column-count : 6 !default;
+$gaps         : 0px clamp(16px, 3vw, 32px) !default;
+$max-width    : 1280px !default;
+$min-width    : 480px !default;
+
+$gap-gutter   : var(--grid-gap, 0px);
+$gap-spacer   : var(--grid-gap, 0px);
+
+@if ( meta.type-of($gaps) == 'list' ) {
+  $gap-spacer : list.nth($gaps, 1);
+  @if(list.length($gaps) > 1) {
+    $gap-gutter : list.nth($gaps, 2);
+  } @else {
+    $gap-gutter : list.nth($gaps, 1);
+  }
+}
+
+
+@mixin base-old() {
+
+  --grid-column-count     : $base-column-count;
+  --grid-template-rows    : auto;
+  --grid-template-columns : minmax(0, 1fr) repeat(var(--grid-column-count), minmax(0, var(--grid-column-width))) minmax(0, 1fr);
+  --grid-column-width     : calc(#{$base-max-width} / var(--grid-column-count) - (var(--grid-gutter, 0px) - (var(--grid-gutter, 0px) / var(--grid-column-count))));
+  --grid-gutter           : #{$base-gap-gutter};
+  --grid-spacer           : #{$base-gap-spacer};
+  --grid-column           : 1 / -1;
+  --grid-column-repeat    : var(--grid-column-count);
 
   min-width     : $base-min-width;
   display       : grid;
@@ -25,15 +66,67 @@ $base-min-width : if(map.has-key($base, "min-width"), map-get($base, "min-width"
   grid-gap      : var(--grid-spacer) var(--grid-gutter);
   align-content : start;
 
-  --grid-column-count     : 6;
-  --grid-template-rows    : auto;
-  --grid-template-columns : minmax(0, 1fr) repeat(var(--grid-column-count), minmax(0, var(--grid-column-width))) minmax(0, 1fr);
-  --grid-column-width     : calc(#{$base-max-width} / var(--grid-column-count) - (var(--grid-gutter, 0px) - (var(--grid-gutter, 0px) / var(--grid-column-count))));
-  --grid-gutter           : var(--grid-gap, 50px);
-  --grid-spacer           : 0;
-  --grid-column           : 1 / -1;
-  --grid-column-repeat    : var(--grid-column-count);
+  @include break.in($base-min-width) {
+    --grid-column-count : 1;
+  }
 
   @content;
 
+}
+@mixin base() {
+
+  --grid-column-count     : $column-count;
+  --grid-template-rows    : auto;
+  --grid-template-columns : minmax(0, 1fr) repeat(var(--grid-column-count), minmax(0, var(--grid-column-width))) minmax(0, 1fr);
+  --grid-column-width     : calc(#{$max-width} / var(--grid-column-count) - (var(--grid-gutter, 0px) - (var(--grid-gutter, 0px) / var(--grid-column-count))));
+  --grid-gutter           : #{$gap-gutter};
+  --grid-spacer           : #{$gap-spacer};
+  --grid-column           : 1 / -1;
+  --grid-column-repeat    : var(--grid-column-count);
+
+  min-width     : $min-width;
+  display       : grid;
+  grid          : var(--grid-template-rows) / var(--grid-template-columns);
+  grid-gap      : var(--grid-spacer) var(--grid-gutter);
+  align-content : start;
+
+  @include break.in($min-width) {
+    --grid-column-count : 1;
+  }
+
+  // > * {
+  //   --grid-column : 2 / -2;
+  // }
+
+  @content;
+
+}
+
+@mixin wrap() {
+
+  --grid-column-count     : $column-count;
+  --grid-template-rows    : auto;
+  --grid-template-columns : repeat(var(--grid-column-count), minmax(0, var(--grid-column-width)));
+  --grid-column-width     : calc(#{$max-width} / var(--grid-column-count) - (var(--grid-gutter, 0px) - (var(--grid-gutter, 0px) / var(--grid-column-count))));
+  --grid-gutter           : #{$gap-gutter};
+  --grid-spacer           : #{$gap-spacer};
+  --grid-column           : 1 / -1;
+  --grid-column-repeat    : var(--grid-column-count);
+
+  min-width     : $min-width;
+  display       : grid;
+  grid          : var(--grid-template-rows) / var(--grid-template-columns);
+  grid-gap      : var(--grid-spacer) var(--grid-gutter);
+  align-content : start;
+
+  @include break.in($min-width) {
+    --grid-column-count : 1;
+  }
+
+  @content;
+
+}
+
+@mixin no-wrap() {
+  
 }
