@@ -31,10 +31,10 @@ using this on the `<body>`, you should have a grid that stretches to the users f
     'min-width'    : 480px,
   );
 
-  @forward 'create/grid' with ( $base : $baseConfigs );
+  @use 'create/grid' with ( $base : $baseConfigs );
 
   body.grid\:base { 
-    @include grid-base() { ... } 
+    @include grid.base() { ... } 
   }
 ``` 
 ```html 
