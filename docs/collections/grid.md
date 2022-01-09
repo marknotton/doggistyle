@@ -1,12 +1,12 @@
 # Grid
 
-Grid layout types are an extendable column template ruleset; each type defines a fundamental pattern to be extended on a component level. 
+Grid layout types are an extendable column template ruleset; each type defines a fundamental pattern that can be extended on a component level. 
 
 ## Base
 
 The base rule is intended for use on a global container (normally the `<body>` element). 
 The columns will break down responsively like the '[Wrap](#wrap)' grid layout type; the only difference 
-is a column will be assigned to the start and end of the column template. These additional
+is an extra column will be assigned to both the start and end of the column template. These additional
 columns behave like gutters and will push the content to the center. 
 
 This means the grid will extend to the parent containers full width, so if you're 
@@ -24,14 +24,13 @@ using this on the `<body>`, you should have a grid that stretches to the users f
 #### Base Usage
 
 ```css
-  $baseConfigs : (
+
+  @use 'create/grid' with ( 
     'columns'      : 6,
     'gaps'         : 0px clamp(16px, 3vw, 32px)
     'max-width'    : 1280px,
     'min-width'    : 480px,
-  );
-
-  @use 'create/grid' with ( $base : $baseConfigs );
+   );
 
   body.grid\:base { 
     @include grid.base() { ... } 

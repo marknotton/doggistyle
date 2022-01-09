@@ -8,7 +8,7 @@
 
 This is not a framework, this is a collection of resources to extend your own framework, website, app... or what ever you're building. 
 
-[Getting started](getting-started/)
+[Getting started](getting-started)
 [Collections](collections/)
 
 ![color](#FFFFFF)

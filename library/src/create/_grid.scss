@@ -5,7 +5,7 @@
 @use '../helpers/custom-properties';
 
 $column-count : 6 !default;
-$gaps         : 0px clamp(16px, 3vw, 32px) !default;
+$gaps         : clamp(64px, 6vh, 128px) clamp(16px, 3vw, 32px) !default;
 $max-width    : 1280px !default;
 $min-width    : 480px !default;
 
@@ -18,23 +18,29 @@ $gap-gutter   : var(--grid-gap, 0px);
 }
 
 @mixin inherit() {
-  display : inherit;
-  grid : inherit;
+  display       : inherit;
+  grid          : inherit;
+  grid-gap      : inherit;
   align-content : inherit;
 }
 
-@mixin base-blowout() {
-  @include custom-properties.negative-single-gutter-width(var(--breakpoint-max, #{$max-width}));
-  --grid-base-column : 1 / -1;
-  padding-left  : max(#{$gap-gutter}, var(--negative-single-gutter-width));
-  padding-right : max(#{$gap-gutter}, var(--negative-single-gutter-width));
-  @supports not ( width:max(1px, 5px)) {
-    padding-left  : var(--negative-single-gutter-width);
-    padding-right : var(--negative-single-gutter-width);
-  }
-}
 
-@mixin base() {
+@mixin base($column-count : $column-count, $gaps : $gaps, $max-width : $max-width, $min-width : $min-width) {
+
+  $gap-spacer   : $gaps;
+  $gap-gutter   : $gaps;
+
+  @if ( meta.type-of($gaps) == 'list' ) {
+    $gap-spacer : list.nth($gaps, 1);
+    $gap-gutter : if(list.length($gaps) > 1, list.nth($gaps, 2), list.nth($gaps, 1));
+  }
+
+  @debug 'Base - $column-count: ' + $column-count;
+  @debug 'Base - $gaps: '         + $gaps;
+  @debug 'Base - $max-width: '    + $max-width;
+  @debug 'Base - $min-width: '    + $min-width;
+  @debug 'Base - $gap-spacer: '   + $gap-spacer;
+  @debug 'Base - $gap-gutter: '   + $gap-gutter;
 
   --grid-base-column-count     : #{$column-count};
   --grid-base-template-columns : minmax(0, 1fr) repeat(var(--grid-base-column-repeat), minmax(0, var(--grid-base-column-width))) minmax(0, 1fr);
@@ -61,7 +67,25 @@ $gap-gutter   : var(--grid-gap, 0px);
 
 }
 
-@mixin wrap() {
+@mixin blowout() {
+  @include custom-properties.negative-single-gutter-width(var(--breakpoint-max, #{$max-width}));
+  padding-left  : max(#{$gap-gutter}, var(--negative-single-gutter-width));
+  padding-right : max(#{$gap-gutter}, var(--negative-single-gutter-width));
+  @supports not ( width:max(1px, 5px)) {
+    padding-left  : var(--negative-single-gutter-width);
+    padding-right : var(--negative-single-gutter-width);
+  }
+}
+
+@mixin base-blowout() {
+  @include blowout();
+  --grid-base-column : 1 / -1;
+}
+
+
+
+
+@mixin wrap($column-count : $column-count, $gaps : $gaps, $max-width : $max-width, $min-width : $min-width) {
 
   --grid-column-count     : #{$column-count};
   --grid-template-columns : repeat(var(--grid-column-repeat), minmax(0, var(--grid-column-width)));

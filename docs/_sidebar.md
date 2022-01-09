@@ -1,4 +1,4 @@
-- [Getting started](getting-started/ "Doggistyle - Getting Started")
+- [Getting started](getting-started "Doggistyle - Getting Started")
 
 - [Collections](collections/ "Doggistyle - Collections")
 

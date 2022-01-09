@@ -37,8 +37,8 @@ with a myriad of potentially unused delcaration blocks. Instead we leverage the 
 at-rules to define variables, mixins, and functions on a per stylesheet basis. 
 
 The following essentially permits your stylesheet access
-to all the default $variables, @mixins, and @functions. 
-This must be included in every stylesheet where you require the power of Doggistyle to be available.
+to all the default Doggistyle $variables, @mixins, and @functions. 
+This must be included in every stylesheet where you require the resources of Doggistyle to be available.
 
 
 ```css
@@ -58,3 +58,13 @@ You can define your global defaults by passing in a map for each config group:
     $grid        : $gridConfigs
   );
 ```
+
+### Config Groups
+
+| Property | Full Docs | Description |
+| -- | -- | -- |
+| `$typography`  | <small>Coming Soon</small> | Font sizes, types, colours and scalers | 
+| `$breakpoints` | <small>Coming Soon</small> | Media query breakpoints | 
+| `$palette`     | <small>Coming Soon</small> | Colours and themes | 
+| `$units`       | <small>Coming Soon</small> | Gutters and Spacers | 
+| `$grid`        | [Docs](collections/grid) | Grid and subgrid templates | 
