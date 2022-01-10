@@ -35,13 +35,6 @@ $gap-gutter   : var(--grid-gap, 0px);
     $gap-gutter : if(list.length($gaps) > 1, list.nth($gaps, 2), list.nth($gaps, 1));
   }
 
-  @debug 'Base - $column-count: ' + $column-count;
-  @debug 'Base - $gaps: '         + $gaps;
-  @debug 'Base - $max-width: '    + $max-width;
-  @debug 'Base - $min-width: '    + $min-width;
-  @debug 'Base - $gap-spacer: '   + $gap-spacer;
-  @debug 'Base - $gap-gutter: '   + $gap-gutter;
-
   --grid-base-column-count     : #{$column-count};
   --grid-base-template-columns : minmax(0, 1fr) repeat(var(--grid-base-column-repeat), minmax(0, var(--grid-base-column-width))) minmax(0, 1fr);
   --grid-base-column-width     : calc(#{$max-width} / var(--grid-base-column-count) - (var(--grid-base-gutter, 0px) - (var(--grid-base-gutter, 0px) / var(--grid-base-column-count))));
@@ -69,11 +62,11 @@ $gap-gutter   : var(--grid-gap, 0px);
 
 @mixin blowout() {
   @include custom-properties.negative-single-gutter-width(var(--breakpoint-max, #{$max-width}));
-  padding-left  : max(#{$gap-gutter}, var(--negative-single-gutter-width));
-  padding-right : max(#{$gap-gutter}, var(--negative-single-gutter-width));
+  padding-left  : var(--blowout-padding-left,  max(#{$gap-gutter}, var(--negative-single-gutter-width)));
+  padding-right : var(--blowout-padding-right, max(#{$gap-gutter}, var(--negative-single-gutter-width)));
   @supports not ( width:max(1px, 5px)) {
-    padding-left  : var(--negative-single-gutter-width);
-    padding-right : var(--negative-single-gutter-width);
+    padding-left  : var(--blowout-padding-left,  var(--negative-single-gutter-width));
+    padding-right : var(--blowout-padding-right, var(--negative-single-gutter-width));
   }
 }
 
@@ -81,7 +74,6 @@ $gap-gutter   : var(--grid-gap, 0px);
   @include blowout();
   --grid-base-column : 1 / -1;
 }
-
 
 
 
@@ -94,7 +86,7 @@ $gap-gutter   : var(--grid-gap, 0px);
   --grid-spacer           : #{$gap-spacer};
   --grid-column           : 1 / -1;
   // --grid-column-repeat    : var(--grid-column-count);
-  --grid-column-repeat    : auto-fill;
+  --grid-column-repeat    : auto-fit;
 
   display       : grid;
   grid          : var(--grid-template-rows, auto) / var(--grid-template-columns, auto);
