@@ -1,6 +1,7 @@
 @use 'sass:map';
 @use 'sass:meta';
 @use 'sass:list';
+@use '../helpers/grid';
 @use '../helpers/break';
 @use '../helpers/custom-properties';
 
@@ -8,6 +9,7 @@ $column-count : 6 !default;
 $gaps         : clamp(64px, 6vh, 128px) clamp(16px, 3vw, 32px) !default;
 $max-width    : 1280px !default;
 $min-width    : 480px !default;
+$set-children : true !default;
 
 $gap-spacer   : var(--grid-gap, 0px);
 $gap-gutter   : var(--grid-gap, 0px);
@@ -17,15 +19,9 @@ $gap-gutter   : var(--grid-gap, 0px);
   $gap-gutter : if(list.length($gaps) > 1, list.nth($gaps, 2), list.nth($gaps, 1));
 }
 
-@mixin inherit() {
-  display       : inherit;
-  grid          : inherit;
-  grid-gap      : inherit;
-  align-content : inherit;
-}
+@mixin inherit() { @include grid.inherit(); }
 
-
-@mixin base($column-count : $column-count, $gaps : $gaps, $max-width : $max-width, $min-width : $min-width) {
+@mixin base($column-count : $column-count, $gaps : $gaps, $max-width : $max-width, $min-width : $min-width, $set-children : true) {
 
   $gap-spacer   : $gaps;
   $gap-gutter   : $gaps;
@@ -52,8 +48,10 @@ $gap-gutter   : var(--grid-gap, 0px);
     --grid-base-column-count : 1;
   }
 
-  > * {
-    grid-column : var(--grid-base-column);
+  @if $set-children {
+    > * {
+      grid-column : var(--grid-base-column);
+    }
   }
 
   @content;
@@ -77,7 +75,7 @@ $gap-gutter   : var(--grid-gap, 0px);
 
 
 
-@mixin wrap($column-count : $column-count, $gaps : $gaps, $max-width : $max-width, $min-width : $min-width) {
+@mixin wrap($column-count : $column-count, $gaps : $gaps, $max-width : $max-width, $min-width : $min-width, $set-children : true) {
 
   --grid-column-count     : #{$column-count};
   --grid-template-columns : repeat(var(--grid-column-repeat), minmax(0, var(--grid-column-width)));
@@ -97,15 +95,17 @@ $gap-gutter   : var(--grid-gap, 0px);
     --grid-column-count : 1;
   }
 
-  > * {
-    grid-column : var(--grid-column);
+  @if $set-children {
+    > * {
+      grid-column : var(--grid-column);
+    }
   }
 
   @content;
 
 }
 
-@mixin no-wrap() {
+@mixin no-wrap($column-count : $column-count, $gaps : $gaps, $max-width : $max-width, $min-width : $min-width, $set-children : true) {
   
   --grid-column-count     : #{$column-count};
   --grid-template-columns : repeat(var(--grid-column-count), minmax(0, var(--grid-column-width)));
@@ -119,8 +119,10 @@ $gap-gutter   : var(--grid-gap, 0px);
   grid-gap      : var(--grid-spacer, 0px) var(--grid-gutter, 0px);
   align-content : start; 
 
-  > * {
-    grid-column : var(--grid-column);
+  @if $set-children {
+    > * {
+      grid-column : var(--grid-column);
+    }
   }
 
   @content;

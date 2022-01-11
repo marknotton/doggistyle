@@ -42,3 +42,9 @@
 
 }
 
+@mixin inherit() {
+  display       : inherit;
+  grid          : inherit;
+  grid-gap      : inherit;
+  align-content : inherit;
+}
