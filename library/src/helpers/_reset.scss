@@ -13,13 +13,12 @@ time, mark, audio, video, input, optgroup, select, textarea, button, em, strong 
 }
 
 :root {
-  box-sizing: border-box;
   -webkit-text-size-adjust: 100%;
 }
 
 *, *:after, *:before {
   &:focus { outline:0; };
-  box-sizing:inherit;
+  box-sizing: border-box;
 }
 
 html { 
