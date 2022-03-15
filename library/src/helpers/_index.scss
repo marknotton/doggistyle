@@ -3,8 +3,13 @@
 @forward 'aspect-ratio' show aspect-ratio;
 // @forward 'break' as break-*;
 @forward "font";
+@forward "flex" as flex-*;
 @forward "font" as font-*;
 @forward "animation";
 @forward "custom-properties" as custom-properties-*;
 @forward "dev";
 @forward 'browser' as browser-*;
+@forward 'browser' show browser;
+@forward 'component' show has-component;
+@forward 'has' show has;
+@forward 'feature' show feature;

@@ -1,0 +1,5 @@
+@use 'modules/context' as *;
+
+@mixin has-component($rules...) {
+  @include context('component', (bodyOnly : true), $rules...) { @content; }
+}

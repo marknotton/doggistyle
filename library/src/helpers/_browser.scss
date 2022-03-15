@@ -2,53 +2,47 @@
 /// Browser                                                             #browser
 ////////////////////////////////////////////////////////////////////////////////
 
-@mixin _browser($name, $version:false) {
-  @at-root :root {
-    &[data-browser*="#{$name}"] {
-      @if $version {
-        &[data-browser*="#{$version}"] {
-          @content;
-        }
-      } @else {
-        @content;
-      }
-    }
-  }
-}
+@use 'modules/context' as *;
 
-@mixin feature($name) {
-  @at-root :root[data-browser-feature*="#{$name}"] & {
+/// @example @include browser('safari') { ... }
+/// @example @include browser('safari', 15) { ... }
+
+@mixin browser($name, $version:false) {
+
+  $browserSelector : '[data-browser*="#{$name}"]';
+  $versionSelector : if($version, '[data-browser*="#{$version}"]', '');
+
+  @at-root :root#{$browserSelector}#{$versionSelector} & {
     @content;
   }
+
 }
 
-@mixin without-feature($name) {
-  @at-root :root:not([data-browser-feature*="#{$name}"]) & {
-    @content;
-  }
+@mixin feature($rules...) {
+  @include context('feature', (bodyOnly : true), $rules...) { @content; }
 }
 
 @mixin firefox($version:false) {
-  @include _browser('firefox', $version) { @content; };
+  @include browser('firefox', $version) { @content; };
 }
 
 @mixin ie($version:false) {
-  @include _browser('ie', $version) { @content; };
+  @include browser('ie', $version) { @content; };
 }
 
 @mixin chrome($version:false) {
-  @include _browser('chrome', $version) { @content; };
+  @include browser('chrome', $version) { @content; };
 }
 
 @mixin edge($version:false) {
-  @include _browser('edge', $version) { @content; };
+  @include browser('edge', $version) { @content; };
 }
 
 @mixin opera($version:false) {
-  @include _browser('opera', $version) { @content; };
+  @include browser('opera', $version) { @content; };
 }
 
 @mixin safari($version:false) {
-  @include _browser('safari', $version) { @content; };
+  @include browser('safari', $version) {  @content; };
 }
 

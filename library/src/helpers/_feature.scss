@@ -1,0 +1,5 @@
+@use 'modules/context' as *;
+
+@mixin feature($rules...) {
+  @include context('feature', (bodyOnly : true), $rules...) { @content; }
+}

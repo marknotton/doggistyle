@@ -1,0 +1,165 @@
+/// This is an experimental mixin to replace the component-exists mixin and to have a 
+/// similar language as you'd expect to see when the native :has function is available. 
+/// This checks what components, elements, modules have been loaded and assigned to 
+/// the <body> element. You can chain and negate selectors
+
+/// @example
+/// @include feature('touch') { 
+///   color:red; 
+/// }
+/// @output body
+
+/// @example
+/// :root { 
+///   @include feature('touch') { 
+///     color:red; 
+///   }
+/// }
+/// @output :root body.feature\:touch
+
+/// @example
+/// :root body { 
+///   @include feature('touch') { 
+///     color:red; 
+///   }
+/// }
+/// @output :root body.feature\:touch
+
+/// @example
+/// :root body.some-other-class { 
+///   @include feature('touch') { 
+///     color:red; 
+///   }
+/// }
+/// @output :root body.some-other-class.feature\:touch
+
+/// @example
+/// body { 
+///   @include feature('not touch') { 
+///     color:red; 
+///   }
+/// }
+/// @output body:not(.feature\:touch)
+
+/// @example
+/// body.some-other-class, body.double-selector { 
+///   @include feature('touch') { 
+///     color:red; 
+///   }
+/// }
+/// @output body.some-other-class.feature\:touch, body.double-selector.
+
+/// @example
+/// body#some-other-id { 
+///   @include feature('touch') { 
+///     color:red; 
+///   }
+/// }
+/// @output body#some-other-id.feature\:touch
+
+/// @example
+/// body::before foo bar { 
+///   @include feature('touch') { 
+///     color:red; 
+///   }
+/// }
+/// @output body .feature\:touch::before foo bar
+
+/// @example
+/// custom-element.some-class .foo.bar #fee {
+///   @include feature('touch') { 
+///     color:red; 
+///   }
+/// }
+/// @output body.feature\:touch custom-element.some-class .foo.bar #fee
+
+@use 'sass:meta';
+@use 'sass:string';
+@use 'sass:map';
+@use 'sass:list';
+@use 'sass:selector';
+
+@mixin context($context, $options : (), $rules...) {
+
+  $bodyOnly : map.get($options, 'bodyOnly') or false;
+
+  $parentSelectors : if(meta.type-of(&) == 'null', (), &);
+
+  @if ( list.length($parentSelectors) == 0 ) {
+    $parentSelectors : ('body');
+  } @else {
+    @for $i from 1 through length($parentSelectors) {
+
+      $selector : list.nth($parentSelectors, $i);
+
+      $selectorContainsRoot : meta.type-of(string.index(meta.inspect($selector), ':root')) != 'null';
+      // @debug & + ' : '+ $selectorContainsRoot;
+
+      $selectorContainsBody : meta.type-of(
+        list.nth($selector, 1) == 'body' or
+        (list.length($selector) > 1 and list.nth($selector, 2) == 'body') or
+        string.index(meta.inspect($selector), 'body.') or
+        string.index(meta.inspect($selector), 'body:') or
+        string.index(meta.inspect($selector), 'body#')
+      ) != 'null';
+      // @debug & + ' : '+ $selectorContainsBody;
+
+      
+      $selectorStartsWithBody : string.slice(meta.inspect($selector), 0, 4) == 'body';
+      // @debug & + ' : '+ $selectorStartsWithBody;
+
+      $selectorRules : '';
+
+      @each $rule in $rules {
+        @if ( meta.type-of(string.index($rule, 'not ')) != 'null' ) {
+          $rule : string.slice($rule, 5, -1);
+          $selectorRules : $selectorRules + ':not(.#{$context}\\:#{$rule})'
+        } @else {
+          $selectorRules : $selectorRules + '.#{$context}\\:#{$rule}'
+        }
+      }
+      // @debug & + ' : '+ $selectorRules;
+
+      $newSelector : '';
+
+      // handle :root selectors
+      @if ( $selectorContainsRoot ) {
+        @if ( $selectorContainsBody ) {
+          // handle :root body selectors
+          $newSelector : list.set-nth($selector, 2, list.nth($selector, 2) + $selectorRules);
+        } @else {
+          // handle :root without a body selector
+          $newSelector : string.unquote($selector+' body'+$selectorRules);
+        }
+      } @else {
+        // handle body selectors
+        @if ( $selectorStartsWithBody ) {
+          @if (string.index(meta.inspect($selector), 'body:')) {
+            // handle pseudo selectors
+            $splitBody : string.slice(list.nth($selector, 1), 5, -1);
+            $newSelector : list.set-nth($selector, 1, string.unquote('body '+ $selectorRules + $splitBody));
+          } @else {
+            $newSelector : list.set-nth($selector, 1, list.nth($selector, 1) + $selectorRules);
+          }
+        } @else {
+          @if ( $bodyOnly ) {
+            // if body only setting is tue, force body scope
+            $newSelector : string.unquote('body' + $selectorRules + ' ' + $selector);
+          } @else {
+            // otherwise allow the selector rules to be scoped to the parent 
+            $newSelector : list.set-nth($selector, -1, list.nth($selector, -1) + $selectorRules);
+          }
+        }
+      }
+      // @debug & + ' : '+ $newSelector;
+
+      $parentSelectors : list.set-nth($parentSelectors, $i, $newSelector);
+
+    }
+  }
+
+  // @debug $parentSelectors ; 
+  @at-root #{$parentSelectors} {
+    @content;
+  }
+}

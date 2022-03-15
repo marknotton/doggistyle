@@ -51,7 +51,7 @@ $_base-columns : ();
     $gap-gutter : if(list.length($gaps) > 1, list.nth($gaps, 2), list.nth($gaps, 1));
   }
 
-  $grid-gutter-columns         : minmax(0, 1fr);
+  $grid-gutter-columns         : calc(max(var(--gutter1), var(--negative-single-gutter-width)) - var(--gutter1));
   $grid-main-columns           : repeat(var(--grid-base-column-count), minmax(0, var(--grid-base-column-width)));
   $grid-columns-devided        : $max-width '/' var(--grid-base-column-count);
   $grid-columns-devided-offset : (var(--grid-gutter, 0px) '-' (var(--grid-gutter, 0px) '/' var(--grid-base-column-count)));
@@ -61,7 +61,7 @@ $_base-columns : ();
   --grid-base-template-columns : #{$grid-gutter-columns $grid-main-columns $grid-gutter-columns};
   --grid-base-gutter           : #{$gap-gutter};
   --grid-base-spacer           : #{$gap-spacer};
-  --grid-base-column           : 2 / -2;
+  --grid-base-column           : 1 / -1;
 
   display               : grid;
   grid-template-columns : var(--grid-base-template-columns, auto);
