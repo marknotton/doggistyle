@@ -84,14 +84,14 @@ $_base-columns : ();
   }
 }
 
-@mixin wrap($column-count : $column-count, $gaps : $gaps, $max-width : $max-width) {
+@mixin fluid($column-count : $column-count, $gaps : $gaps, $max-width : $max-width) {
 
-  $grid-columns-devided        : ($max-width '/' var(--grid-column-count));
-  $grid-columns-devided-offset : (var(--grid-gutter, 0px) '-' (var(--grid-gutter, 0px) '/' var(--grid-column-count)));
+  $grid-columns-devided-offset : calc(var(--grid-gutter) * (var(--grid-column-count) - 1));
+  $grid-columns-devided        : calc(($max-width - ($grid-columns-devided-offset) - var(--grid-column-width-offset, 0px)) / var(--grid-column-count));
   $grid-main-columns           : repeat(var(--grid-column-repeat), minmax(var(--grid-column-width), 1fr));
 
   --grid-column-count     : #{$column-count};
-  --grid-column-width     : calc(#{$grid-columns-devided});
+  --grid-column-width     : #{$grid-columns-devided};
 
   --grid-template-columns : #{$grid-main-columns};
   --grid-gutter           : #{$gap-gutter};
@@ -102,6 +102,101 @@ $_base-columns : ();
   grid-template-columns : var(--grid-template-columns, auto);
   grid-gap              : var(--grid-spacer, 0px) var(--grid-gutter, 0px);
   align-content         : start; 
+
+  @for $i from 1 through 12 {
+    @if ( $i != $column-count ) {
+      &.columns\:#{$i} { --grid-column-count : #{$i}; } 
+    }
+  }
+
+  // &:not([class*="columns\:"]) {
+  //   --grid-column-count:1; 
+  // }
+
+  @content;
+
+}
+
+@mixin wrap($column-count : $column-count, $gaps : $gaps, $max-width : $max-width) {
+
+  $grid-columns-devided   : ($max-width '/' var(--grid-column-count));
+  $grid-main-columns      : repeat(var(--grid-column-count), minmax(0, var(--grid-column-width)));
+
+  --grid-column-count     : #{$column-count};
+  --grid-column-width     : calc(#{$grid-columns-devided});
+
+  --grid-template-columns : #{$grid-main-columns};
+  --grid-gutter           : #{$gap-gutter};
+  --grid-spacer           : #{$gap-spacer};
+
+  display               : grid;
+  grid-template-columns : var(--grid-template-columns, auto);
+  grid-gap              : var(--grid-spacer, 0px) var(--grid-gutter, 0px);
+  align-content         : start; 
+
+  // The first number in the .col-X-X class name refers to the column starting point,
+  // The second number is how many columns it spans for.
+  // You may be wondering why I didn't just stick with the one-liner using custom properties. 
+  // That method of column grids is too strict and would never reliable breakdown
+  // natively because the content would always become overblown. 
+  // We had to go the manual way so that we can address special situations as speicfic break points.  
+
+  @for $i from 1 through 6 {
+    @for $l from $i through 7 {
+      $poperty : #{'--col-' + $i + '-span-' + ($l - $i + 1)};
+      $value   : #{$i + ' / span ' + ($l - $i + 1)};
+      #{$poperty} : #{$value};
+      // @debug #{$poperty ':' $value}; 
+    }
+  }
+
+  > * { grid-column : 1 / -1; }
+
+  > .col\:1-span\:all { grid-column : var(--col-1-span-all, 1 / -1); } 
+  > .col\:2-span\:all { grid-column : var(--col-2-span-all, 2 / -1); }
+  > .col\:3-span\:all { grid-column : var(--col-3-span-all, 3 / -1); }
+  > .col\:4-span\:all { grid-column : var(--col-4-span-all, 4 / -1); }
+  > .col\:5-span\:all { grid-column : var(--col-5-span-all, 5 / -1); }
+  > .col\:6-span\:all { grid-column : var(--col-6-span-all, 6 / -1); }
+
+  // One Column ------------------------
+  > .col\:1-span\:1 { grid-column : var(--col-1-span-1); } 
+  > .col\:1-span\:2 { grid-column : var(--col-1-span-2); } 
+  > .col\:1-span\:3 { grid-column : var(--col-1-span-3); } 
+  > .col\:1-span\:4 { grid-column : var(--col-1-span-4); } 
+  > .col\:1-span\:5 { grid-column : var(--col-1-span-5); } 
+  > .col\:1-span\:6 { grid-column : var(--col-1-span-6); } 
+  > .col\:1-span\:7 { grid-column : var(--col-1-span-7); }  
+  
+  // Two Columns -----------------------
+  > .col\:2-span\:1 { grid-column : var(--col-2-span-1); }
+  > .col\:2-span\:2 { grid-column : var(--col-2-span-2); }
+  > .col\:2-span\:3 { grid-column : var(--col-2-span-3); }
+  > .col\:2-span\:4 { grid-column : var(--col-2-span-4); }
+  > .col\:2-span\:5 { grid-column : var(--col-2-span-5); }
+  > .col\:2-span\:6 { grid-column : var(--col-2-span-6); } 
+  
+  // Three Columns ---------------------
+  > .col\:3-span\:1 { grid-column : var(--col-3-span-1); }
+  > .col\:3-span\:2 { grid-column : var(--col-3-span-2); }
+  > .col\:3-span\:3 { grid-column : var(--col-3-span-3); }
+  > .col\:3-span\:4 { grid-column : var(--col-3-span-4); } 
+  > .col\:3-span\:5 { grid-column : var(--col-3-span-5); }  
+  
+  // Four Columns ----------------------
+  > .col\:4-span\:1 { grid-column : var(--col-4-span-1); }
+  > .col\:4-span\:2 { grid-column : var(--col-4-span-2); }
+  > .col\:4-span\:3 { grid-column : var(--col-4-span-3); }
+  > .col\:4-span\:4 { grid-column : var(--col-4-span-4); }  
+  
+  // Five Columns ----------------------
+  > .col\:5-span\:1 { grid-column : var(--col-5-span-1); }
+  > .col\:5-span\:2 { grid-column : var(--col-5-span-2); }
+  > .col\:5-span\:3 { grid-column : var(--col-5-span-3); } 
+  
+  // Six Columns -----------------------
+  > .col\:6-span\:1 { grid-column : var(--col-6-span-1); }
+  > .col\:6-span\:2 { grid-column : var(--col-6-span-2); }
 
   @content;
 
@@ -123,6 +218,16 @@ $_base-columns : ();
   grid-template-columns : var(--grid-template-columns, auto);
   grid-gap              : var(--grid-spacer, 0px) var(--grid-gutter, 0px);
   align-content         : start; 
+
+  @for $i from 1 through 12 {
+    @if ( $i != $column-count ) {
+      &.columns\:#{$i} { --grid-column-count : #{$i}; } 
+    }
+  }
+
+  // &:not([class*="columns\:"]) {
+  //   --grid-column-count:1; 
+  // }
 
   @content;
 
