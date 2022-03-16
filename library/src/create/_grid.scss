@@ -146,57 +146,20 @@ $_base-columns : ();
       $poperty : #{'--col-' + $i + '-span-' + ($l - $i + 1)};
       $value   : #{$i + ' / span ' + ($l - $i + 1)};
       #{$poperty} : #{$value};
+      > #{".col\\:" + $i + "-span\\:" + ($l - $i + 1)} {
+        grid-column: var(#{$poperty}, 1 / -1);
+      }
       // @debug #{$poperty ':' $value}; 
+    }
+    > #{".col\\:" + $i} {
+      grid-column: var(--col- + #{$i}, #{$i});
+      &-span\:all { 
+        grid-column : var(--col-#{$i}-span-all, #{$i} / -1);
+      }
     }
   }
 
-  > *:not([class*=".col\:"]) { grid-column : 1 / -1; }
-
-  > .col\:1-span\:all { grid-column : var(--col-1-span-all, 1 / -1); } 
-  > .col\:2-span\:all { grid-column : var(--col-2-span-all, 2 / -1); }
-  > .col\:3-span\:all { grid-column : var(--col-3-span-all, 3 / -1); }
-  > .col\:4-span\:all { grid-column : var(--col-4-span-all, 4 / -1); }
-  > .col\:5-span\:all { grid-column : var(--col-5-span-all, 5 / -1); }
-  > .col\:6-span\:all { grid-column : var(--col-6-span-all, 6 / -1); }
-
-  // One Column ------------------------
-  > .col\:1-span\:1 { grid-column : var(--col-1-span-1); } 
-  > .col\:1-span\:2 { grid-column : var(--col-1-span-2); } 
-  > .col\:1-span\:3 { grid-column : var(--col-1-span-3); } 
-  > .col\:1-span\:4 { grid-column : var(--col-1-span-4); } 
-  > .col\:1-span\:5 { grid-column : var(--col-1-span-5); } 
-  > .col\:1-span\:6 { grid-column : var(--col-1-span-6); } 
-  > .col\:1-span\:7 { grid-column : var(--col-1-span-7); }  
-  
-  // Two Columns -----------------------
-  > .col\:2-span\:1 { grid-column : var(--col-2-span-1); }
-  > .col\:2-span\:2 { grid-column : var(--col-2-span-2); }
-  > .col\:2-span\:3 { grid-column : var(--col-2-span-3); }
-  > .col\:2-span\:4 { grid-column : var(--col-2-span-4); }
-  > .col\:2-span\:5 { grid-column : var(--col-2-span-5); }
-  > .col\:2-span\:6 { grid-column : var(--col-2-span-6); } 
-  
-  // Three Columns ---------------------
-  > .col\:3-span\:1 { grid-column : var(--col-3-span-1); }
-  > .col\:3-span\:2 { grid-column : var(--col-3-span-2); }
-  > .col\:3-span\:3 { grid-column : var(--col-3-span-3); }
-  > .col\:3-span\:4 { grid-column : var(--col-3-span-4); } 
-  > .col\:3-span\:5 { grid-column : var(--col-3-span-5); }  
-  
-  // Four Columns ----------------------
-  > .col\:4-span\:1 { grid-column : var(--col-4-span-1); }
-  > .col\:4-span\:2 { grid-column : var(--col-4-span-2); }
-  > .col\:4-span\:3 { grid-column : var(--col-4-span-3); }
-  > .col\:4-span\:4 { grid-column : var(--col-4-span-4); }  
-  
-  // Five Columns ----------------------
-  > .col\:5-span\:1 { grid-column : var(--col-5-span-1); }
-  > .col\:5-span\:2 { grid-column : var(--col-5-span-2); }
-  > .col\:5-span\:3 { grid-column : var(--col-5-span-3); } 
-  
-  // Six Columns -----------------------
-  > .col\:6-span\:1 { grid-column : var(--col-6-span-1); }
-  > .col\:6-span\:2 { grid-column : var(--col-6-span-2); }
+  > *:not([class*="col\:"]) { grid-column : 1 / -1; }
 
   @content;
 
