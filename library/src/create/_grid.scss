@@ -86,7 +86,7 @@ $_base-columns : ();
 
 @mixin fluid($column-count : $column-count, $gaps : $gaps, $max-width : $max-width) {
 
-  $grid-columns-devided-offset : calc(var(--grid-gutter) * (var(--grid-column-count) - 1));
+  $grid-columns-devided-offset : calc(var(--grid-gutter) * (var(--grid-column-count) - 1) + var(--scroll-bar-width, 0px));
   $grid-columns-devided        : calc(($max-width - ($grid-columns-devided-offset) - var(--grid-column-width-offset, 0px)) / var(--grid-column-count));
   $grid-main-columns           : repeat(var(--grid-column-repeat), minmax(var(--grid-column-width), 1fr));
 
@@ -150,7 +150,7 @@ $_base-columns : ();
     }
   }
 
-  > * { grid-column : 1 / -1; }
+  > *:not([class*=".col\:"]) { grid-column : 1 / -1; }
 
   > .col\:1-span\:all { grid-column : var(--col-1-span-all, 1 / -1); } 
   > .col\:2-span\:all { grid-column : var(--col-2-span-all, 2 / -1); }
