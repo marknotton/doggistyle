@@ -8,6 +8,7 @@
 @forward "animation";
 @forward "custom-properties" as custom-properties-*;
 @forward "dev";
+@forward 'device' as device-*;
 @forward 'browser' as browser-*;
 @forward 'browser' show browser;
 @forward 'component' show has-component;

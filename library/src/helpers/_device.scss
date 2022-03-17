@@ -1,0 +1,48 @@
+////////////////////////////////////////////////////////////////////////////////
+/// Device                                                               #device
+////////////////////////////////////////////////////////////////////////////////
+
+@use 'modules/context' as *;
+
+/// @example @include browser('safari') { ... }
+/// @example @include browser('safari', 15) { ... }
+
+@mixin device($name, $not : false) {
+
+  $browserSelector : '[data-device*="#{$name}"]';
+  
+  @if ( $not ) {
+    $browserSelector : ':not([data-device*="#{$name}"])';
+  }
+
+  @at-root :root#{$browserSelector} & {
+    @content;
+  }
+
+}
+
+@mixin desktop() {
+  @include device('desktop') { @content; };
+}
+
+@mixin tablet() {
+  @include device('tablet') { @content; };
+}
+
+@mixin mobile() {
+  @include device('mobile') { @content; };
+}
+
+@mixin not-desktop() {
+  @include device('desktop', true) { @content; };
+}
+
+@mixin not-tablet() {
+  @include device('tablet', true) { @content; };
+}
+
+@mixin not-mobile() {
+  @include device('mobile', true) { @content; };
+}
+
+

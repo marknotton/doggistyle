@@ -2,19 +2,22 @@
 
 /// Because Flex gaps are not natively supported accross some browsers, we have to 
 /// refer to an old trick that lets up use grid-gaps with flex containters.  
-@mixin gap($gap : false) {
-  @if ( $gap ) { 
-    gap : #{$gap};
-    display:flex;
-    flex-wrap: wrap;
-    @include browser.feature('not flexbox-gap') { 
-      gap : initial;
-      margin-top:calc(-1 * #{$gap} / 2);
-      margin-bottom:calc(-1 * #{$gap} / 2);
-      left:calc(-1 * #{$gap} / 2);
-      width:calc(100% + (#{$gap} / 2));
-      > * { margin:calc(#{$gap} / 2); }
-      @content;
-    }
+@mixin gap($row-gap, $column-gap : false) {
+
+  $gaps : null;
+
+  $column-gap : $column-gap or $row-gap;
+
+  gap : #{$row-gap} #{$column-gap};
+  display:flex;
+  flex-wrap: wrap;
+  @include browser.feature('not flexbox-gap') { 
+    gap : initial;
+    margin-top:calc(-1 * #{$row-gap});
+    margin-bottom:calc(-1 * #{$row-gap});
+    left:calc(-1 * #{$column-gap});
+    width:calc(100% + (#{$column-gap}));
+    > * { margin:calc(#{$row-gap} / 2) calc(#{$column-gap} / 2); }
+    @content;
   }
 }

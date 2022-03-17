@@ -1,27 +1,3 @@
-/// This will define a set number of grid columns (including gutters) where each 
-/// column width can be modified individually using a numbered column custom property.
-/// @example minmax(0, 1fr)
-///          minmax(0, var(--column-1-width, var(--column-width))) 
-///          minmax(0, var(--column-2-width, var(--column-width))) 
-///          minmax(0, var(--column-3-width, var(--column-width))) 
-///          minmax(0, var(--column-4-width, var(--column-width))) 
-///          minmax(0, var(--column-5-width, var(--column-width))) 
-///          minmax(0, var(--column-6-width, var(--column-width))) 
-///          minmax(0, 1fr)
-@function numbered-columns-with-gutters($column-count : 6) {
-
-  $grid-columns-numbered : 'minmax(0, 1fr) ';
-
-  @for $i from 1 through $column-count {
-    $grid-columns-numbered : $grid-columns-numbered + ' ' + minmax(0, var(--column-#{$i}-width, var(--column-width)));
-  }
-
-  $grid-columns-numbered : $grid-columns-numbered + ' minmax(0, 1fr)';
-  
-  @return $grid-columns-numbered;
-
-}
-
 /// This will define a set number of grid columns where each column width can be 
 /// modified individually using a numbered column custom property
 /// @example minmax(0, var(--column-1-width, var(--column-width))) 
@@ -35,7 +11,7 @@
   $grid-columns-numbered : '';
 
   @for $i from 1 through $column-count {
-    $grid-columns-numbered : $grid-columns-numbered + ' ' + minmax(0, var(--column-#{$i}-width, var(--column-width)));
+    $grid-columns-numbered : $grid-columns-numbered + ' ' + var(--grid-column-#{$i}-width, minmax(0, var(--grid-column-width)));
   }
 
   @return $grid-columns-numbered;
