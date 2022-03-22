@@ -83,7 +83,7 @@
 
   $bodyOnly : map.get($options, 'bodyOnly') or false;
 
-  $parentSelectors : if(meta.type-of(&) == 'null', (), &);
+  $parentSelectors : if(meta.type-of(&) == 'null', 'body', &);
 
   @if ( list.length($parentSelectors) == 0 ) {
     $parentSelectors : ('body');
@@ -93,7 +93,7 @@
       $selector : list.nth($parentSelectors, $i);
 
       $selectorContainsRoot : meta.type-of(string.index(meta.inspect($selector), ':root')) != 'null';
-      // @debug & + ' : '+ $selectorContainsRoot;
+      // @debug & + ' - $selectorContainsRoot: '+ $selectorContainsRoot;
 
       $selectorContainsBody : meta.type-of(
         list.nth($selector, 1) == 'body' or
@@ -102,11 +102,11 @@
         string.index(meta.inspect($selector), 'body:') or
         string.index(meta.inspect($selector), 'body#')
       ) != 'null';
-      // @debug & + ' : '+ $selectorContainsBody;
+      // @debug & + ' - $selectorContainsBody: '+ $selectorContainsBody;
 
       
       $selectorStartsWithBody : string.slice(meta.inspect($selector), 0, 4) == 'body';
-      // @debug & + ' : '+ $selectorStartsWithBody;
+      // @debug & + ' - $selectorStartsWithBody: '+ $selectorStartsWithBody;
 
       $selectorRules : '';
 
@@ -118,7 +118,7 @@
           $selectorRules : $selectorRules + '.#{$context}\\:#{$rule}'
         }
       }
-      // @debug & + ' : '+ $selectorRules;
+      // @debug & + ' - $selectorRules: '+ $selectorRules;
 
       $newSelector : '';
 
@@ -148,10 +148,11 @@
           } @else {
             // otherwise allow the selector rules to be scoped to the parent 
             $newSelector : list.set-nth($selector, -1, list.nth($selector, -1) + $selectorRules);
+            @debug $newSelector;
           }
         }
       }
-      // @debug & + ' : '+ $newSelector;
+      // @debug & + ' - $newSelector: '+ $newSelector;
 
       $parentSelectors : list.set-nth($parentSelectors, $i, $newSelector);
 

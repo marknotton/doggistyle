@@ -8,26 +8,34 @@
 
 @mixin aspect-ratio($ratio : '16/9') {
 
-  --aspect-ratio: #{string.unquote($ratio)};
-  aspect-ratio: var(--aspect-ratio);
-
-  @supports not (aspect-ratio: #{string.unquote($ratio)}) {
-    aspect-ratio:initial;
-
-    $width  : string.slice($ratio, 1, string.index($ratio, '/') - 1);
-    $height : string.slice($ratio, string.index($ratio, '/') + 1);
-
-    // $ratio : string.insert($ratio, " ", string.index($ratio, '/'));
-    // $ratio : string.insert($ratio, " ", string.index($ratio, '/') + 1);
-    // $ratio : string.unquote($ratio);
-
-    &::before {
-      content:'';
-      float: left; 
-      height:0; 
-      padding-top: calc(#{$height + ' / ' + $width + ' * 100%'});
-      // padding-top: calc(#{$ratio + ' * 100%'});
+  @if ( $ratio == 'initial') {
+    aspect-ratio: initial;
+  } @else {
+    @if ( $ratio == '1' ) {
+      $ratio : '1/1';
     }
-    @content;
+
+    --aspect-ratio: #{string.unquote($ratio)};
+    aspect-ratio: var(--aspect-ratio);
+
+    @supports not (aspect-ratio: #{string.unquote($ratio)}) {
+      aspect-ratio:initial;
+
+      $width  : string.slice($ratio, 1, string.index($ratio, '/') - 1);
+      $height : string.slice($ratio, string.index($ratio, '/') + 1);
+
+      // $ratio : string.insert($ratio, " ", string.index($ratio, '/'));
+      // $ratio : string.insert($ratio, " ", string.index($ratio, '/') + 1);
+      // $ratio : string.unquote($ratio);
+
+      &::before {
+        content:'';
+        float: left; 
+        height:0; 
+        padding-top: calc(#{$height + ' / ' + $width + ' * 100%'});
+        // padding-top: calc(#{$ratio + ' * 100%'});
+      }
+      @content;
+    }
   }
 }
