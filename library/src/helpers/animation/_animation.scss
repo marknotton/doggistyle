@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 @use 'keyframes' as *;
+@use 'sass:meta';
 
 /// @example 
 /// animation('rotate', $duration : 0.5s ) { 
@@ -21,6 +22,8 @@
     var(--animation-#{$name}-fill,      var(--animation-fill,      #{$fill}))
   ;
 
-  @include keyframes($name) { @content; }
+  @if ( meta.content-exists() ) {
+    @include keyframes($name) { @content; }
+  }
 
 }

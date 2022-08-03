@@ -2,7 +2,7 @@
   "name": "@doggistyle/core",
   "version": "0.4.3",
   "description": "Dart-Sass plugin that adds Javascript functionality to Sass funtions",
-  "main": "core/index.js",
+  "main": "index.js",
   "repository": "marknotton/doggistyle",
   "author": "Mark Notton <mark@marknotton.uk>",
   "license": "MIT",
