@@ -120,124 +120,106 @@ $_h6-crop-bottom : if(map.has-key($h6, "crop-bottom"), map-get($h6, "crop-bottom
 
 }
 
-@mixin h1($font-size-only : false, $crop : $enable-cropping) {
+@mixin _heading($font-size-only, $crop, $options) {
 
-  font-size : font.size($h1-font-size);
+  $font-size        : map-get($options, 'font-size');
+  $font-size-min    : map-get($options, 'font-size-min');
+  $line-height      : map-get($options, 'line-height');
+  $crop-top         : map-get($options, 'crop-top');
+  $crop-bottom      : map-get($options, 'crop-bottom');
+  $scaler : map-get($options, 'scaler');
 
-  @if ( $h1-font-size-min and $h1-font-size-min < $h1-font-size ) {
-    font-size : clamp(#{font.size($h1-font-size-min)}, #{$h1-scaler}, #{font.size($h1-font-size)});
+  font-size : font.size(map-get($options, 'font-size'));
+
+  @if ( $font-size-min and $font-size-min < $font-size ) {
+    font-size : clamp(#{font.size($font-size-min)}, #{$scaler}, #{font.size($font-size)});
   }
 
   @if not $font-size-only { 
 
     @if ( $crop ) { 
-      @include font.crop($h1-font-size, $h1-line-height, $_h1-crop-top, $_h1-crop-bottom ); 
+      @include font.crop($font-size, $line-height, $crop-top, $crop-bottom ); 
     } @else {
-      line-height : $h1-line-height; 
+      line-height : $line-height; 
     }
 
   }
+}
+
+@mixin h1($font-size-only : false, $crop : $enable-cropping) {
+
+  @include _heading($font-size-only, $crop, (
+    'font-size'     : $h1-font-size,
+    'font-size-min' : $h1-font-size-min,
+    'line-height'   : $h1-line-height,
+    'scaler'        : $h1-scaler,
+    'crop-top'      : $_h1-crop-top,
+    'crop-bottom'   : $_h1-crop-bottom
+  ));
 
 }
 
 @mixin h2($font-size-only : false, $crop : $enable-cropping) {
 
-  font-size : font.size($h2-font-size);
-
-  @if ( $h2-font-size-min and $h2-font-size-min < $h2-font-size ) {
-    font-size : clamp(#{font.size($h2-font-size-min)}, #{$h2-scaler}, #{font.size($h2-font-size)});
-  }
-
-  @if not $font-size-only { 
-
-    @if ( $crop ) { 
-      @include font.crop($h2-font-size, $h2-line-height, $_h2-crop-top, $_h2-crop-bottom ); 
-    } @else {
-      line-height : $h2-line-height; 
-    }
-    
-  }
+  @include _heading($font-size-only, $crop, (
+    'font-size'     : $h2-font-size,
+    'font-size-min' : $h2-font-size-min,
+    'line-height'   : $h2-line-height,
+    'scaler'        : $h2-scaler,
+    'crop-top'      : $_h2-crop-top,
+    'crop-bottom'   : $_h2-crop-bottom
+  ))
 
 }
 
 @mixin h3($font-size-only : false, $crop : $enable-cropping) {
 
-  font-size : font.size($h3-font-size);
-
-  @if ( $h3-font-size-min and $h3-font-size-min < $h3-font-size ) {
-    font-size : clamp(#{font.size($h3-font-size-min)}, #{$h3-scaler}, #{font.size($h3-font-size)});
-  }
-
-  @if not $font-size-only { 
-
-    @if ( $crop ) { 
-      @include font.crop($h3-font-size, $h3-line-height, $_h3-crop-top, $_h3-crop-bottom ); 
-    } @else {
-      line-height : $h3-line-height; 
-    }
-    
-  }
+  @include _heading($font-size-only, $crop, (
+    'font-size'     : $h3-font-size,
+    'font-size-min' : $h3-font-size-min,
+    'line-height'   : $h3-line-height,
+    'scaler'        : $h3-scaler,
+    'crop-top'      : $_h3-crop-top,
+    'crop-bottom'   : $_h3-crop-bottom
+  ))
 
 }
 
 @mixin h4($font-size-only : false, $crop : $enable-cropping) {
 
-  font-size : font.size($h4-font-size);
-
-  @if ( $h4-font-size-min and $h4-font-size-min < $h4-font-size ) {
-    font-size : clamp(#{font.size($h4-font-size-min)}, #{$h4-scaler}, #{font.size($h4-font-size)});
-  }
-
-  @if not $font-size-only { 
-
-    @if ( $crop ) { 
-      @include font.crop($h4-font-size, $h4-line-height, $_h4-crop-top, $_h4-crop-bottom ); 
-    } @else {
-      line-height : $h4-line-height; 
-    }
-    
-  }
+  @include _heading($font-size-only, $crop, (
+    'font-size'     : $h4-font-size,
+    'font-size-min' : $h4-font-size-min,
+    'line-height'   : $h4-line-height,
+    'scaler'        : $h4-scaler,
+    'crop-top'      : $_h4-crop-top,
+    'crop-bottom'   : $_h4-crop-bottom
+  ))
 
 }
 
 @mixin h5($font-size-only : false, $crop : $enable-cropping) {
 
-  font-size : font.size($h5-font-size);
-
-  @if ( $h5-font-size-min and $h5-font-size-min < $h5-font-size ) {
-    font-size : clamp(#{font.size($h5-font-size-min)}, #{$h5-scaler}, #{font.size($h5-font-size)});
-  }
-
-  @if not $font-size-only { 
-
-    @if ( $crop ) { 
-      @include font.crop($h5-font-size, $h5-line-height, $_h5-crop-top, $_h5-crop-bottom ); 
-    } @else {
-      line-height : $h5-line-height; 
-    }
-    
-  }
+  @include _heading($font-size-only, $crop, (
+    'font-size'     : $h5-font-size,
+    'font-size-min' : $h5-font-size-min,
+    'line-height'   : $h5-line-height,
+    'scaler'        : $h5-scaler,
+    'crop-top'      : $_h5-crop-top,
+    'crop-bottom'   : $_h5-crop-bottom
+  ))
 
 }
 
 @mixin h6($font-size-only : false, $crop : $enable-cropping) {
 
-  font-size : font.size($h6-font-size);
-
-  @if ( $h6-font-size-min and $h6-font-size-min < $h6-font-size ) {
-    font-size : clamp(#{font.size($h6-font-size-min)}, #{$h6-scaler}, #{font.size($h6-font-size)});
-  }
-
-  @if not $font-size-only { 
-
-    @if ( $crop ) { 
-      @include font.crop2($h6-font-size, $h6-line-height, $_h6-crop-top, $_h6-crop-bottom ); 
-    } @else {
-      line-height : $h6-line-height; 
-    }
-    
-  }
+  @include _heading($font-size-only, $crop, (
+    'font-size'     : $h6-font-size,
+    'font-size-min' : $h6-font-size-min,
+    'line-height'   : $h6-line-height,
+    'scaler'        : $h6-scaler,
+    'crop-top'      : $_h6-crop-top,
+    'crop-bottom'   : $_h6-crop-bottom
+  ))
 
 }
-
-

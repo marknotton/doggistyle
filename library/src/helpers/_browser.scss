@@ -9,8 +9,8 @@
 
 @mixin browser($name, $version:false) {
 
-  $browserSelector : '[data-browser*="#{$name}"]';
-  $versionSelector : if($version, '[data-browser*="#{$version}"]', '');
+  $browserSelector : '[data-browser-name="#{$name}"]';
+  $versionSelector : if($version, '[data-browser-version="#{$version}"]', '');
 
   @at-root :root#{$browserSelector}#{$versionSelector} & {
     @content;
