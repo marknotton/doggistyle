@@ -1,6 +1,6 @@
 {
   "name": "@doggistyle/library",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "A collection of Sass variables, functions and mixins",
   "main": "library/src/index.scss",
   "repository": "marknotton/doggistyle",
