@@ -1,5 +1,0 @@
-@use 'modules/context' as *;
-
-@mixin has($rules...) {
-  @include context('has', (), $rules...) { @content; }
-}
