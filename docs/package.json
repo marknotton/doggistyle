@@ -15,7 +15,7 @@
 		"gulp-dart-sass": "^1.0.2",
 		"gulp-plumber": "^1.2.1",
 		"gulp-postcss": "^9.0.1",
-		"minimatch": "^3.0.4",
+		"minimatch": "^3.0.5",
 		"postcss": "^8.3.9",
 		"rollup": "^2.58.0"
 	},
